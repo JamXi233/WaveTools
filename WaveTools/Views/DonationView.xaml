@@ -1,0 +1,46 @@
+﻿<Page
+    x:Class="WaveTools.Views.DonationView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:WaveTools.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="Transparent">
+
+    <Grid HorizontalAlignment="Stretch" Margin="24">
+
+        <StackPanel HorizontalAlignment="Left" >
+
+            <StackPanel Orientation="Horizontal">
+                <ImageIcon Source="ms-appx:///Imgs/Don_Icon.gif" Height="42" Margin="0 0 8 0"/>
+                <TextBlock Text="赞助" Style="{StaticResource TitleTextBlockStyle}"/>
+            </StackPanel>
+            <TextBlock Text="感谢您支持🧰鸣潮工具箱(WaveTools)的开发" Margin="0 8 0 0"/>
+            <TextBlock Text="您的支持将使我能够更加有动力的继续开发和改进这个工具箱，为更多的玩家提供更好的体验。" Margin="0 8 0 0"/>
+            <TextBlock Text="使用支付宝赞助可以备注您的邮箱，您将会收到一封感谢邮件💌" FontWeight="Bold"/>
+
+            <StackPanel Orientation="Horizontal" Margin="0 24 0 0">
+
+                <StackPanel Orientation="Vertical">
+                    <Image Source="ms-appx:///Imgs/don_wechat.png" Height="256" Margin="0 0 8 0"/>
+                </StackPanel>
+                
+                <StackPanel Orientation="Vertical">
+                    <Image Source="ms-appx:///Imgs/don_alipay.png" Height="256" Margin="0 0 8 0"/>
+                </StackPanel>
+
+            </StackPanel>
+
+        </StackPanel>
+
+        <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Right">
+
+            <ImageIcon Source="ms-appx:///Imgs/Don_Hand.gif" Height="84" Margin="0 0 8 12"/>
+            <TextBlock Text="感谢您的慷慨赞助！" FontWeight="Bold" FontSize="18"/>
+
+        </StackPanel>
+
+    </Grid>
+
+</Page>

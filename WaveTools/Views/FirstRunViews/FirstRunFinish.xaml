@@ -1,0 +1,29 @@
+﻿<Page
+    x:Class="WaveTools.Views.FirstRunViews.FirstRunFinish"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:WaveTools.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="Transparent">
+
+    <Grid HorizontalAlignment="Stretch" Margin="0 36 0 0">
+
+        <StackPanel HorizontalAlignment="Left" Orientation="Vertical">
+
+            <TextBlock Text="首次设置-结束" FontWeight="Bold" FontSize="24"/>
+
+        </StackPanel>
+
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+
+            <ImageIcon Source="ms-appx:///Imgs/Don_Hand.gif" Height="84" Margin="0 0 8 12"/>
+            <TextBlock Text="首次设置完成" FontWeight="Bold" FontSize="18" HorizontalAlignment="Center"/>
+            <TextBlock Text="感谢使用WaveTools" FontWeight="Bold" FontSize="18" HorizontalAlignment="Center"/>
+
+        </StackPanel>
+
+    </Grid>
+
+</Page>

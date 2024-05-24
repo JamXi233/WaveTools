@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "WaveTools (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "WaveTools (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

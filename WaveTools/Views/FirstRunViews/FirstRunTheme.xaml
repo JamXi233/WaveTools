@@ -1,0 +1,94 @@
+﻿<Page
+    x:Class="WaveTools.Views.FirstRunViews.FirstRunTheme"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:WaveTools.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="Transparent">
+
+    <Grid HorizontalAlignment="Stretch" Margin="0 36 0 0">
+
+        <StackPanel HorizontalAlignment="Left" Orientation="Vertical">
+
+            <TextBlock Text="首次设置-主题选择" FontWeight="Bold" FontSize="24"/>
+
+        </StackPanel>
+
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="38">
+
+            <Grid>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
+                    <ColumnDefinition Width="1*"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" VerticalAlignment="Center" Width="280">
+                    <Image Source="ms-appx:///Imgs/FirstRun_DayNight.png" HorizontalAlignment="Right" Width="48" Height="48"/>
+                    <StackPanel Orientation="Horizontal" Spacing="10"/>
+                    <TextBlock Text="选择主题" FontSize="22" FontWeight="Bold" HorizontalAlignment="Right"/>
+                    <StackPanel Orientation="Horizontal" Spacing="10"/>
+                    <TextBlock Text="依照您个人喜好选择主题" FontSize="18" HorizontalAlignment="Right"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Height="200" Width="1" Background="Gray" Opacity="0.5" Margin="24 0"/>
+
+                <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                    <StackPanel HorizontalAlignment="Center" Width="280">
+                        <ToggleButton x:Name="FollowSystemButton" HorizontalAlignment="Left" Width="160" Click="FollowSystemButton_Click">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <Image Source="ms-appx:///Imgs/FirstRun_Windows.png" Width="32" Height="32"/>
+                                <StackPanel Orientation="Vertical" HorizontalAlignment="Left">
+                                    <TextBlock Text="跟随系统" FontWeight="SemiBold"/>
+                                    <TextBlock Text="模仿者模式" Opacity="0.6"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </ToggleButton>
+
+                        <StackPanel Height="8"/>
+
+                        <ToggleButton x:Name="DayModeButton" HorizontalAlignment="Left" Width="160" Click="DayModeButton_Click">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <Image Source="ms-appx:///Imgs/FirstRun_Day.png" Width="32" Height="32"/>
+                                <StackPanel Orientation="Vertical" HorizontalAlignment="Left">
+                                    <TextBlock Text="日间模式" FontWeight="SemiBold"/>
+                                    <TextBlock Text="闪光弹模式" Opacity="0.6"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </ToggleButton>
+
+                        <StackPanel Height="8"/>
+
+                        <ToggleButton x:Name="NightModeButton" HorizontalAlignment="Left" Width="160" Click="NightModeButton_Click">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <Image Source="ms-appx:///Imgs/FirstRun_Night.png" Width="32" Height="32"/>
+                                <StackPanel Orientation="Vertical" HorizontalAlignment="Left">
+                                    <TextBlock Text="夜间模式" FontWeight="SemiBold"/>
+                                    <TextBlock Text="推荐的模式" Opacity="0.6"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </ToggleButton>
+
+                        <StackPanel Height="8"/>
+
+                        <Button HorizontalAlignment="Left" Width="82" Click="ThemeFinish_Click">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <StackPanel Orientation="Vertical" HorizontalAlignment="Left">
+                                    <TextBlock Text="选择完成" FontWeight="SemiBold"/>
+                                    <TextBlock Text="下一步" Opacity="0.6"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+
+
+        </StackPanel>
+
+    </Grid>
+
+</Page>

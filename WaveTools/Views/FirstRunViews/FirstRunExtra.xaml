@@ -1,0 +1,62 @@
+﻿<Page
+    x:Class="WaveTools.Views.FirstRunViews.FirstRunExtra"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:WaveTools.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="Transparent">
+
+    <Grid HorizontalAlignment="Stretch" Margin="0 36 0 0">
+
+        <StackPanel HorizontalAlignment="Left" Orientation="Vertical">
+
+            <TextBlock Text="首次设置-其他" FontWeight="Bold" FontSize="18"/>
+
+        </StackPanel>
+
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8">
+
+            <TextBlock Text="看得到下面的图标吗" FontWeight="Bold" FontSize="24" HorizontalAlignment="Center"/>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
+                <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE713;" />
+                <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE74E;" />
+                <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE721;" />
+                <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE8D6;" />
+                <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE722;" />
+            </StackPanel>
+
+            <StackPanel Height="1" Width="135" Background="Gray"/>
+
+            <TextBlock Text="如果看不到图标则需要安装图标字体" FontSize="18" HorizontalAlignment="Center"/>
+
+            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal" Spacing="8">
+
+                <Button x:Name="InstallFontButton" Click="Install_Font_Click">
+
+                    <StackPanel>
+
+                        <StackPanel x:Name="font_Install" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock Text="安装图标字体" HorizontalAlignment="Center"/>
+                        </StackPanel>
+
+                        <StackPanel x:Name="font_Install_Progress" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed">
+                            <TextBlock Text="正在安装" HorizontalAlignment="Center"/>
+                            <ProgressBar x:Name="InstallFontProgress" Width="96" IsIndeterminate="False" ShowPaused="False" ShowError="False" />
+                        </StackPanel>
+                        
+                    </StackPanel>
+                    
+                </Button>
+
+                <Button x:Name="SkipButton" Click="Skip_Click" Content="跳过步骤"/>
+
+            </StackPanel>
+
+        </StackPanel>
+
+    </Grid>
+
+</Page>

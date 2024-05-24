@@ -1,0 +1,146 @@
+﻿<Page
+    x:Class="WaveTools.Views.SGViews.AccountView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid>
+        <Grid Margin="2">
+            <StackPanel Orientation="Vertical">
+                <StackPanel Orientation="Horizontal">
+                    <Button x:Name="saveAccount" Content="保存账号" Click="SaveAccount"/>
+                    <Button x:Name="currentAccount" Content="当前游戏账号" Margin="8 0 0 0" Click="GetCurrentAccount"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0 8 0 0">
+                    <Button x:Name="deleteAccount" Content="删除账号" Click="DeleteAccount"/>
+                    <Button x:Name="renameAccount" Content="重命名账号" Margin="8 0 0 0" Click="RenameAccount"/>
+
+                </StackPanel>
+                <TextBlock Text="账号列表" Margin="0 8 0 8"/>
+                <ListView x:Name="AccountListView" SelectionChanged="AccountListView_SelectionChanged">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding uid}" FontWeight="Bold" Margin="0,0,4,0"/>
+                                <TextBlock Text="{Binding DisplayName}"/>
+                                <!-- 更新这里 -->
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+
+                </ListView>
+            </StackPanel>
+
+            <TeachingTip x:Name="saveAccountName" 
+                         Target="{x:Bind saveAccount}">
+                <StackPanel>
+                    <TextBlock x:Name="saveAccountUID" FontWeight="Bold" Text="ℹ️将要保存的UID为:" FontSize="14" Margin="0 0 0 8"/>
+                    <TextBox x:Name="saveAccountNameInput" PlaceholderText="请输入别名" Margin="0 0 0 8" />
+                    <Button Content="保存" Click="SaveAccount_C"/>
+                </StackPanel>
+            </TeachingTip>
+
+            <TeachingTip x:Name="saveAccountSuccess"
+                    Background="{ThemeResource SystemControlAcrylicElementMediumHighBrush}"
+                    Target="{x:Bind saveAccount}"
+                    Title="来自WaveToolsHelper的消息"
+                    Subtitle=""
+	                CloseButtonContent="关闭">
+                <TeachingTip.IconSource>
+                    <SymbolIconSource Symbol="PreviewLink" />
+                </TeachingTip.IconSource>
+            </TeachingTip>
+
+            <TeachingTip x:Name="saveAccountFound"
+                    Background="{ThemeResource SystemControlAcrylicElementMediumHighBrush}"
+                    Target="{x:Bind saveAccount}"
+                    Title="账号已存在"
+                    Subtitle="是否要覆盖保存？"
+                    ActionButtonContent="覆盖保存"
+	                CloseButtonContent="关闭"
+                    ActionButtonClick="SaveAccount_Override">
+                <TeachingTip.IconSource>
+                    <SymbolIconSource Symbol="Clear" />
+                </TeachingTip.IconSource>
+            </TeachingTip>
+
+            <TeachingTip x:Name="currentAccountTip"
+                    Background="{ThemeResource SystemControlAcrylicElementMediumHighBrush}"
+                    Target="{x:Bind currentAccount}"
+                    Title="当前账号"
+                    Subtitle="SubTitle"
+	                CloseButtonContent="关闭">
+                <TeachingTip.IconSource>
+                    <SymbolIconSource Symbol="Contact" />
+                </TeachingTip.IconSource>
+            </TeachingTip>
+
+            <TeachingTip x:Name="removeAccountCheck"
+                    Background="{ThemeResource SystemControlAcrylicElementMediumHighBrush}"
+                    Target="{x:Bind deleteAccount}"
+                    Title="确定要删除账号吗？"
+                    Subtitle="删除账号将会移除所有关于该账号的注册表和本地账号文件"
+                    ActionButtonContent="删除"
+                    ActionButtonClick="RemoveAccount_C"
+	                CloseButtonContent="关闭">
+                <TeachingTip.IconSource>
+                    <SymbolIconSource Symbol="Help" />
+                </TeachingTip.IconSource>
+            </TeachingTip>
+
+            <TeachingTip x:Name="removeAccountSuccess"
+                    Background="{ThemeResource SystemControlAcrylicElementMediumHighBrush}"
+                    Target="{x:Bind deleteAccount}"
+                    Title="来自WaveToolsHelper的消息"
+                    Subtitle=""
+	                CloseButtonContent="关闭">
+                <TeachingTip.IconSource>
+                    <SymbolIconSource Symbol="PreviewLink" />
+                </TeachingTip.IconSource>
+            </TeachingTip>
+
+            <TeachingTip x:Name="renameAccountTip" 
+                         Target="{x:Bind renameAccount}">
+                <StackPanel>
+                    <TextBlock Text="将要重新命名的UID为:" FontSize="16" Margin="0 0 0 8"/>
+                    <TextBox x:Name="renameAccountNameInput" PlaceholderText="请输入别名" Margin="0 0 0 8" />
+                    <Button Content="保存" Click="RenameAccount_C"/>
+                </StackPanel>
+            </TeachingTip>
+
+            <TeachingTip x:Name="renameAccountSuccess"
+                    Background="{ThemeResource SystemControlAcrylicElementMediumHighBrush}"
+                    Target="{x:Bind renameAccount}"
+                    Title="来自WaveToolsHelper的消息"
+                    Subtitle=""
+	                CloseButtonContent="关闭">
+                <TeachingTip.IconSource>
+                    <SymbolIconSource Symbol="PreviewLink" />
+                </TeachingTip.IconSource>
+            </TeachingTip>
+        
+            <Button x:Name="refreshAccount"  Width="60" Height="60" VerticalAlignment="Bottom" HorizontalAlignment="Right" Click="RefreshAccount" Visibility="Collapsed">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <SymbolIcon Symbol="Refresh" HorizontalAlignment="Center" Width="32" Height="32"/>
+                    <TextBlock Text="刷新" HorizontalAlignment="Center" FontSize="12"/>
+                </StackPanel>
+            </Button>
+        
+            <Button x:Name="refreshAccount_Loading"  Width="60" Height="60" VerticalAlignment="Bottom" HorizontalAlignment="Right" Click="RefreshAccount" IsEnabled="False">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <StackPanel>
+                        <ProgressRing Width="24" Height="24"/>
+                    </StackPanel>
+                </StackPanel>
+            </Button>
+        </Grid>
+
+        <Grid x:Name="Account_Load" Background="{ThemeResource SystemControlAcrylicElementMediumHighBrush}" CornerRadius="8">
+            <ProgressRing/>
+        </Grid>
+        
+    </Grid>
+
+</Page>

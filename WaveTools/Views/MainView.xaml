@@ -1,0 +1,124 @@
+﻿<Page
+    x:Class="WaveTools.Views.MainView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:WaveTools.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid>
+        <Image x:Name="BackgroundImage" Stretch="UniformToFill" Opacity="1" ImageOpened="BackgroundImage_ImageOpened" Margin="0 -8 0 0 "/>
+
+        <Grid x:Name="MainAPP" HorizontalAlignment="Stretch" Margin="24">
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition Width="2*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- 右侧区域 -->
+            <StackPanel Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Bottom">
+                <Grid x:Name="OpenUrlButton" HorizontalAlignment="Center" VerticalAlignment="Bottom"  Height="144" Width="557" BorderBrush="Transparent">
+                    <Grid.Background>
+                        <ImageBrush x:Name="IconImageBrush"/>
+                    </Grid.Background>
+                </Grid>
+            </StackPanel>
+
+            <!-- 左侧区域 -->
+            <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+
+                <Grid>
+
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="1*"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid x:Name="Notify_Grid" Grid.Row="1" Margin="0 18 0 0" CornerRadius="12" Height="160" Width="345" Background="{ThemeResource SystemControlAcrylicElementBrush}">
+                        <SelectorBar x:Name="NotifyNav" SelectionChanged="Notify_NavView_SelectionChanged" Visibility="Collapsed" Margin="12 0 0 0">
+                            <SelectorBarItem Text="活动" Tag="Notify_Notification" >
+                                <SelectorBarItem.Icon>
+                                    <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xf580;"/>
+                                </SelectorBarItem.Icon>
+                            </SelectorBarItem>
+                            <SelectorBarItem Text="公告" Tag="Notify_Message" >
+                                <SelectorBarItem.Icon>
+                                    <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xe8bd;"/>
+                                </SelectorBarItem.Icon>
+                            </SelectorBarItem>
+                            <SelectorBarItem Text="新闻" Tag="Notify_Announce">
+                                <SelectorBarItem.Icon>
+                                    <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xe789;"/>
+                                </SelectorBarItem.Icon>
+                            </SelectorBarItem>
+
+                        </SelectorBar>
+                        <Frame x:Name="NotifyFrame" Padding="8 48 8 0"/>
+                        
+                        <Grid x:Name="NotifyLoad">
+                            <ProgressRing/>
+                        </Grid>
+                    </Grid>
+
+
+                    <Grid x:Name="Gallery_Grid" Grid.Row="0" Visibility="Collapsed">
+
+                        <FlipView x:Name="Gallery" ItemsSource="{x:Bind Pictures}" PointerPressed="Gallery_PointerPressed" Height="194" Width="345" CornerRadius="12" >
+                            <FlipView.ItemTemplate>
+                                <DataTemplate x:DataType="x:String">
+                                    <Image>
+                                        <Image.Source>
+                                            <BitmapImage UriSource="{x:Bind Mode=OneTime}" DecodePixelWidth="345" />
+                                        </Image.Source>
+                                    </Image>
+                                </DataTemplate>
+                            </FlipView.ItemTemplate>
+                        </FlipView>
+
+                        <Grid Background="{ThemeResource SystemControlAcrylicElementMediumHighBrush}" Height="24" Width="64" CornerRadius="12" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0 0 12 -12">
+
+                            <PipsPager x:Name="FlipViewPipsPager"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Center"
+                                SelectedPageIndex="{x:Bind Path=Gallery.SelectedIndex, Mode=TwoWay}" />
+
+                        </Grid>
+
+                    </Grid>
+
+                </Grid>
+
+
+            </StackPanel>
+
+        </Grid>
+
+        <Grid x:Name="loadRing" HorizontalAlignment="Center" VerticalAlignment="Center" Background="{ThemeResource SystemControlAcrylicElementMediumHighBrush}" CornerRadius="8" Width="72" Height="72" Visibility="Visible">
+
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+
+                <ProgressRing/>
+
+            </StackPanel>
+
+        </Grid>
+
+        <Grid x:Name="loadErr" HorizontalAlignment="Center" VerticalAlignment="Center" Background="{ThemeResource SystemControlAcrylicElementMediumHighBrush}" CornerRadius="8" Width="240" Height="100" Visibility="Collapsed">
+
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+
+                <FontIcon Glyph="&#xEA6A;" Margin="0 8 0 0"/>
+                <TextBlock Text="获取首页失败，请检查网络连接" Margin="0 8 0 0"/>
+
+            </StackPanel>
+
+        </Grid>
+
+        <InfoBar x:Name="infoBar" IsOpen="False" Severity="Error" Title="" Message="" />
+
+
+    </Grid>
+
+</Page>

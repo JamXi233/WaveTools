@@ -1,0 +1,70 @@
+﻿<Page
+    x:Class="WaveTools.Views.ToolViews.GachaView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:WaveTools.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="Transparent">
+
+    <Grid HorizontalAlignment="Stretch" Margin="24">
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="6*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" HorizontalAlignment="Left" >
+            <StackPanel HorizontalAlignment="Stretch" Orientation="Horizontal">
+                <ToggleButton x:Name="ProxyButton" Content="开启代理" Click="ProxyButton_Click" Margin="0 0 0 8"/>
+                <Button x:Name="ExportSRGF" Content="导出记录" Click="ExportSRGF_Click" IsEnabled="False" Margin="8 0 0 8"/>
+                <Button x:Name="ImportSRGF" Content="导入记录" Click="ImportSRGF_Click" IsEnabled="False" Margin="8 0 0 8"/>
+                <Button x:Name="ClearGacha" Content="清空记录" FontWeight="Bold" Foreground="Red" Click="ClearGacha_Click" IsEnabled="False" Margin="8 0 0 8"/>
+                <ComboBox x:Name="GachaRecordsUID" 
+                  PlaceholderText="选择UID" 
+                  Width="120" Margin="8,0,0,8"
+                  ItemsSource="{Binding UidList}"
+                  SelectedItem="{Binding SelectedUid}"
+                  SelectionChanged="GachaRecordsUID_SelectionChanged">
+                </ComboBox>
+            </StackPanel>
+            <StackPanel HorizontalAlignment="Stretch" Orientation="Horizontal">
+                <TextBlock Text="状态:" />
+                <TextBlock x:Name="gacha_status" Text="等待操作"/>
+            </StackPanel>
+        </StackPanel>
+
+        <Grid Grid.Row="1" HorizontalAlignment="Stretch">
+            <Grid x:Name="loadGachaProgress" Visibility="Visible" Width="120" Height="120" CornerRadius="12" Background="{ThemeResource SystemControlAcrylicElementMediumHighBrush}">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <ProgressRing Visibility="Visible" x:Name="loadGachaProgressRing"/>
+                    <FontIcon Visibility="Visible" x:Name="loadGachaFailedIcon" FontFamily="Segoe Fluent Icons" Glyph="&#xeb90;"/>
+                    <TextBlock Visibility="Visible" x:Name="loadGachaText" Text="等待刷新列表" Margin="0 12 0 0"/>
+                </StackPanel>
+            </Grid>
+            <StackPanel x:Name="gachaView" Grid.Column="0" Visibility="Collapsed">
+                <SelectorBar x:Name="gachaNav" SelectionChanged="NavView_SelectionChanged">
+                    <SelectorBarItem x:Name="CharacterGachaSelect" Text="角色池" Tag="CharacterGacha" IsEnabled="False" />
+                    <SelectorBarItem x:Name="LightConeGachaSelect" Text="光锥池" Tag="LightConeGacha" IsEnabled="False"/>
+                    <SelectorBarItem x:Name="RegularGachaSelect" Text="常驻池" Tag="RegularGacha" IsEnabled="False"/>
+                    <SelectorBarItem x:Name="NewbieGachaSelect" Text="新手池" Tag="NewbieGacha" IsEnabled="False"/>
+                </SelectorBar>
+                <Frame x:Name="gachaFrame" Margin="12"/>
+            </StackPanel>
+        </Grid>
+
+        <TeachingTip x:Name="GachaLink"
+            Target="{x:Bind ProxyButton}"
+                     
+            Title="代理"
+            Subtitle="SubTitle"
+	        CloseButtonContent="关闭">
+            <TeachingTip.IconSource>
+                <SymbolIconSource Symbol="Admin" />
+            </TeachingTip.IconSource>
+        </TeachingTip>
+        <InfoBar x:Name="infoBar" IsOpen="False" Severity="Error" Title="" Message="" />
+
+    </Grid>
+</Page>

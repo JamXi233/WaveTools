@@ -1,0 +1,28 @@
+﻿<Page
+    x:Class="WaveTools.Views.NotifyViews.NotifyMessageView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:WaveTools.Views.NotifyViews"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid>
+        <StackPanel>
+            <ListView x:Name="NotifyMessageView_List" Height="96" IsItemClickEnabled="True" ItemClick="List_PointerPressed">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="10*"/>
+                                <ColumnDefinition Width="2*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Margin="-6 0 0 0" Grid.Column="0" Text="{Binding content}" />
+                            <TextBlock Margin="12 0 0 0" Grid.Column="1" Text="{Binding time}" />
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </StackPanel>
+    </Grid>
+</Page>

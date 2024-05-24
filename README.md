@@ -17,7 +17,7 @@
 
 🔑账号切换
 
-# 1.3安装方法
+# 安装方法
 打开Powershell
 
 输入irm wavetools.jamsg.cn/get | iex

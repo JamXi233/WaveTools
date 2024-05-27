@@ -18,6 +18,7 @@
             <StackPanel HorizontalAlignment="Stretch" Orientation="Horizontal">
                 <Button x:Name="GetGachaURL" Content="获取抽卡记录" Click="GetGachaURL_Click" Margin="0 0 0 8"/>
                 <Button x:Name="UpdateGacha" Content="更新记录" Click="UpdateGacha_Click" Margin="8 0 0 8"/>
+                <Button x:Name="OpenGachaWeb" Content="打开抽卡记录" Click="OpenGachaWeb_Click" IsEnabled="False" Margin="8 0 0 8"/>
                 <Button x:Name="ExportWWGF" Content="导出记录" Click="ExportWWGF_Click" IsEnabled="False" Margin="8 0 0 8"/>
                 <Button x:Name="ImportWWGF" Content="导入记录" Click="ImportWWGF_Click" IsEnabled="False" Margin="8 0 0 8"/>
                 <Button x:Name="ClearGacha" Content="清空记录" FontWeight="Bold" Foreground="Red" Click="ClearGacha_Click" IsEnabled="False" Margin="8 0 0 8"/>

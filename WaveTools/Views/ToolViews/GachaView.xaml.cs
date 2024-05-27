@@ -4,12 +4,17 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.UI;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
+using Microsoft.Web.WebView2.Core;
 using Newtonsoft.Json;
 using WaveTools.Depend;
+using Windows.Graphics;
+using WinRT.Interop;
 using static WaveTools.App;
 
 namespace WaveTools.Views.ToolViews
@@ -115,6 +120,43 @@ namespace WaveTools.Views.ToolViews
                 SaveGachaLink(selectedUid);
             }
         }
+
+        private async void OpenGachaWeb_Click(object sender, RoutedEventArgs e)
+        {
+            string gachaUrl = await ProcessRun.WaveToolsHelperAsync($"/GetSavedGachaURL {selectedUid}");
+
+            var newWindow = new Window();
+            newWindow.Title = $"[UID:{selectedUid}]抽卡记录";
+
+            var webView = new WebView2
+            {
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                VerticalAlignment = VerticalAlignment.Stretch
+            };
+
+            var grid = new Grid();
+            grid.Children.Add(webView);
+
+            newWindow.Content = grid;
+
+            // 获取 AppWindow 对象并设置窗口大小
+            IntPtr hWnd = WindowNative.GetWindowHandle(newWindow);
+            WindowId windowId = Win32Interop.GetWindowIdFromWindow(hWnd);
+            AppWindow appWindow = AppWindow.GetFromWindowId(windowId);
+
+            appWindow.Resize(new SizeInt32(951, 534));
+
+            newWindow.Activate();
+
+            // 初始化 WebView2 并禁用开发者工具和右键菜单
+            await webView.EnsureCoreWebView2Async(null);
+
+            webView.CoreWebView2.Settings.AreDevToolsEnabled = false;
+            webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
+            webView.Source = new Uri(gachaUrl);
+        }
+
+
 
         private async void UpdateGacha_Click(object sender, RoutedEventArgs e)
         {
@@ -229,6 +271,7 @@ namespace WaveTools.Views.ToolViews
 
             // 重新加载清除按钮的状态
             ClearGacha.IsEnabled = !string.IsNullOrEmpty(selectedUid);
+            OpenGachaWeb.IsEnabled = !string.IsNullOrEmpty(selectedUid);
 
             // 更新 UI 的其他部分（例如，显示或隐藏特定的控件）
             loadGachaProgress.Visibility = Visibility.Collapsed;
@@ -268,6 +311,7 @@ namespace WaveTools.Views.ToolViews
                     noGachaFound.Visibility = Visibility.Collapsed;
                     gachaView.Visibility = Visibility;
                     ClearGacha.IsEnabled = true;
+                    OpenGachaWeb.IsEnabled = true;
                 }
             }
             catch (Exception ex)

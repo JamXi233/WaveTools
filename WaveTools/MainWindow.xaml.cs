@@ -38,18 +38,16 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using Spectre.Console;
 using Windows.System;
 using Windows.Storage.AccessCache;
-using WaveTools.Views.ToolViews;
 using WaveTools.Views.FirstRunViews;
-using System.Data;
-using Microsoft.UI.Xaml.Media;
 using static WaveTools.App;
 using Newtonsoft.Json.Linq;
-using System.Runtime.CompilerServices;
 using System.IO.Compression;
+using WaveTools.Views.ToolViews;
+using System.ComponentModel;
 
 namespace WaveTools
 {
-    public partial class MainWindow : Microsoft.UI.Xaml.Window
+    public partial class MainWindow : Window
     {
         private static readonly HttpClient httpClient = new HttpClient();
         private IntPtr hwnd = IntPtr.Zero;
@@ -57,9 +55,7 @@ namespace WaveTools
         private AppWindow appWindow = null;
         private AppWindowTitleBar titleBar;
         string ExpectionFileName;
-        string backgroundUrl = "";
 
-        // 导入 AllocConsole 和 FreeConsole 函数
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool AllocConsole();
@@ -67,11 +63,14 @@ namespace WaveTools
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool FreeConsole();
-        // 导入 GetAsyncKeyState 函数
         [DllImport("User32.dll")]
         public static extern short GetAsyncKeyState(int vKey);
 
         public NavigationView NavigationView { get; }
+
+        private Action buttonAction;
+
+        private MainFrameController mainFrameController;
 
         public MainWindow()
         {
@@ -83,13 +82,15 @@ namespace WaveTools
 
             NotificationManager.OnNotificationRequested += AddNotification;
             WaitOverlayManager.OnWaitOverlayRequested += ShowWaitOverlay;
+            DialogManager.OnDialogRequested += ShowDialog;
+            mainFrameController = new MainFrameController(MainFrame);
+
             this.Activated += MainWindow_Activated;
             this.Closed += MainWindow_Closed;
         }
 
         private async void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
         {
-            // 确保初始化代码只执行一次
             this.Activated -= MainWindow_Activated;
             await InitializeAppDataAsync();
             await LoadBackgroundAsync();
@@ -179,6 +180,18 @@ namespace WaveTools
             }
         }
 
+        private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+        {
+            if (args.IsSettingsSelected)
+            {
+                mainFrameController.Navigate("settings");
+            }
+            else if (args.SelectedItemContainer != null)
+            {
+                string tag = args.SelectedItemContainer.Tag.ToString();
+                mainFrameController.Navigate(tag);
+            }
+        }
 
         public void StartCheckingFirstRun()
         {
@@ -193,7 +206,6 @@ namespace WaveTools
             if (AppDataController.GetFirstRun() == 0)
             {
                 KillFirstUI();
-                // 停止计时器，因为不再需要检查
                 (sender as DispatcherTimer)?.Stop();
             }
         }
@@ -206,16 +218,13 @@ namespace WaveTools
 
         private void InitializeWindowProperties()
         {
-            //设置窗口大小等开始
             hwnd = WindowNative.GetWindowHandle(this);
             WindowId id = Win32Interop.GetWindowIdFromWindow(hwnd);
             appWindow = AppWindow.GetFromWindowId(id);
             DisableWindowResize();
-            // 设置窗口为不可调整大小
             presenter = appWindow.Presenter as OverlappedPresenter;
             if (presenter != null)
-            {
-                // 禁用最大化和大小调整
+            { 
                 presenter.IsResizable = false;
                 presenter.IsMaximizable = false;
             }
@@ -255,7 +264,6 @@ namespace WaveTools
 
         }
 
-
         private void RegisterSystemThemeChangeEvents(WindowId id)
         {
             var uiSettings = new Windows.UI.ViewManagement.UISettings();
@@ -264,16 +272,12 @@ namespace WaveTools
                 if (appWindow == null) return;
                 UpdateTitleBarColor(appWindow.TitleBar);
             };
-
-            // 初始化时也设置一次标题栏颜色
             UpdateTitleBarColor(appWindow.TitleBar);
         }
 
         private void UpdateTitleBarColor(AppWindowTitleBar titleBar)
         {
             if (titleBar == null) return;
-
-            // 如果 AppDataController.GetDayNight() 返回 0, 使用系统主题颜色
             if (AppDataController.GetDayNight() == 0)
             {
                 var uiSettings = new Windows.UI.ViewManagement.UISettings();
@@ -282,7 +286,6 @@ namespace WaveTools
             }
             else
             {
-                // 否则，根据 App.CurrentTheme 设置颜色
                 titleBar.ButtonForegroundColor = App.CurrentTheme == ApplicationTheme.Light ? Colors.Black : Colors.White;
             }
         }
@@ -291,8 +294,6 @@ namespace WaveTools
         private void DisableWindowResize()
         {
             int style = NativeMethods.GetWindowLong(hwnd, NativeMethods.GWL_STYLE);
-
-            // Remove the WS_SIZEBOX style to disable resizing
             style &= ~NativeMethods.WS_SIZEBOX;
             NativeMethods.SetWindowLong(hwnd, NativeMethods.GWL_STYLE, style);
         }
@@ -313,24 +314,17 @@ namespace WaveTools
             string backgroundPath = Path.Combine(targetPath, "home_1.jpg");
             string iconPath = Path.Combine(targetPath, "slogan.png");
             string md5FilePath = Path.Combine(targetPath, "md5.txt");
-
-            // 检查文件是否存在以及MD5是否匹配
             if (File.Exists(backgroundPath) && File.Exists(iconPath) && File.Exists(md5FilePath))
             {
                 string cachedMd5 = await File.ReadAllTextAsync(md5FilePath);
                 if (cachedMd5 == newMd5)
                 {
-                    // MD5匹配，直接加载
                     await LoadAdvertisementDataAsync(backgroundPath, iconPath);
                     return;
                 }
             }
-
-            // MD5不匹配或文件不存在，下载并解压
             await DownloadFileAsync(zipUrl, zipFilePath);
             ExtractZipFile(zipFilePath, targetPath);
-
-            // 保存新的MD5
             await File.WriteAllTextAsync(md5FilePath, newMd5);
 
             await LoadAdvertisementDataAsync(backgroundPath, iconPath);
@@ -394,38 +388,6 @@ namespace WaveTools
             }
         }
 
-
-        private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
-        {
-            NavigationViewItem item = args.SelectedItem as NavigationViewItem;
-            string tag = item.Tag.ToString();
-            if (args.IsSettingsSelected)
-            {
-                MainFrame.Navigate(typeof(AboutView));
-            }
-            else if (args.SelectedItemContainer != null)
-            {
-                switch (args.SelectedItemContainer.Tag.ToString())
-                {
-                    case "home":
-                        MainFrame.Navigate(typeof(MainView));
-                        break;
-                    case "startgame":
-                        MainFrame.Navigate(typeof(StartGameView));
-                        break;
-                    case "gacha":
-                        MainFrame.Navigate(typeof(GachaView));
-                        break;
-                    case "donation":
-                        MainFrame.Navigate(typeof(DonationView));
-                        break;
-                    case "settings":
-                        MainFrame.Navigate(typeof(AboutView));
-                        break;
-                }
-            }
-        }
-
         public static async Task<ApiResponse> FetchData(string url)
         {
             HttpResponseMessage httpResponse = await httpClient.GetAsync(url);
@@ -454,27 +416,36 @@ namespace WaveTools
             }
             catch (Exception ex)
             {
+                string errorMessage;
+                InfoBarSeverity severity = InfoBarSeverity.Error;
+                if (ex.Message.Contains("SSL"))
+                {
+                    errorMessage = "网络连接发生错误\n" + ex.Message;
+                    severity = InfoBarSeverity.Warning;
+                }
+                else
+                {
+                    errorMessage = ex.Message.Trim() + "\n\n已生成错误报告\n如再次尝试仍会重现错误\n您可以到Github提交Issue";
+                }
+
                 ExpectionFileName = string.Format("WaveTools_Panic_{0:yyyyMMdd_HHmmss}.WaveToolsPanic", DateTime.Now);
 
                 // 显示InfoBar通知
-                var errorMessage = ex.Message.Trim() + "\n\n已生成错误报告\n如再次尝试仍会重现错误\n您可以到Github提交Issue";
-                // 调用 AddNotification 方法来显示错误信息和操作按钮
-                AddNotification("严重错误", errorMessage, InfoBarSeverity.Error, () =>
+                AddNotification("严重错误", errorMessage, severity, () =>
                 {
                     ExpectionFolderOpen_Click();
                 }, "打开文件夹");
 
                 AnsiConsole.WriteException(ex, ExceptionFormats.ShortenPaths | ExceptionFormats.ShortenTypes | ExceptionFormats.ShortenMethods | ExceptionFormats.ShowLinks | ExceptionFormats.Default);
-                await ExceptionSave.Write("源:" + ex.Source + "\n错误标题:" + ex.Message + "\n堆栈跟踪:\n" + ex.StackTrace + "\n内部异常:\n" + ex.InnerException + "\n结束代码:" + ex.HResult, 1, ExpectionFileName);
+                await ExceptionSave.Write("源:" + ex.Source + "\n错误标题:" + ex.Message + "\n堆栈跟踪:\n" + ex.StackTrace + "\n内部异常:\n" + ex.InnerException + "\n结束代码:" + ex.HResult + "\n完整错误:\n" + ex.ToString(), 1, ExpectionFileName);
             }
         }
+
 
         private async void ExpectionFolderOpen_Click() 
         {
             StorageFolder folder = await KnownFolders.DocumentsLibrary.CreateFolderAsync("JSG-LLC\\Panic", CreationCollisionOption.OpenIfExists);
-            // 获取指定文件
             StorageFile file = await folder.GetFileAsync(ExpectionFileName);
-            // 将文件添加到最近使用列表中
             StorageApplicationPermissions.MostRecentlyUsedList.Add(file);
             await Launcher.LaunchFolderAsync(folder, new FolderLauncherOptions { ItemsToSelect = { file } });
         }
@@ -482,12 +453,10 @@ namespace WaveTools
 
         public void AddNotification(string title, string message, InfoBarSeverity severity, Action actionButtonAction = null, string actionButtonText = null, bool isClosable = true)
         {
-            // 检查是否已存在具有相同标题的通知
             if (IsNotificationPresent(title))
             {
-                return;  // 直接返回，不添加重复的通知
+                return;
             }
-
             InfoBar infoBar = new InfoBar();
             if (isClosable == true)
             {
@@ -564,7 +533,7 @@ namespace WaveTools
         }
 
 
-        public void ShowWaitOverlay(bool status, bool isProgress = false, int progress = 0, string title = null, string subtitle = null)
+        public void ShowWaitOverlay(bool status, bool isProgress = false, int progress = 0, string title = null, string subtitle = null, bool isBtnEnabled = false, string btnContent = "", Action btnAction = null)
         {
             if (status)
             {
@@ -576,19 +545,91 @@ namespace WaveTools
                     WaitOverlay_ProgressBar.Visibility = Visibility.Visible;
                     WaitOverlay_ProgressBar_Value.Visibility = Visibility.Visible;
                     WaitOverlay_ProgressBar.Value = progress;
-                    WaitOverlay_ProgressBar_Value.Text = progress.ToString()+"%";
+                    WaitOverlay_ProgressBar_Value.Text = progress.ToString() + "%";
                 }
-                else 
+                else
                 {
                     WaitOverlay_ProgressBar.Visibility = Visibility.Collapsed;
                     WaitOverlay_ProgressBar_Value.Visibility = Visibility.Collapsed;
                 }
-                
+
                 WaitOverlay_Title.Text = title;
                 WaitOverlay_SubTitle.Text = subtitle;
+
+                if (isBtnEnabled)
+                {
+                    WaitOverlay_Button.Visibility = Visibility.Visible;
+                    WaitOverlay_Button.IsEnabled = true;
+                    buttonAction = btnAction;
+                    if (btnContent != "") WaitOverlay_Button.Content = btnContent;
+                }
+                else
+                {
+                    WaitOverlay_Button.Visibility = Visibility.Collapsed;
+                    WaitOverlay_Button.IsEnabled = false;
+                    buttonAction = null;
+                }
             }
-            else WaitOverlay.Visibility = Visibility.Collapsed;
+            else
+            {
+                WaitOverlay.Visibility = Visibility.Collapsed;
+                WaitOverlay_Progress.Visibility = Visibility.Collapsed;
+                WaitOverlay_Success.Visibility = Visibility.Collapsed;
+                WaitOverlay_Button.Visibility = Visibility.Collapsed;
+                WaitOverlay_Button.IsEnabled = false;
+                buttonAction = null;
+            }
         }
+
+        private void WaitOverlayButton_Click(object sender, RoutedEventArgs e)
+        {
+            buttonAction?.Invoke();
+        }
+
+        private async void ShowDialog(bool status, string title = null, string content = null, bool isPrimaryButtonEnabled = false, string primaryButtonContent = "", Action primaryButtonAction = null, bool isSecondaryButtonEnabled = false, string secondaryButtonContent = "", Action secondaryButtonAction = null)
+        {
+            if (status)
+            {
+                ContentDialog dialog = new ContentDialog
+                {
+                    Title = title,
+                    Content = new TextBlock { Text = content, FontSize = 14 },
+                    PrimaryButtonText = isPrimaryButtonEnabled ? primaryButtonContent : null,
+                    SecondaryButtonText = isSecondaryButtonEnabled ? secondaryButtonContent : null,
+                    CloseButtonText = "关闭",
+                    XamlRoot = this.Content.XamlRoot // 确保在正确的 XamlRoot 上显示
+                };
+
+                if (isPrimaryButtonEnabled)
+                {
+                    dialog.PrimaryButtonClick += (sender, args) => primaryButtonAction?.Invoke();
+                }
+
+                if (isSecondaryButtonEnabled)
+                {
+                    dialog.SecondaryButtonClick += (sender, args) => secondaryButtonAction?.Invoke();
+                }
+
+                await dialog.ShowAsync();
+            }
+        }
+
+        private void PrimaryButton_Click(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+        {
+            // 处理主要按钮点击事件
+        }
+
+        private void SecondaryButton_Click(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+        {
+            // 处理次要按钮点击事件
+        }
+
+        private void CloseButton_Click(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+        {
+            // 处理关闭按钮点击事件
+        }
+
+
 
         private void MainWindow_Closed(object sender, WindowEventArgs e)
         {

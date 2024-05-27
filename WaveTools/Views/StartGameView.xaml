@@ -41,7 +41,7 @@
                                         </Grid>
                                     </Grid>
                                     <StackPanel>
-                                        
+
                                     </StackPanel>
                                     <Grid x:Name="Frame_GraphicSettingView_Disable" CornerRadius="8"  Visibility="Collapsed" Canvas.ZIndex="100">
                                         <StackPanel Background="{ThemeResource SystemControlAcrylicElementBrush}"/>
@@ -59,8 +59,8 @@
                                         <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
                                             <StackPanel>
                                                 <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xe7ba;" Height="36" Width="36"/>
-                                                <TextBlock x:Name="Frame_GraphicSettingView_Launched_Disable_Title" Text="目前画质调节功能无法使用" HorizontalAlignment="Center"/>
-                                                <TextBlock x:Name="Frame_GraphicSettingView_Launched_Disable_Subtitle" Text="游戏未手动设置过画质" HorizontalAlignment="Center"/>
+                                                <TextBlock x:Name="Frame_GraphicSettingView_Launched_Disable_Title" Text="" HorizontalAlignment="Center"/>
+                                                <TextBlock x:Name="Frame_GraphicSettingView_Launched_Disable_Subtitle" Text="" HorizontalAlignment="Center"/>
                                             </StackPanel>
                                         </Grid>
                                     </Grid>
@@ -82,28 +82,54 @@
 
                         <Grid BorderBrush="Gray" BorderThickness="1" CornerRadius="8">
                             <StackPanel Orientation="Vertical" Padding="4">
-                                <Grid>
-                                    <Grid x:Name="Frame_AccountView_Loading" CornerRadius="8">
+                                <Grid >
+                                    <Grid x:Name="Frame_AccountView_Loading" CornerRadius="8" >
                                         <StackPanel/>
-                                        <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
-                                            <StackPanel HorizontalAlignment="Center">
+                                        <Grid VerticalAlignment="Center" HorizontalAlignment="Center" >
+                                            <StackPanel>
                                                 <ProgressRing Height="36" Width="36"/>
                                             </StackPanel>
                                         </Grid>
                                     </Grid>
+                                    <StackPanel>
 
-                                    <Grid x:Name="Frame_AccountView_Disable" CornerRadius="8"  Canvas.ZIndex="100">
+                                    </StackPanel>
+                                    <Grid x:Name="Frame_AccountView_Disable" CornerRadius="8"  Visibility="Collapsed" Canvas.ZIndex="100">
                                         <StackPanel Background="{ThemeResource SystemControlAcrylicElementBrush}"/>
                                         <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
-                                            <StackPanel HorizontalAlignment="Center">
+                                            <StackPanel>
                                                 <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xe7ba;" Height="36" Width="36"/>
-                                                <TextBlock Text="账号切换功能正在开发" HorizontalAlignment="Center"/>
-                                                <TextBlock Text="请耐心等待" HorizontalAlignment="Center"/>
+                                                <TextBlock x:Name="Frame_AccountView_Disable_Title" Text="" HorizontalAlignment="Center"/>
+                                                <TextBlock x:Name="Frame_AccountView_Disable_Subtitle" Text="" HorizontalAlignment="Center"/>
                                             </StackPanel>
                                         </Grid>
                                     </Grid>
+
+                                    <Grid x:Name="Frame_AccountView_Usage_Disable" CornerRadius="8"  Visibility="Collapsed" Canvas.ZIndex="100">
+                                        <StackPanel Background="{ThemeResource SystemControlAcrylicElementBrush}"/>
+                                        <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
+                                            <StackPanel>
+                                                <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xe7ba;" Height="36" Width="36"/>
+                                                <TextBlock x:Name="Frame_AccountView_Usage_Disable_Title" Text="不建议使用该账号切换" HorizontalAlignment="Center"/>
+                                                <TextBlock x:Name="Frame_AccountView_Usage_Disable_Subtitle" Text="游戏本身自带账号切换功能" HorizontalAlignment="Center"/>
+                                                <Button Content="仍要使用" Click="AccountChange_ForceOn" HorizontalAlignment="Center"  Background="Transparent"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Grid>
+
+                                    <Grid x:Name="Frame_AccountView_Launched_Disable" CornerRadius="8"  Visibility="Collapsed" Canvas.ZIndex="100">
+                                        <StackPanel Background="{ThemeResource SystemControlAcrylicElementBrush}"/>
+                                        <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
+                                            <StackPanel>
+                                                <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xe7ba;" Height="36" Width="36"/>
+                                                <TextBlock x:Name="Frame_AccountView_Launched_Disable_Title" Text="" HorizontalAlignment="Center"/>
+                                                <TextBlock x:Name="Frame_AccountView_Launched_Disable_Subtitle" Text="" HorizontalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Grid>
+
                                     <StackPanel>
-                                        <SelectorBarItem x:Name="AccountSelect" Text="账号切换" IsSelected="False" IsEnabled="False"  HorizontalAlignment="Left" VerticalAlignment="Top" >
+                                        <SelectorBarItem x:Name="AccountSelect" Text="账号切换" IsSelected="True" IsEnabled="True" HorizontalAlignment="Left" VerticalAlignment="Top">
                                             <SelectorBarItem.Icon>
                                                 <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xe748;"/>
                                             </SelectorBarItem.Icon>
@@ -111,11 +137,12 @@
                                         <Frame x:Name="Frame_AccountView" Width="250" Height="370" Padding="8" HorizontalAlignment="Left"/>
                                     </StackPanel>
 
-
                                 </Grid>
 
                             </StackPanel>
 
+                            <Button x:Name="AccountChange_Off_Btn" Canvas.ZIndex="100" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="12 12 20 12" Content="关闭功能" Click="AccountChange_Off"/>
+                            
                         </Grid>
 
                     </StackPanel>
@@ -165,7 +192,7 @@
                                 <TextBlock Text="开始游戏" FontSize="12"/>
                             </StackPanel>
                         </Button>
-                        <Button x:Name="gameRunning" Height="84" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="12 12 0 12" IsEnabled="False" Visibility="Collapsed">
+                        <Button x:Name="gameRunning" Width="90" Height="84" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="12 12 0 12" IsEnabled="False" Visibility="Collapsed">
                             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                                 <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xe768;" Width="32" Height="32"/>
                                 <TextBlock Text="游戏运行中" FontSize="12"/>
@@ -176,12 +203,22 @@
                 </StackPanel>
 
             </Grid>
-            
+
             <TeachingTip x:Name="ValidGameFile"
                 Target="{x:Bind selectGame}"
                 Title="错误的游戏本体"
                 Subtitle="选择正确的StarRail.exe\n通常位于[游戏根目录\Game\StarRail.exe]"
 	            CloseButtonContent="关闭">
+                <TeachingTip.IconSource>
+                    <SymbolIconSource Symbol="Help" />
+                </TeachingTip.IconSource>
+            </TeachingTip>
+
+            <TeachingTip x:Name="NoSelectedAccount"
+                Target="{x:Bind startGame}"
+                Title="未选择账号"
+                Subtitle="请选择要登录的账号"
+                CloseButtonContent="关闭">
                 <TeachingTip.IconSource>
                     <SymbolIconSource Symbol="Help" />
                 </TeachingTip.IconSource>

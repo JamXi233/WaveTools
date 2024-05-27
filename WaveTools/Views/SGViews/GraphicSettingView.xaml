@@ -11,7 +11,7 @@
             <StackPanel Orientation="Vertical">
 
                 <!-- FPS Setting -->
-                <Grid>
+                <Grid VerticalAlignment="Center">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
@@ -21,7 +21,7 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <TextBlock Text="帧率" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_FPS" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="8">
+                    <DropDownButton x:Name="DDB_FPS" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
                                 <MenuFlyoutItem Tag="KeyCustomFrameRate" Text="30" Click="ChangeGraphic"/>
@@ -44,7 +44,7 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <TextBlock Text="垂直同步" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_EnableVSync" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="8">
+                    <DropDownButton x:Name="DDB_EnableVSync" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
                                 <MenuFlyoutItem Tag="KeyPcVsync" Text="开启" Click="ChangeGraphic"/>
@@ -65,7 +65,7 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <TextBlock Text="抗锯齿" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_EnableAA" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="8">
+                    <DropDownButton x:Name="DDB_EnableAA" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
                                 <MenuFlyoutItem Tag="KeyAntiAliasing" Text="开启" Click="ChangeGraphic"/>
@@ -86,7 +86,7 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <TextBlock Text="阴影质量" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_ShadowQuality" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="8">
+                    <DropDownButton x:Name="DDB_ShadowQuality" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
                                 <MenuFlyoutItem Tag="KeyNewShadowQuality" Text="低" Click="ChangeGraphic"/>
@@ -109,7 +109,7 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <TextBlock Text="特效质量" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_SFXQuality" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="8">
+                    <DropDownButton x:Name="DDB_SFXQuality" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
                                 <MenuFlyoutItem Tag="KeyNiagaraQuality" Text="低" Click="ChangeGraphic"/>
@@ -130,7 +130,7 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <TextBlock Text="场景细节" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_EnvDetailQuality" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="8">
+                    <DropDownButton x:Name="DDB_EnvDetailQuality" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
                                 <MenuFlyoutItem Tag="KeyImageDetail" Text="低" Click="ChangeGraphic"/>
@@ -152,7 +152,7 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <TextBlock Text="AO" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_AO" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="8">
+                    <DropDownButton x:Name="DDB_AO" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
                                 <MenuFlyoutItem Tag="KeySceneAo" Text="关闭" Click="ChangeGraphic"/>
@@ -173,7 +173,7 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <TextBlock Text="体积雾" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_VolumeFog" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="8">
+                    <DropDownButton x:Name="DDB_VolumeFog" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
                                 <MenuFlyoutItem Tag="KeyVolumeFog" Text="关闭" Click="ChangeGraphic"/>
@@ -194,7 +194,7 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <TextBlock Text="体积光" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_VolumeLight" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="8">
+                    <DropDownButton x:Name="DDB_VolumeLight" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
                                 <MenuFlyoutItem Tag="KeyVolumeLight" Text="关闭" Click="ChangeGraphic"/>
@@ -215,7 +215,7 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <TextBlock Text="运动模糊" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_MotionBlur" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="8">
+                    <DropDownButton x:Name="DDB_MotionBlur" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
                                 <MenuFlyoutItem Tag="KeyMotionBlur" Text="关闭" Click="ChangeGraphic"/>
@@ -236,7 +236,7 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <TextBlock Text="NVIDIA DLSS" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_DLSS" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="8">
+                    <DropDownButton x:Name="DDB_DLSS" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
                                 <MenuFlyoutItem Tag="KeyNvidiaSuperSamplingEnable" Text="关闭" Click="ChangeGraphic"/>
@@ -257,7 +257,7 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <TextBlock Text="超级分辨率" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_SuperResolution" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="8">
+                    <DropDownButton x:Name="DDB_SuperResolution" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
                                 <MenuFlyoutItem Tag="KeyNvidiaSuperSamplingMode" Text="关闭" Click="ChangeGraphic"/>
@@ -282,7 +282,7 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <TextBlock Text="锐化" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_Sharpness" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="8">
+                    <DropDownButton x:Name="DDB_Sharpness" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
                                 <!-- 根据实际情况添加锐化值菜单项 -->
@@ -323,7 +323,7 @@
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
                     <TextBlock Text="NVIDIA Reflex" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_NvidiaReflex" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="8">
+                    <DropDownButton x:Name="DDB_NvidiaReflex" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
                                 <MenuFlyoutItem Tag="KeyNvidiaReflex" Text="关闭" Click="ChangeGraphic"/>

@@ -167,6 +167,12 @@ namespace WaveTools.Views
             {
                 NotificationManager.RaiseNotification("更新提示", "依赖包需要更新\n请尽快到[设置-检查依赖更新]进行更新", InfoBarSeverity.Warning);
             }
+            result = await GetUpdate.GetWaveToolsUpdate();
+            status = result.Status;
+            if (status == 1)
+            {
+                NotificationManager.RaiseNotification("更新提示", "WaveTools有更新\n可到[设置-检查更新]进行更新", InfoBarSeverity.Warning);
+            }
 
             loadRing.Visibility = Visibility.Collapsed;
         }

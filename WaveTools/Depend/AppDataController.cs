@@ -175,6 +175,13 @@ namespace WaveTools.Depend
             return (int)localSettings.Values["Config_TerminalMode"];
         }
 
+        public static int GetAccountChangeMode()
+        {
+            ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
+            if (localSettings.Values["Config_AccountChangeMode"] == null) return 0;
+            else return (int)localSettings.Values["Config_AccountChangeMode"];
+        }
+
         public static int SetFirstRunStatus(int firstRunStatus)
         {
             ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
@@ -231,6 +238,14 @@ namespace WaveTools.Depend
             return (int)localSettings.Values["Config_TerminalMode"];
         }
 
+        public static int SetAccountChangeMode(int accountChangeMode)
+        {
+            ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
+            localSettings.Values["Config_AccountChangeMode"] = accountChangeMode;
+            Logging.WriteCustom("AppDataController", "Set Config_AccountChangeMode");
+            return (int)localSettings.Values["Config_AccountChangeMode"];
+        }
+
         public static string RMFirstRunStatus()
         {
             ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
@@ -285,6 +300,14 @@ namespace WaveTools.Depend
             localSettings.Values["Config_TerminalMode"] = 0;
             Logging.WriteCustom("AppDataController", "Remove Config_TerminalMode");
             return (int)localSettings.Values["Config_TerminalMode"];
+        }
+
+        public static int RMAccountChangeMode()
+        {
+            ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
+            localSettings.Values["Config_AccountChange"] = 0;
+            Logging.WriteCustom("AppDataController", "Remove Config_AccountChange");
+            return (int)localSettings.Values["Config_AccountChange"];
         }
 
         // JSG-Account

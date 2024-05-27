@@ -224,8 +224,6 @@ namespace WaveTools.Views
             UpdateTip.IsOpen = true;
         }
 
-
-
         public async void DisplayUpdateInfo(TeachingTip sender, object args)
         {
             bool isWaveTools = UpdateTip.Target != checkDependUpdate;
@@ -246,7 +244,6 @@ namespace WaveTools.Views
             }
         }
 
-
         public async void StartUpdate()
         {
             await InstallerHelper.GetInstaller();
@@ -263,9 +260,14 @@ namespace WaveTools.Views
 
         public async void StartDependForceUpdate(TeachingTip sender, object args)
         {
+            UpdateTip.IsOpen = false;
             WaitOverlayManager.RaiseWaitOverlay(true, true, 0, "正在强制更新依赖", "请稍等片刻");
             await InstallerHelper.GetInstaller();
-            InstallerHelper.RunInstaller("/depend /force");
+            if (InstallerHelper.RunInstaller("/depend /force") != 0)
+            {
+                NotificationManager.RaiseNotification("安装依赖失败", "", InfoBarSeverity.Error);
+            }
+            
             WaitOverlayManager.RaiseWaitOverlay(false);
         }
 

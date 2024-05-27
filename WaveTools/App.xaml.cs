@@ -185,14 +185,27 @@ namespace WaveTools
 
         public static class WaitOverlayManager
         {
-            public delegate void WaitOverlayEventHandler(bool status, bool isProgress = false, int progress = 0, string title = null, string subtitle = null);
+            public delegate void WaitOverlayEventHandler(bool status, bool isProgress = false, int progress = 0, string title = null, string subtitle = null, bool isBtnEnabled = false, string btnContent = "", Action btnAction = null);
             public static event WaitOverlayEventHandler OnWaitOverlayRequested;
 
-            public static void RaiseWaitOverlay(bool status, bool isProgress = false, int progress = 0, string title = null, string subtitle = null)
+            public static void RaiseWaitOverlay(bool status, bool isProgress = false, int progress = 0, string title = null, string subtitle = null, bool isBtnEnabled = false, string btnContent = "", Action btnAction = null)
             {
-                OnWaitOverlayRequested?.Invoke(status, isProgress, progress, title, subtitle);
+                OnWaitOverlayRequested?.Invoke(status, isProgress, progress, title, subtitle, isBtnEnabled, btnContent, btnAction);
             }
         }
+
+        public static class DialogManager
+        {
+            public delegate void DialogEventHandler(bool status, string title = null, string content = null, bool isPrimaryButtonEnabled = false, string primaryButtonContent = "", Action primaryButtonAction = null, bool isSecondaryButtonEnabled = false, string secondaryButtonContent = "", Action secondaryButtonAction = null);
+            public static event DialogEventHandler OnDialogRequested;
+
+            public static void RaiseDialog(bool status, string title = null, string content = null, bool isPrimaryButtonEnabled = false, string primaryButtonContent = "", Action primaryButtonAction = null, bool isSecondaryButtonEnabled = false, string secondaryButtonContent = "", Action secondaryButtonAction = null)
+            {
+                OnDialogRequested?.Invoke(status, title, content, isPrimaryButtonEnabled, primaryButtonContent, primaryButtonAction, isSecondaryButtonEnabled, secondaryButtonContent, secondaryButtonAction);
+            }
+        }
+
+
 
     }
 }

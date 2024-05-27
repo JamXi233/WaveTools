@@ -10,12 +10,12 @@
         <Grid Margin="2">
             <StackPanel Orientation="Vertical">
                 <StackPanel Orientation="Horizontal">
-                    <Button x:Name="saveAccount" Content="保存账号" Click="SaveAccount"/>
-                    <Button x:Name="currentAccount" Content="当前游戏账号" Margin="8 0 0 0" Click="GetCurrentAccount"/>
+                    <Button x:Name="saveAccount" Content="覆盖保存账号" Click="SaveAccount_Override" IsEnabled="False"/>
+                    <Button x:Name="loginNewAccount" Content="登录新的账号" Margin="8 0 0 0" Click="LoginAccount" IsEnabled="False"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="0 8 0 0">
-                    <Button x:Name="deleteAccount" Content="删除账号" Click="DeleteAccount"/>
-                    <Button x:Name="renameAccount" Content="重命名账号" Margin="8 0 0 0" Click="RenameAccount"/>
+                    <Button x:Name="deleteAccount" Content="删除账号" Click="DeleteAccount" IsEnabled="False"/>
+                    <Button x:Name="renameAccount" Content="重命名账号" Margin="8 0 0 0" Click="RenameAccount" IsEnabled="False"/>
 
                 </StackPanel>
                 <TextBlock Text="账号列表" Margin="0 8 0 8"/>
@@ -24,7 +24,7 @@
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">
                                 <TextBlock Text="{Binding uid}" FontWeight="Bold" Margin="0,0,4,0"/>
-                                <TextBlock Text="{Binding DisplayName}"/>
+                                <TextBlock Text="{Binding name}"/>
                                 <!-- 更新这里 -->
                             </StackPanel>
                         </DataTemplate>
@@ -32,6 +32,18 @@
 
                 </ListView>
             </StackPanel>
+
+            <TeachingTip x:Name="loginAccount"
+                Target="{x:Bind loginNewAccount}"
+                Title="登录新账号"
+                Subtitle="将会删除您目前所有的登录信息"
+                ActionButtonContent="确定"
+                ActionButtonClick="LoginAccount_C"
+                CloseButtonContent="关闭">
+                <TeachingTip.IconSource>
+                    <SymbolIconSource Symbol="Help" />
+                </TeachingTip.IconSource>
+            </TeachingTip>
 
             <TeachingTip x:Name="saveAccountName" 
                          Target="{x:Bind saveAccount}">
@@ -50,30 +62,6 @@
 	                CloseButtonContent="关闭">
                 <TeachingTip.IconSource>
                     <SymbolIconSource Symbol="PreviewLink" />
-                </TeachingTip.IconSource>
-            </TeachingTip>
-
-            <TeachingTip x:Name="saveAccountFound"
-                    Background="{ThemeResource SystemControlAcrylicElementMediumHighBrush}"
-                    Target="{x:Bind saveAccount}"
-                    Title="账号已存在"
-                    Subtitle="是否要覆盖保存？"
-                    ActionButtonContent="覆盖保存"
-	                CloseButtonContent="关闭"
-                    ActionButtonClick="SaveAccount_Override">
-                <TeachingTip.IconSource>
-                    <SymbolIconSource Symbol="Clear" />
-                </TeachingTip.IconSource>
-            </TeachingTip>
-
-            <TeachingTip x:Name="currentAccountTip"
-                    Background="{ThemeResource SystemControlAcrylicElementMediumHighBrush}"
-                    Target="{x:Bind currentAccount}"
-                    Title="当前账号"
-                    Subtitle="SubTitle"
-	                CloseButtonContent="关闭">
-                <TeachingTip.IconSource>
-                    <SymbolIconSource Symbol="Contact" />
                 </TeachingTip.IconSource>
             </TeachingTip>
 
@@ -137,10 +125,11 @@
             </Button>
         </Grid>
 
-        <Grid x:Name="Account_Load" Background="{ThemeResource SystemControlAcrylicElementMediumHighBrush}" CornerRadius="8">
-            <ProgressRing/>
+        <Grid x:Name="Account_Load" Background="Transparent" CornerRadius="8">
+            <ProgressRing Visibility="Collapsed"/>
         </Grid>
-        
+
+
     </Grid>
 
 </Page>

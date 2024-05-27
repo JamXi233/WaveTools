@@ -146,7 +146,7 @@ namespace WaveTools.Depend
         {
             string[] gachaFiles = {
         "GachaRecords_Character.ini",
-        "GachaRecords_LightCone.ini",
+        "GachaRecords_Weapon.ini",
         "GachaRecords_Newbie.ini",
         "GachaRecords_Regular.ini"
     };

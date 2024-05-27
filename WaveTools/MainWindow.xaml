@@ -38,7 +38,7 @@
                         </NavigationViewItem.Icon>
                     </NavigationViewItem>
                     <NavigationViewItemHeader Content="工具箱"/>
-                    <NavigationViewItem Content="抽卡记录(计划中)" Tag="gacha" SelectsOnInvoked="False" IsEnabled="False">
+                    <NavigationViewItem Content="抽卡记录(Beta)" Tag="gacha">
                         <NavigationViewItem.Icon>
                             <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xe734;"/>
                         </NavigationViewItem.Icon>
@@ -117,13 +117,28 @@
                 <StackPanel Height="8"/>
                 <StackPanel HorizontalAlignment="Center">
                     <TextBlock x:Name="WaitOverlay_Title" Text="" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center"/>
-                    <TextBlock x:Name="WaitOverlay_SubTitle" Text="" FontSize="14" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="WaitOverlay_SubTitle" Text="" FontSize="14" Margin="0 4 0 0" HorizontalAlignment="Center"/>
                     <ProgressBar x:Name="WaitOverlay_ProgressBar" Minimum="0" Maximum="100" Value="10" Width="200" Margin="0 12 0 0" Visibility="Collapsed"/>
                     <TextBlock x:Name="WaitOverlay_ProgressBar_Value" Text="" HorizontalAlignment="Right" FontSize="12" Foreground="Gray" Visibility="Collapsed"/>
+                    <Button x:Name="WaitOverlay_Button" Content="" HorizontalAlignment="Center" Click="WaitOverlayButton_Click" Margin="0 4 0 0" />
                 </StackPanel>
             </StackPanel>
         </Grid>
-            
+
+        <!-- 定义一个 ContentDialog -->
+        <ContentDialog x:Name="MainContentDialog"
+                       Title=""
+                       PrimaryButtonText=""
+                       SecondaryButtonText=""
+                       CloseButtonText="关闭"
+                       PrimaryButtonClick="PrimaryButton_Click"
+                       SecondaryButtonClick="SecondaryButton_Click"
+                       CloseButtonClick="CloseButton_Click">
+            <StackPanel>
+                <TextBlock x:Name="DialogContent" FontSize="14" Margin="0,0,0,0" />
+            </StackPanel>
+        </ContentDialog>
+
     </Grid>
 
 </Window>

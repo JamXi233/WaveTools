@@ -22,6 +22,8 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.UI.Xaml.Controls;
+using static WaveTools.App;
 
 namespace WaveTools.Depend
 {
@@ -67,6 +69,38 @@ namespace WaveTools.Depend
                     throw;
                 }
             });
+        }
+
+        public static void StopWaveToolsHelperProcess()
+        {
+            try
+            {
+                foreach (var process in Process.GetProcessesByName("WaveToolsHelper"))
+                {
+                    process.Kill();
+                }
+                NotificationManager.RaiseNotification("WaveToolsHelper", "已停止依赖运行", InfoBarSeverity.Warning);
+            }
+            catch (Exception ex)
+            {
+                NotificationManager.RaiseNotification("错误", "停止WaveToolsHelper失败"+ex.ToString(),InfoBarSeverity.Error);
+            }
+        }
+
+        public static void StopWaveProcess()
+        {
+            foreach (var process in Process.GetProcessesByName("Client-Win64-Shipping"))
+            {
+                process.Kill();
+            }
+            foreach (var process in Process.GetProcessesByName("KRSDKExternal"))
+            {
+                process.Kill();
+            }
+            foreach (var process in Process.GetProcessesByName("Wuthering Waves.exe"))
+            {
+                process.Kill();
+            }
         }
 
 

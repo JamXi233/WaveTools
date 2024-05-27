@@ -37,6 +37,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography;
 using Microsoft.UI.Xaml.Navigation;
 using Windows.Devices.Geolocation;
+using System.IO;
 
 namespace WaveTools.Views
 {
@@ -46,6 +47,11 @@ namespace WaveTools.Views
 /*        private DispatcherQueueTimer dispatcherTimer_Launcher;*/
         private DispatcherQueueTimer dispatcherTimer_Game;
         private DispatcherQueueTimer dispatcherTimer_Launcher;
+
+        public static string GS = null;
+        public static string SelectedUID = null;
+        public static string SelectedName = null;
+
 
         public StartGameView()
         {
@@ -86,11 +92,10 @@ namespace WaveTools.Views
         private async void StartGameView_Loaded(object sender, RoutedEventArgs e)
         {
             await LoadDataAsync();
-            // 异步调用 GetPromptAsync
             await GetPromptAsync();
         }
 
-        private async Task LoadDataAsync()
+        private async Task LoadDataAsync(string mode = null)
         {
             if (AppDataController.GetGamePath() != null)
             {
@@ -103,7 +108,14 @@ namespace WaveTools.Views
                 else
                 {
                     UpdateUIElementsVisibility(1);
-                    await CheckProcess_Graphics();
+                    CheckIsWeGameVersion(false);
+                    if (mode == null)
+                    {
+                        CheckProcess_Account();
+                        CheckProcess_Graphics();
+                    }
+                    else if (mode == "Graphics") CheckProcess_Graphics();
+                    else if (mode == "Account") CheckProcess_Account();
                 }
             }
             else
@@ -127,7 +139,9 @@ namespace WaveTools.Views
                     //更新为新的存储管理机制
                     AppDataController.SetGamePath(@file.Path);
                     UpdateUIElementsVisibility(1);
-                    await CheckProcess_Graphics();
+                    CheckProcess_Graphics();
+                    CheckProcess_Account();
+                    CheckIsWeGameVersion(true);
                 }
                 else
                 {
@@ -137,6 +151,22 @@ namespace WaveTools.Views
             });
         }
 
+        private bool CheckIsWeGameVersion(bool isFirst)
+        {
+            if (Directory.Exists(AppDataController.GetGamePathWithoutGameName() + "Client\\Binaries\\Win64\\ThirdParty\\KrPcSdk_Mainland\\KRSDKRes\\wegame"))
+            {
+                dispatcherTimer_Game.Stop();
+                if(isFirst)NotificationManager.RaiseNotification("检测到WeGame版本", "游戏将无法从WaveTools启动\n无法账号切换", InfoBarSeverity.Warning);
+                startGame.IsEnabled = false;
+                startLauncher.IsEnabled = false;
+                Frame_AccountView_Launched_Disable.Visibility = Visibility.Visible;
+                Frame_AccountView_Launched_Disable_Title.Text = "检测到WeGame版鸣潮";
+                Frame_AccountView_Launched_Disable_Subtitle.Text = "无法进行账号切换";
+                return true;
+            }
+            return false;
+        }
+
         public void RMGameLocation(object sender, RoutedEventArgs e)
         {
             AppDataController.RMGamePath();
@@ -144,8 +174,7 @@ namespace WaveTools.Views
         }
         private void ReloadFrame(object sender, RoutedEventArgs e)
         {
-            UpdateUIElementsVisibility(0);
-            StartGameView_Loaded(sender,e);
+            StartGameView_Loaded(sender, e);
         }
 
         //启动游戏
@@ -182,10 +211,28 @@ namespace WaveTools.Views
             }
         }
 
-        public void StartGame(TeachingTip sender, object args)
+        public async void StartGame(TeachingTip sender, object args)
         {
-            GameStartUtil gameStartUtil = new GameStartUtil();
-            gameStartUtil.StartGame();
+            if (AppDataController.GetAccountChangeMode() == 0)
+            {
+                GameStartUtil gameStartUtil = new GameStartUtil();
+                gameStartUtil.StartGame();
+            }
+            else
+            {
+                if (SelectedUID != null || SelectedName != null)
+                {
+                    string command = $"/RestoreUser {SelectedUID} {SelectedName}";
+                    await ProcessRun.WaveToolsHelperAsync(command);
+                    GameStartUtil gameStartUtil = new GameStartUtil();
+                    gameStartUtil.StartGame();
+                }
+                else
+                {
+                    NoSelectedAccount.IsOpen = true;
+                }
+            }
+            
         }
 
         public void StartLauncher(TeachingTip sender, object args)
@@ -193,7 +240,6 @@ namespace WaveTools.Views
             GameStartUtil gameStartUtil = new GameStartUtil();
             gameStartUtil.StartLauncher();
         }
-
 
         // 定时器回调函数，检查进程是否正在运行
         private void CheckProcess_Game(DispatcherQueueTimer timer, object e)
@@ -206,6 +252,9 @@ namespace WaveTools.Views
                 Frame_GraphicSettingView_Launched_Disable.Visibility = Visibility.Visible;
                 Frame_GraphicSettingView_Launched_Disable_Title.Text = "鸣潮正在运行";
                 Frame_GraphicSettingView_Launched_Disable_Subtitle.Text = "游戏运行时无法修改画质";
+                Frame_AccountView_Launched_Disable.Visibility = Visibility.Visible;
+                Frame_AccountView_Launched_Disable_Title.Text = "鸣潮正在运行";
+                Frame_AccountView_Launched_Disable_Subtitle.Text = "游戏运行时无法切换账号";
             }
             else
             {
@@ -213,6 +262,7 @@ namespace WaveTools.Views
                 startGame.Visibility = Visibility.Visible;
                 gameRunning.Visibility = Visibility.Collapsed;
                 Frame_GraphicSettingView_Launched_Disable.Visibility = Visibility.Collapsed;
+                Frame_AccountView_Launched_Disable.Visibility = Visibility.Collapsed;
             }
         }
 
@@ -234,6 +284,9 @@ namespace WaveTools.Views
 
         private async Task CheckProcess_Graphics()
         {
+            Frame_GraphicSettingView_Loading.Visibility = Visibility.Visible;
+            Frame_GraphicSettingView.Content = null;
+            
             if (IsWaveToolsHelperRequireUpdate)
             {
                 Frame_GraphicSettingView_Disable.Visibility = Visibility.Visible;
@@ -254,6 +307,7 @@ namespace WaveTools.Views
                     }
                     else
                     {
+                        GS = GSValue;
                         GraphicSelect.IsEnabled = true;
                         GraphicSelect.IsSelected = true;
                         Frame_GraphicSettingView_Loading.Visibility = Visibility.Collapsed;
@@ -267,10 +321,39 @@ namespace WaveTools.Views
                     Logging.Write($"Exception in CheckProcess_Graphics: {ex.Message}", 3, "CheckProcess_Graphics");
                 }
             }
-
         }
 
+        private async Task CheckProcess_Account()
+        {
+            if (AppDataController.GetAccountChangeMode() == 0)
+            {
+                AccountChange_Off_Btn.Visibility = Visibility.Collapsed;
+                Frame_AccountView_Usage_Disable.Visibility = Visibility.Visible;
+            }
+            else 
+            {
+                AccountChange_Off_Btn.Visibility = Visibility.Visible;
+                Frame_AccountView_Usage_Disable.Visibility = Visibility.Collapsed;
+                Frame_AccountView.Content = null;
+                AccountSelect.IsEnabled = true;
+                AccountSelect.IsSelected = true;
+                Frame_AccountView_Loading.Visibility = Visibility.Collapsed;
+                Frame_AccountView.Visibility = Visibility.Visible;
+                Frame_AccountView.Navigate(typeof(AccountView));
+            }
+        }
 
+        private void AccountChange_ForceOn(object sender, RoutedEventArgs e)
+        {
+            AppDataController.SetAccountChangeMode(1);
+            LoadDataAsync("Account");
+        }
+
+        private void AccountChange_Off(object sender, RoutedEventArgs e)
+        {
+            AppDataController.SetAccountChangeMode(0);
+            LoadDataAsync("Account");
+        }
 
         private async Task GetPromptAsync()
         {

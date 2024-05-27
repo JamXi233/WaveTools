@@ -20,15 +20,33 @@ namespace WaveTools.Views.SGViews
 
         private async void LoadData()
         {
-            await LoadGraphicsData();
+            await LoadGraphicsData(false);
             DDB_Main.Visibility = Visibility.Visible;
             DDB_Load.Visibility = Visibility.Collapsed;
         }
 
-        private async Task LoadGraphicsData()
+        private async Task LoadGraphicsData(bool isForce)
         {
-            string output = await ProcessRun.WaveToolsHelperAsync($"/GetGS {AppDataController.GetGamePathForHelper()}");
-            string returnValue = output.Trim(); // 去掉字符串末尾的换行符和空格
+            string output;
+            string returnValue;
+
+            if (isForce)
+            {
+                output = await ProcessRun.WaveToolsHelperAsync($"/GetGS {AppDataController.GetGamePathForHelper()}");
+                returnValue = output.Trim();
+            }
+            else
+            {
+                if (StartGameView.GS is not null)
+                {
+                    returnValue = StartGameView.GS;
+                }
+                else
+                {
+                    output = await ProcessRun.WaveToolsHelperAsync($"/GetGS {AppDataController.GetGamePathForHelper()}");
+                    returnValue = output.Trim();
+                }
+            }
 
             // 使用 returnValue 变量进行后续处理
             JObject config = JObject.Parse(returnValue);
@@ -46,10 +64,10 @@ namespace WaveTools.Views.SGViews
             SetUIValue(config, "KeyMotionBlur", DDB_MotionBlur, new Dictionary<int, string> { { 0, "关闭" }, { 1, "开启" } });
             SetUIValue(config, "KeyNvidiaSuperSamplingEnable", DDB_DLSS, new Dictionary<int, string> { { 0, "关闭" }, { 1, "开启" } });
             SetUIValue(config, "KeyNvidiaSuperSamplingMode", DDB_SuperResolution, new Dictionary<int, string>
-            {
-                { 0, "关闭" }, { 1, "自动" }, { 3, "质量" }, { 4, "平衡" },
-                { 5, "性能" }, { 6, "超级性能" }
-            });
+    {
+        { 0, "关闭" }, { 1, "自动" }, { 3, "质量" }, { 4, "平衡" },
+        { 5, "性能" }, { 6, "超级性能" }
+    });
             SetUIValue(config, "KeyNvidiaSuperSamplingSharpness", DDB_Sharpness);
             SetUIValue(config, "KeyNvidiaReflex", DDB_NvidiaReflex, new Dictionary<int, string> { { 0, "关闭" }, { 1, "开启" } });
         }
@@ -96,40 +114,37 @@ namespace WaveTools.Views.SGViews
                 ApplyUserChoice(text, tag);
 
                 // 异步更新画质设置
-                await Task.Run(async () =>
+                var settingsMap = new Dictionary<string, Dictionary<string, int>>
+        {
+            { "KeyNewShadowQuality", new Dictionary<string, int> { { "低", 0 }, { "中", 1 }, { "高", 2 }, { "极高", 3 } } },
+            { "KeyNiagaraQuality", new Dictionary<string, int> { { "低", 0 }, { "高", 1 } } },
+            { "KeyImageDetail", new Dictionary<string, int> { { "低", 0 }, { "中", 1 }, { "高", 2 } } },
+            { "KeySceneAo", new Dictionary<string, int> { { "关闭", 0 }, { "开启", 1 } } },
+            { "KeyVolumeFog", new Dictionary<string, int> { { "关闭", 0 }, { "开启", 1 } } },
+            { "KeyVolumeLight", new Dictionary<string, int> { { "关闭", 0 }, { "开启", 1 } } },
+            { "KeyMotionBlur", new Dictionary<string, int> { { "关闭", 0 }, { "开启", 1 } } },
+            { "KeyNvidiaSuperSamplingEnable", new Dictionary<string, int> { { "关闭", 0 }, { "开启", 1 } } },
+            { "KeyNvidiaSuperSamplingMode", new Dictionary<string, int> { { "关闭", 0 }, { "自动", 1 }, { "质量", 3 }, { "平衡", 4 }, { "性能", 5 }, { "超级性能", 6 } } },
+            { "KeyPcVsync", new Dictionary<string, int> { { "关闭", 0 }, { "开启", 1 } } },
+            { "KeyNvidiaReflex", new Dictionary<string, int> { { "关闭", 0 }, { "开启", 1 } } }
+        };
+
+                if (settingsMap.ContainsKey(tag) && settingsMap[tag].ContainsKey(text))
                 {
-                    var settingsMap = new Dictionary<string, Dictionary<string, int>>
-                    {
-                        { "KeyNewShadowQuality", new Dictionary<string, int> { { "低", 0 }, { "中", 1 }, { "高", 2 }, { "极高", 3 } } },
-                        { "KeyNiagaraQuality", new Dictionary<string, int> { { "低", 0 }, { "高", 1 } } },
-                        { "KeyImageDetail", new Dictionary<string, int> { { "低", 0 }, { "中", 1 }, { "高", 2 } } },
-                        { "KeySceneAo", new Dictionary<string, int> { { "关闭", 0 }, { "开启", 1 } } },
-                        { "KeyVolumeFog", new Dictionary<string, int> { { "关闭", 0 }, { "开启", 1 } } },
-                        { "KeyVolumeLight", new Dictionary<string, int> { { "关闭", 0 }, { "开启", 1 } } },
-                        { "KeyMotionBlur", new Dictionary<string, int> { { "关闭", 0 }, { "开启", 1 } } },
-                        { "KeyNvidiaSuperSamplingEnable", new Dictionary<string, int> { { "关闭", 0 }, { "开启", 1 } } },
-                        { "KeyNvidiaSuperSamplingMode", new Dictionary<string, int> { { "关闭", 0 }, { "自动", 1 }, { "质量", 3 }, { "平衡", 4 }, { "性能", 5 }, { "超级性能", 6 } } },
-                        { "KeyPcVsync", new Dictionary<string, int> { { "关闭", 0 }, { "开启", 1 } } },
-                        { "KeyNvidiaReflex", new Dictionary<string, int> { { "关闭", 0 }, { "开启", 1 } } }
-                    };
+                    int value = settingsMap[tag][text];
+                    await ProcessRun.WaveToolsHelperAsync($"/SetGS {AppDataController.GetGamePathForHelper()} {tag} {value}");
+                }
+                else if (double.TryParse(text, out double sharpnessValue) && tag == "KeyNvidiaSuperSamplingSharpness")
+                {
+                    await ProcessRun.WaveToolsHelperAsync($"/SetGS {AppDataController.GetGamePathForHelper()} {tag} {sharpnessValue}");
+                }
+                else if (text.Contains("30") || text.Contains("45") || text.Contains("60") || text.Contains("120"))
+                {
+                    await ProcessRun.WaveToolsHelperAsync($"/SetGS {AppDataController.GetGamePathForHelper()} {tag} {text}");
+                }
 
-                    if (settingsMap.ContainsKey(tag) && settingsMap[tag].ContainsKey(text))
-                    {
-                        int value = settingsMap[tag][text];
-                        await ProcessRun.WaveToolsHelperAsync($"/SetGS {AppDataController.GetGamePathForHelper()} {tag} {value}");
-                    }
-                    else if (double.TryParse(text, out double sharpnessValue) && tag == "KeyNvidiaSuperSamplingSharpness")
-                    {
-                        await ProcessRun.WaveToolsHelperAsync($"/SetGS {AppDataController.GetGamePathForHelper()} {tag} {sharpnessValue}");
-                    }
-                    else if (text.Contains("30") || text.Contains("45") || text.Contains("60") || text.Contains("120"))
-                    {
-                        await ProcessRun.WaveToolsHelperAsync($"/SetGS {AppDataController.GetGamePathForHelper()} {tag} {text}");
-                    }
-                });
-
-                // 后台更新UI
-                _ = LoadGraphicsData();
+                // 确保设置完成后重新加载数据
+                await LoadGraphicsData(true);
             }
             catch (Exception ex)
             {

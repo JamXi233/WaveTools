@@ -27,15 +27,15 @@ namespace WaveTools.Depend
     internal class GameStartUtil
     {
         ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
-        public async void StartGame()
+        public void StartGame()
         {
-            string userDocumentsFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             string gamePath = localSettings.Values["Config_GamePath"] as string;
-            var processInfo = new ProcessStartInfo(gamePath);
+            var processInfo = new ProcessStartInfo(gamePath)
+            {
+                UseShellExecute = true,
+                Verb = "runas"
+            };
 
-            //启动程序
-            processInfo.UseShellExecute = true;
-            processInfo.Verb = "runas";
             Process.Start(processInfo);
         }
 

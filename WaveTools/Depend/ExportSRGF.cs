@@ -95,7 +95,7 @@ namespace WaveTools.Depend
 
             // 读取每个文件的内容，并将其反序列化为一个List<ExportSRGF.OItem>对象
             var WaveToolsFolder = await KnownFolders.DocumentsLibrary.GetFolderAsync("JSG-LLC\\WaveTools");
-            var files = new List<string> { "GachaRecords_Character.ini", "GachaRecords_LightCone.ini", "GachaRecords_Newbie.ini", "GachaRecords_Regular.ini" };
+            var files = new List<string> { "GachaRecords_Character.ini", "GachaRecords_Weapon.ini", "GachaRecords_Newbie.ini", "GachaRecords_Regular.ini" };
 
             foreach (var fileName in files)
             {

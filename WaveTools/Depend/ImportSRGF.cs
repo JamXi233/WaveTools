@@ -93,7 +93,7 @@ public class ImportSRGF
 
             // 创建四个不同的列表
             List<OItem> gachaCharacterList = new List<OItem>();
-            List<OItem> gachaLightConeList = new List<OItem>();
+            List<OItem> gachaWeaponList = new List<OItem>();
             List<OItem> gachaNewbieList = new List<OItem>();
             List<OItem> gachaRegularList = new List<OItem>();
 
@@ -119,7 +119,7 @@ public class ImportSRGF
                 if (item.gacha_type == "11")
                     gachaCharacterList.Add(oItem);
                 else if (item.gacha_type == "12")
-                    gachaLightConeList.Add(oItem);
+                    gachaWeaponList.Add(oItem);
                 else if (item.gacha_type == "2")
                     gachaNewbieList.Add(oItem);
                 else if (item.gacha_type == "1")
@@ -133,10 +133,10 @@ public class ImportSRGF
             string gachaCharacterJson = JsonSerializer.Serialize(gachaCharacterList);
             File.WriteAllText(WaveToolsFolder.Path + "\\GachaRecords_Character.ini", gachaCharacterJson);
             await CheckAndDeleteEmptyFile(WaveToolsFolder, "GachaRecords_Character.ini");
-            // 导出 GachaRecords_LightCone JSON
-            string gachaLightConeJson = JsonSerializer.Serialize(gachaLightConeList);
-            File.WriteAllText(WaveToolsFolder.Path + "\\GachaRecords_LightCone.ini", gachaLightConeJson);
-            await CheckAndDeleteEmptyFile(WaveToolsFolder, "GachaRecords_LightCone.ini");
+            // 导出 GachaRecords_Weapon JSON
+            string gachaWeaponJson = JsonSerializer.Serialize(gachaWeaponList);
+            File.WriteAllText(WaveToolsFolder.Path + "\\GachaRecords_Weapon.ini", gachaWeaponJson);
+            await CheckAndDeleteEmptyFile(WaveToolsFolder, "GachaRecords_Weapon.ini");
             // 导出 GachaRecords_Newbie JSON
             string gachaNewbieJson = JsonSerializer.Serialize(gachaNewbieList);
             File.WriteAllText(WaveToolsFolder.Path + "\\GachaRecords_Newbie.ini", gachaNewbieJson);

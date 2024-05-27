@@ -40,6 +40,12 @@
   </PropertyGroup>
     <ItemGroup>
     <Compile Remove="Views\Dialog.xaml.cs" />
+    <Compile Remove="Views\GachaViews\CharacterGachaView.xaml.cs" />
+    <Compile Remove="Views\GachaViews\CharacterRegularGachaView.xaml.cs" />
+    <Compile Remove="Views\GachaViews\NewbieGachaView.xaml.cs" />
+    <Compile Remove="Views\GachaViews\NewbieSPGachaView.xaml.cs" />
+    <Compile Remove="Views\GachaViews\WeaponGachaView.xaml.cs" />
+    <Compile Remove="Views\GachaViews\WeaponRegularGachaView.xaml.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Remove="Assets\BadgeLogo.scale-100.png" />
@@ -55,9 +61,22 @@
     <None Remove="Views\BlankPage1.xaml" />
     <None Remove="Views\Dialog.xaml" />
     <None Remove="Views\GachaView.xaml.cs.bak" />
+    <None Remove="Views\GachaViews\CharacterGachaView.xaml" />
+    <None Remove="Views\GachaViews\CharacterRegularGachaView.xaml" />
+    <None Remove="Views\GachaViews\NewbieGachaView.xaml" />
+    <None Remove="Views\GachaViews\NewbieSPGachaView.xaml" />
+    <None Remove="Views\GachaViews\TempGachaView.xaml" />
+    <None Remove="Views\GachaViews\WeaponGachaView.xaml" />
+    <None Remove="Views\GachaViews\WeaponRegularGachaView.xaml" />
   </ItemGroup>
   <ItemGroup>
     <Page Remove="Views\Dialog.xaml" />
+    <Page Remove="Views\GachaViews\CharacterGachaView.xaml" />
+    <Page Remove="Views\GachaViews\CharacterRegularGachaView.xaml" />
+    <Page Remove="Views\GachaViews\NewbieGachaView.xaml" />
+    <Page Remove="Views\GachaViews\NewbieSPGachaView.xaml" />
+    <Page Remove="Views\GachaViews\WeaponGachaView.xaml" />
+    <Page Remove="Views\GachaViews\WeaponRegularGachaView.xaml" />
   </ItemGroup>
 
   <ItemGroup>

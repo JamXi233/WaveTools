@@ -9,23 +9,22 @@
     Background="Transparent">
 
     <Grid HorizontalAlignment="Stretch" Margin="24">
-
         <Grid.RowDefinitions>
             <RowDefinition Height="1*"/>
             <RowDefinition Height="6*"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" HorizontalAlignment="Left" >
+        <StackPanel Grid.Row="0" HorizontalAlignment="Left">
             <StackPanel HorizontalAlignment="Stretch" Orientation="Horizontal">
-                <ToggleButton x:Name="ProxyButton" Content="开启代理" Click="ProxyButton_Click" Margin="0 0 0 8"/>
-                <Button x:Name="ExportSRGF" Content="导出记录" Click="ExportSRGF_Click" IsEnabled="False" Margin="8 0 0 8"/>
-                <Button x:Name="ImportSRGF" Content="导入记录" Click="ImportSRGF_Click" IsEnabled="False" Margin="8 0 0 8"/>
+                <Button x:Name="GetGachaURL" Content="获取抽卡记录" Click="GetGachaURL_Click" Margin="0 0 0 8"/>
+                <Button x:Name="UpdateGacha" Content="更新记录" Click="UpdateGacha_Click" Margin="8 0 0 8"/>
+                <Button x:Name="ExportWWGF" Content="导出记录" Click="ExportWWGF_Click" IsEnabled="False" Margin="8 0 0 8"/>
+                <Button x:Name="ImportWWGF" Content="导入记录" Click="ImportWWGF_Click" IsEnabled="False" Margin="8 0 0 8"/>
                 <Button x:Name="ClearGacha" Content="清空记录" FontWeight="Bold" Foreground="Red" Click="ClearGacha_Click" IsEnabled="False" Margin="8 0 0 8"/>
                 <ComboBox x:Name="GachaRecordsUID" 
+                          DropDownOpened="ComboBox_Click"
                   PlaceholderText="选择UID" 
                   Width="120" Margin="8,0,0,8"
-                  ItemsSource="{Binding UidList}"
-                  SelectedItem="{Binding SelectedUid}"
                   SelectionChanged="GachaRecordsUID_SelectionChanged">
                 </ComboBox>
             </StackPanel>
@@ -39,32 +38,38 @@
             <Grid x:Name="loadGachaProgress" Visibility="Visible" Width="120" Height="120" CornerRadius="12" Background="{ThemeResource SystemControlAcrylicElementMediumHighBrush}">
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                     <ProgressRing Visibility="Visible" x:Name="loadGachaProgressRing"/>
-                    <FontIcon Visibility="Visible" x:Name="loadGachaFailedIcon" FontFamily="Segoe Fluent Icons" Glyph="&#xeb90;"/>
                     <TextBlock Visibility="Visible" x:Name="loadGachaText" Text="等待刷新列表" Margin="0 12 0 0"/>
                 </StackPanel>
             </Grid>
+            <Grid x:Name="noGachaFound" Visibility="Visible" Width="120" Height="120" CornerRadius="12" Background="{ThemeResource SystemControlAcrylicElementMediumHighBrush}">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <FontIcon Visibility="Visible" FontFamily="Segoe Fluent Icons" Glyph="&#xeb90;"/>
+                    <TextBlock Visibility="Visible" Text="无抽卡记录" Margin="0 12 0 0"/>
+                </StackPanel>
+            </Grid>
             <StackPanel x:Name="gachaView" Grid.Column="0" Visibility="Collapsed">
-                <SelectorBar x:Name="gachaNav" SelectionChanged="NavView_SelectionChanged">
-                    <SelectorBarItem x:Name="CharacterGachaSelect" Text="角色池" Tag="CharacterGacha" IsEnabled="False" />
-                    <SelectorBarItem x:Name="LightConeGachaSelect" Text="光锥池" Tag="LightConeGacha" IsEnabled="False"/>
-                    <SelectorBarItem x:Name="RegularGachaSelect" Text="常驻池" Tag="RegularGacha" IsEnabled="False"/>
-                    <SelectorBarItem x:Name="NewbieGachaSelect" Text="新手池" Tag="NewbieGacha" IsEnabled="False"/>
+                <SelectorBar x:Name="gachaNav">
                 </SelectorBar>
                 <Frame x:Name="gachaFrame" Margin="12"/>
             </StackPanel>
         </Grid>
 
-        <TeachingTip x:Name="GachaLink"
-            Target="{x:Bind ProxyButton}"
-                     
-            Title="代理"
-            Subtitle="SubTitle"
-	        CloseButtonContent="关闭">
-            <TeachingTip.IconSource>
-                <SymbolIconSource Symbol="Admin" />
-            </TeachingTip.IconSource>
+        <TeachingTip x:Name="ClearGachaTip"
+            Background="{ThemeResource SystemControlAcrylicElementMediumHighBrush}"
+            Title="清空抽卡记录"
+            IsLightDismissEnabled="False"
+            Target="{x:Bind ClearGacha}">
+            <TeachingTip.Content>
+                <StackPanel Spacing="4">
+                    <TextBlock x:Name="ClearGachaText" Text=""/>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Content="确认清空记录" Click="ConfirmClearGachaRecords" Margin="0,0,0,0"/>
+                        <Button Content="确认清空记录和UID" Click="ConfirmClearGachaRecordsAndUID" Margin="0,0,0,0"/>
+                    </StackPanel>
+                </StackPanel>
+            </TeachingTip.Content>
         </TeachingTip>
-        <InfoBar x:Name="infoBar" IsOpen="False" Severity="Error" Title="" Message="" />
+
 
     </Grid>
 </Page>

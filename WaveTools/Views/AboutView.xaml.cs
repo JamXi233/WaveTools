@@ -334,20 +334,42 @@ namespace WaveTools.Views
             RestoreTip.IsOpen = true;
         }
 
-        private async void Restore_Data(TeachingTip e, object o)
+        private async void Restore_Data(TeachingTip sender, object args)
         {
             var picker = new FileOpenPicker();
             picker.FileTypeFilter.Add(".WaveToolsBackup");
+
             var window = new Window();
-            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
-            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
-            var file = await picker.PickSingleFileAsync();
-            if (file != null) 
+            try
             {
-                string userDocumentsFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                Task.Run(() => ClearAllData_NoClose(null, null)).Wait();
-                Task.Run(() => ZipFile.ExtractToDirectory(file.Path, userDocumentsFolderPath + "\\JSG-LLC\\WaveTools\\")).Wait();
-                await ProcessRun.RestartApp();
+                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+                WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+                var file = await picker.PickSingleFileAsync();
+                if (file != null)
+                {
+                    string userDocumentsFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                    try
+                    {
+                        // 使用异步方式执行数据清理和解压缩操作
+                        await Task.Run(() => ClearAllData_NoClose(null, null));
+                        await Task.Run(() => ZipFile.ExtractToDirectory(file.Path, userDocumentsFolderPath + "\\JSG-LLC\\WaveTools\\"));
+                    }
+                    catch (Exception ex)
+                    {
+                        // 添加日志或错误处理逻辑
+                        Debug.WriteLine("Error during restore process: " + ex.Message);
+                        sender.Subtitle = "Restore failed: " + ex.Message;
+                        sender.IsOpen = true;
+                        return;
+                    }
+
+                    // 重启应用
+                    await ProcessRun.RestartApp();
+                }
+            }
+            finally
+            {
+                window.Close();  // 确保Window在结束时关闭，释放资源
             }
         }
 

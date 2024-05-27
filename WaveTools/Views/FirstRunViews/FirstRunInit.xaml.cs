@@ -28,6 +28,7 @@ using System.IO;
 using System.IO.Compression;
 using Windows.Storage;
 using Microsoft.UI.Xaml.Media;
+using System.Diagnostics;
 
 namespace WaveTools.Views.FirstRunViews
 {
@@ -55,19 +56,37 @@ namespace WaveTools.Views.FirstRunViews
             var picker = new FileOpenPicker();
             picker.FileTypeFilter.Add(".WaveToolsBackup");
             var window = new Window();
-            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
-            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
-            var file = await picker.PickSingleFileAsync();
-            if (file != null)
+            try
             {
-                string userDocumentsFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                DeleteFolder(userDocumentsFolderPath + "\\JSG-LLC\\WaveTools\\", "0");
-                Task.Run(() => ZipFile.ExtractToDirectory(file.Path, userDocumentsFolderPath + "\\JSG-LLC\\WaveTools\\")).Wait();
-                Frame parentFrame = GetParentFrame(this);
-                if (parentFrame != null)
+                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+                WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+                var file = await picker.PickSingleFileAsync();
+                if (file != null)
                 {
-                    // 前往下载依赖页面
-                    parentFrame.Navigate(typeof(FirstRunTheme));
+                    string userDocumentsFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                    DeleteFolder(userDocumentsFolderPath + "\\JSG-LLC\\WaveTools\\", "0");
+                    try
+                    {
+                        await Task.Run(() => ZipFile.ExtractToDirectory(file.Path, userDocumentsFolderPath + "\\JSG-LLC\\WaveTools\\"));
+                    }
+                    catch (Exception ex)
+                    {
+                        // 处理解压缩过程中可能出现的异常
+                        Debug.WriteLine("Failed to extract backup: " + ex.Message);
+                    }
+                    Frame parentFrame = GetParentFrame(this);
+                    if (parentFrame != null)
+                    {
+                        // 前往下载依赖页面
+                        parentFrame.Navigate(typeof(FirstRunTheme));
+                    }
+                }
+            }
+            finally
+            {
+                if (window != null)
+                {
+                    window.Close(); // 确保窗口被关闭
                 }
             }
         }

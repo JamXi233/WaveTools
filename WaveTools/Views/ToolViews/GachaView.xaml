@@ -47,6 +47,12 @@
                     <TextBlock Visibility="Visible" Text="无抽卡记录" Margin="0 12 0 0"/>
                 </StackPanel>
             </Grid>
+            <Grid x:Name="noGamePathFound" Visibility="Visible" Width="120" Height="120" CornerRadius="12" Background="{ThemeResource SystemControlAcrylicElementMediumHighBrush}">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <FontIcon Visibility="Visible" FontFamily="Segoe Fluent Icons" Glyph="&#xeb90;"/>
+                    <TextBlock Visibility="Visible" Text="未选择游戏路径" Margin="0 12 0 0"/>
+                </StackPanel>
+            </Grid>
             <StackPanel x:Name="gachaView" Grid.Column="0" Visibility="Collapsed">
                 <SelectorBar x:Name="gachaNav">
                 </SelectorBar>

@@ -26,6 +26,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.Storage;
+using WaveTools.Views;
 
 
 namespace WaveTools
@@ -45,7 +46,8 @@ namespace WaveTools
         [DllImport("User32.dll")]
         public static extern short GetAsyncKeyState(int vKey);
         GetNotify getNotify = new GetNotify();
-        internal Window m_window;
+        private Window m_window;
+        private StartGameView startGameView;
 
         // 私有构造函数以确保单例
         public App() 
@@ -67,6 +69,8 @@ namespace WaveTools
             {
                 m_window = new MainWindow();
                 m_window.Activate();
+                // 处理窗口的 Closed 事件
+                m_window.Closed += OnWindowClosed;
             }
             else await InitTerminalModeAsync(AppDataController.GetTerminalMode());
         }
@@ -170,6 +174,12 @@ namespace WaveTools
                 TerminalMode terminalMode = new TerminalMode();
             }
 
+        }
+
+        private void OnWindowClosed(object sender, WindowEventArgs e)
+        {
+            // 关闭应用程序
+            Windows.ApplicationModel.Core.CoreApplication.Exit();
         }
 
         public static class NotificationManager

@@ -36,7 +36,8 @@ namespace WaveTools.Views.ToolViews
 
         private async void GachaView_Loaded(object sender, RoutedEventArgs e)
         {
-            await LoadUIDs();
+            if (AppDataController.GetGamePath() == "Null") { GetGachaURL.IsEnabled = false; UpdateGacha.IsEnabled = false; noGamePathFound.Visibility = Visibility.Visible; }
+            else { noGamePathFound.Visibility = Visibility.Collapsed; await LoadUIDs(); }
         }
 
         private async void GetGachaURL_Click(object sender, RoutedEventArgs e)

@@ -128,15 +128,17 @@ namespace WaveTools.Views
         {
             var picker = new FileOpenPicker();
             picker.FileTypeFilter.Add(".exe");
-            var window = new Window();
-            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
-            WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
-            var file = await picker.PickSingleFileAsync();
-            await AnsiConsole.Status().StartAsync("等待选择文件...", async ctx =>
+
+            var window = new Window(); // 创建Window对象
+            try
             {
+                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+                WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
+
+                var file = await picker.PickSingleFileAsync();
                 if (file != null && file.Name == "Wuthering Waves.exe")
                 {
-                    //更新为新的存储管理机制
+                    // 更新为新的存储管理机制
                     AppDataController.SetGamePath(@file.Path);
                     UpdateUIElementsVisibility(1);
                     CheckProcess_Graphics();
@@ -148,15 +150,19 @@ namespace WaveTools.Views
                     ValidGameFile.Subtitle = "选择正确的Wuthering Waves.exe\n通常位于[游戏根目录\\Wuthering Waves Game\\Wuthering Waves.exe]";
                     ValidGameFile.IsOpen = true;
                 }
-            });
+            }
+            finally
+            {
+                window.Close(); // 手动关闭Window对象
+            }
         }
+
 
         private bool CheckIsWeGameVersion(bool isFirst)
         {
             if (Directory.Exists(AppDataController.GetGamePathWithoutGameName() + "Client\\Binaries\\Win64\\ThirdParty\\KrPcSdk_Mainland\\KRSDKRes\\wegame"))
             {
-                dispatcherTimer_Game.Stop();
-                if(isFirst)NotificationManager.RaiseNotification("检测到WeGame版本", "游戏将无法从WaveTools启动\n无法账号切换", InfoBarSeverity.Warning);
+                if (isFirst)NotificationManager.RaiseNotification("检测到WeGame版本", "游戏将无法从WaveTools启动\n无法账号切换", InfoBarSeverity.Warning);
                 startGame.IsEnabled = false;
                 startLauncher.IsEnabled = false;
                 Frame_AccountView_Launched_Disable.Visibility = Visibility.Visible;
@@ -377,9 +383,23 @@ namespace WaveTools.Views
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
-            dispatcherTimer_Game.Stop();
-            dispatcherTimer_Launcher.Stop();
-            Logging.Write("Timer Stopped", 0);
+            // 停止游戏检查定时器
+            if (dispatcherTimer_Game != null)
+            {
+                dispatcherTimer_Game.Stop();
+                dispatcherTimer_Game.Tick -= CheckProcess_Game;  // 取消事件订阅
+                dispatcherTimer_Game = null;
+                Logging.Write("Game Timer Stopped", 0);
+            }
+
+            // 停止启动器检查定时器
+            if (dispatcherTimer_Launcher != null)
+            {
+                dispatcherTimer_Launcher.Stop();
+                dispatcherTimer_Launcher.Tick -= CheckProcess_Launcher;  // 取消事件订阅
+                dispatcherTimer_Launcher = null;
+                Logging.Write("Launcher Timer Stopped", 0);
+            }
         }
 
     }

@@ -23,6 +23,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.UI.Xaml.Controls;
+using SRTools.Depend;
 using static WaveTools.App;
 
 namespace WaveTools.Depend

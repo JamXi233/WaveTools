@@ -27,6 +27,7 @@ using System.Threading.Tasks;
 using Windows.Storage.Pickers;
 using Windows.Storage;
 using System.IO;
+using SRTools.Depend;
 
 namespace WaveTools.Depend
 {

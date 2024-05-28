@@ -36,6 +36,7 @@ using Newtonsoft.Json;
 using System.Net.Http;
 using static WaveTools.App;
 using Windows.UI.Core;
+using SRTools.Depend;
 
 namespace WaveTools.Views
 {
@@ -183,25 +184,26 @@ namespace WaveTools.Views
             }
         }
 
-
         private async void Check_Update(object sender, RoutedEventArgs e)
         {
             UpdateTip.IsOpen = false;
             var result = await GetUpdate.GetWaveToolsUpdate();
             var status = result.Status;
             UpdateTip.Target = checkUpdate;
+            UpdateTip.ActionButtonClick -= StartDependForceUpdate;
+            UpdateTip.ActionButtonClick -= StartForceUpdate;
             UpdateTip.ActionButtonClick -= DisplayUpdateInfo;
+            bool isShiftPressed = (GetAsyncKeyState(0x10) & 0x8000) != 0;
 
-            UpdateTip.Title = status == 0 ? "无可用更新" : status == 1 ? "有可用更新" : "网络连接失败，可能是请求次数过多";
-            UpdateTip.Subtitle = status == 1 ? "新版本:" + result.Version : null;
-            UpdateTip.ActionButtonContent = status == 1 ? "查看详情" : null;
+            UpdateTip.Title = isShiftPressed ? "遇到麻烦了吗" : status == 0 ? "无可用更新" : status == 1 ? "有可用更新" : "网络连接失败，可能是请求次数过多";
+            UpdateTip.Subtitle = isShiftPressed ? "尝试重装WaveTools" : status == 1 ? "新版本:" + result.Version : null;
+            UpdateTip.ActionButtonContent = isShiftPressed ? "强制重装" : status == 1 ? "查看详情" : null;
             UpdateTip.CloseButtonContent = "关闭";
 
+            if (isShiftPressed) UpdateTip.ActionButtonClick += StartForceUpdate;
             if (status == 1) UpdateTip.ActionButtonClick += DisplayUpdateInfo;
             UpdateTip.IsOpen = true;
         }
-
-
 
         private async void Check_Depend_Update(object sender, RoutedEventArgs e)
         {
@@ -210,6 +212,7 @@ namespace WaveTools.Views
             var status = result.Status;
             UpdateTip.Target = checkDependUpdate;
             UpdateTip.ActionButtonClick -= StartDependForceUpdate;
+            UpdateTip.ActionButtonClick -= StartForceUpdate;
             UpdateTip.ActionButtonClick -= DisplayUpdateInfo;
             bool isShiftPressed = (GetAsyncKeyState(0x10) & 0x8000) != 0;
 
@@ -246,12 +249,31 @@ namespace WaveTools.Views
 
         public async void StartUpdate()
         {
+            UpdateTip.IsOpen = false;
+            WaitOverlayManager.RaiseWaitOverlay(true, true, 0, "正在更新", "请稍等片刻");
             await InstallerHelper.GetInstaller();
-            InstallerHelper.RunInstaller();
+            if (InstallerHelper.RunInstaller() != 0)
+            {
+                NotificationManager.RaiseNotification("更新失败", "", InfoBarSeverity.Error);
+            }
+            WaitOverlayManager.RaiseWaitOverlay(false);
+        }
+
+        public async void StartForceUpdate(TeachingTip sender, object args)
+        {
+            UpdateTip.IsOpen = false;
+            WaitOverlayManager.RaiseWaitOverlay(true, true, 0, "正在强制重装WaveTools", "请稍等片刻");
+            await InstallerHelper.GetInstaller();
+            if (InstallerHelper.RunInstaller("/force") != 0)
+            {
+                NotificationManager.RaiseNotification("更新失败", "", InfoBarSeverity.Error);
+            }
+            WaitOverlayManager.RaiseWaitOverlay(false);
         }
 
         public async void StartDependUpdate()
         {
+            UpdateTip.IsOpen = false;
             WaitOverlayManager.RaiseWaitOverlay(true, true, 0, "正在更新依赖", "请稍等片刻");
             await InstallerHelper.GetInstaller();
             InstallerHelper.RunInstaller("/depend");
@@ -261,13 +283,12 @@ namespace WaveTools.Views
         public async void StartDependForceUpdate(TeachingTip sender, object args)
         {
             UpdateTip.IsOpen = false;
-            WaitOverlayManager.RaiseWaitOverlay(true, true, 0, "正在强制更新依赖", "请稍等片刻");
+            WaitOverlayManager.RaiseWaitOverlay(true, true, 0, "正在强制重装依赖", "请稍等片刻");
             await InstallerHelper.GetInstaller();
             if (InstallerHelper.RunInstaller("/depend /force") != 0)
             {
-                NotificationManager.RaiseNotification("安装依赖失败", "", InfoBarSeverity.Error);
+                NotificationManager.RaiseNotification("强制重装依赖失败", "", InfoBarSeverity.Error);
             }
-            
             WaitOverlayManager.RaiseWaitOverlay(false);
         }
 

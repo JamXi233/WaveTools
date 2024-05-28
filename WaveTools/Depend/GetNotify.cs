@@ -34,16 +34,22 @@ namespace WaveTools.Depend
                     var newsPosts = jsonObject["guidance"]["news"]["contents"].Children().ToList();
                     var noticePosts = jsonObject["guidance"]["notice"]["contents"].Children().ToList();
 
-                    // 将结果保存到文件中
-                    var folder = KnownFolders.DocumentsLibrary;
-                    var WaveToolsFolder = await folder.CreateFolderAsync("JSG-LLC\\WaveTools", CreationCollisionOption.OpenIfExists);
-                    var activityFile = await WaveToolsFolder.CreateFileAsync("Posts\\activity.json", CreationCollisionOption.OpenIfExists);
-                    var newsFile = await WaveToolsFolder.CreateFileAsync("Posts\\news.json", CreationCollisionOption.OpenIfExists);
-                    var noticeFile = await WaveToolsFolder.CreateFileAsync("Posts\\notice.json", CreationCollisionOption.OpenIfExists);
+                    // 获取用户文档目录下的JSG-LLC\WaveTools\Posts目录
+                    string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                    string waveToolsFolderPath = Path.Combine(documentsPath, "JSG-LLC", "WaveTools", "Posts");
 
-                    await File.WriteAllTextAsync(activityFile.Path, JArray.FromObject(activityPosts).ToString());
-                    await File.WriteAllTextAsync(newsFile.Path, JArray.FromObject(newsPosts).ToString());
-                    await File.WriteAllTextAsync(noticeFile.Path, JArray.FromObject(noticePosts).ToString());
+                    // 确保目录存在
+                    Directory.CreateDirectory(waveToolsFolderPath);
+
+                    // 文件路径
+                    string activityFilePath = Path.Combine(waveToolsFolderPath, "activity.json");
+                    string newsFilePath = Path.Combine(waveToolsFolderPath, "news.json");
+                    string noticeFilePath = Path.Combine(waveToolsFolderPath, "notice.json");
+
+                    // 将结果保存到文件中
+                    await File.WriteAllTextAsync(activityFilePath, JArray.FromObject(activityPosts).ToString());
+                    await File.WriteAllTextAsync(newsFilePath, JArray.FromObject(newsPosts).ToString());
+                    await File.WriteAllTextAsync(noticeFilePath, JArray.FromObject(noticePosts).ToString());
                 }
                 catch (Exception ex)
                 {

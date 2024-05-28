@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using WaveTools.Depend;
+using SRTools.Depend;
 
 namespace WaveTools.Views.SGViews
 {

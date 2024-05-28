@@ -10,6 +10,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media;
 using Newtonsoft.Json;
+using SRTools.Depend;
 using WaveTools.Depend;
 using WaveTools.Views.ToolViews;
 

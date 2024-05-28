@@ -26,6 +26,7 @@ using WaveTools.Depend;
 using Windows.Storage;
 using System.Diagnostics;
 using Microsoft.UI.Xaml.Media;
+using SRTools.Depend;
 
 namespace WaveTools.Views.FirstRunViews
 {

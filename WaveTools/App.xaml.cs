@@ -27,6 +27,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.Storage;
 using WaveTools.Views;
+using SRTools.Depend;
 
 
 namespace WaveTools

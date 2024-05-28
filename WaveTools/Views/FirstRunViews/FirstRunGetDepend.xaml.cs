@@ -27,6 +27,7 @@ using Windows.Storage;
 using System.IO;
 using System.IO.Compression;
 using Microsoft.UI.Xaml.Media;
+using SRTools.Depend;
 
 namespace WaveTools.Views.FirstRunViews
 {

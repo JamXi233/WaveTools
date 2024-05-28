@@ -19,6 +19,7 @@
 // For more information, please refer to <https://www.gnu.org/licenses/gpl-3.0.html>
 
 using Microsoft.UI.Xaml.Controls;
+using SRTools.Depend;
 using System.Threading.Tasks;
 using WaveTools.Depend;
 

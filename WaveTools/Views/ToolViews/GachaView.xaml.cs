@@ -12,6 +12,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.Web.WebView2.Core;
 using Newtonsoft.Json;
+using SRTools.Depend;
 using WaveTools.Depend;
 using Windows.Graphics;
 using WinRT.Interop;

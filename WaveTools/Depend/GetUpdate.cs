@@ -24,6 +24,7 @@ using Windows.ApplicationModel;
 using Windows.Storage;
 using System.IO;
 using System.Diagnostics;
+using SRTools.Depend;
 
 namespace WaveTools.Depend
 {

@@ -38,6 +38,7 @@ using System.Security.Cryptography;
 using Microsoft.UI.Xaml.Navigation;
 using Windows.Devices.Geolocation;
 using System.IO;
+using SRTools.Depend;
 
 namespace WaveTools.Views
 {

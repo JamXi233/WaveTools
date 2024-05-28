@@ -19,6 +19,7 @@
 // For more information, please refer to <https://www.gnu.org/licenses/gpl-3.0.html>
 
 using Newtonsoft.Json;
+using SRTools.Depend;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -30,35 +31,32 @@ namespace WaveTools.Depend
     public class InstallerHelper
     {
         private static readonly string BaseInstallerPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "JSG-LLC", "WaveTools", "Installer");
-        private static readonly string InstallerFileName = "WaveToolsInstaller_1.0.0.0.exe";
-        private static readonly string InstallerFullPath = Path.Combine(BaseInstallerPath, InstallerFileName);
+        private static string InstallerFileName = ""; 
+        private static string InstallerFullPath = Path.Combine(BaseInstallerPath, InstallerFileName);
         private static readonly string InstallerInfoUrl = "https://api.jamsg.cn/release/getversion?package=cn.jamsg.WaveToolsinstaller";
 
         public static bool CheckInstaller()
         {
-            // 检查 WaveToolsInstaller 是否存在
             return File.Exists(InstallerFullPath);
         }
-
-        // 检查 Installer 是否存在
         public static async Task GetInstaller()
         {
             using (var httpClient = new HttpClient())
             {
                 try
                 {
-                    // 从 API 获取安装程序信息
                     string json = await httpClient.GetStringAsync(InstallerInfoUrl);
                     dynamic installerInfo = JsonConvert.DeserializeObject(json);
+                    string version = installerInfo.version;
                     string downloadLink = installerInfo.link;
 
-                    // 确保安装程序目录存在
+                    InstallerFileName = $"WaveToolsInstaller_{version}.exe";
+                    InstallerFullPath = Path.Combine(BaseInstallerPath, InstallerFileName);
+
                     if (!Directory.Exists(BaseInstallerPath))
                     {
                         Directory.CreateDirectory(BaseInstallerPath);
                     }
-
-                    // 下载安装程序
                     using (var response = await httpClient.GetAsync(downloadLink))
                     {
                         if (response.IsSuccessStatusCode)
@@ -76,12 +74,11 @@ namespace WaveTools.Depend
                 }
                 catch (Exception ex)
                 {
-                    Logging.Write($"下载安装程序时出错: {ex.Message}",3);
+                    Logging.Write($"下载安装程序时出错: {ex.Message}", 3);
                 }
             }
         }
 
-        // 开始运行 Installer
         public static int RunInstaller(string args = "")
         {
             if (!File.Exists(InstallerFullPath))
@@ -93,39 +90,23 @@ namespace WaveTools.Depend
             ProcessStartInfo startInfo = new ProcessStartInfo
             {
                 FileName = InstallerFullPath,
-                Arguments = args
+                Arguments = args,
+                UseShellExecute = true,
+                Verb = "runas"
             };
-
-            if (args.Contains("depend"))
-            {
-                // 需要管理员权限
-                startInfo.UseShellExecute = true;
-                startInfo.Verb = "runas";
-            }
-            else
-            {
-                // 不需要管理员权限，尝试重定向输出
-                startInfo.UseShellExecute = false;
-                startInfo.RedirectStandardOutput = true;
-                startInfo.RedirectStandardError = true;
-            }
 
             try
             {
-                using (Process process = new Process { StartInfo = startInfo })
+                using (Process process = Process.Start(startInfo))
                 {
-                    process.Start();
+                    process.WaitForExit();
 
-                    if (!startInfo.UseShellExecute)
+                    // 检查退出代码
+                    if (process.ExitCode != 0)
                     {
-                        // 读取输出
-                        string output = process.StandardOutput.ReadToEnd();
-                        string error = process.StandardError.ReadToEnd();
-                        Logging.Write($"Output: {output}", 0);
-                        Logging.Write($"Error: {error}", 2);
+                        Logging.Write($"安装程序退出代码: {process.ExitCode}", 2);
                     }
 
-                    process.WaitForExit();
                     return process.ExitCode;
                 }
             }
@@ -135,7 +116,5 @@ namespace WaveTools.Depend
                 return -2;
             }
         }
-
-
     }
 }

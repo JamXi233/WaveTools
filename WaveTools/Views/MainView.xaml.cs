@@ -37,6 +37,7 @@ using Newtonsoft.Json.Linq;
 using System.IO.Compression;
 using Newtonsoft.Json;
 using Windows.Services.Maps.Guidance;
+using SRTools.Depend;
 
 namespace WaveTools.Views
 {

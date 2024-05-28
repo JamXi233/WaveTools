@@ -155,7 +155,7 @@
                         <Image Grid.Row="0" Source="ms-appx:///Imgs/Logo_2.jpg" Width="128" Height="128"/>
                     </Border>
                     <TextBlock Text="关于" FontSize="18" FontWeight="Bold" Margin="0 12 0 0"/>
-                    <TextBlock x:Name="appName" Text="WaveTools(鸣潮工具箱) Beta" FontSize="12" FontWeight="Bold" Margin="0 4 0 0"/>
+                    <TextBlock x:Name="appName" Text="WaveTools(鸣潮工具箱) Stable" FontSize="12" FontWeight="Bold" Margin="0 4 0 0"/>
                     <TextBlock x:Name="appToolName" Text="用于《鸣潮》" FontSize="12" FontWeight="Bold" Margin="0 0 0 0"/>
                     <TextBlock Text="Created by JamXi" FontSize="12" Margin="0 0 0 0"/>
                     <TextBlock Text="Copyright © JSG-LLC 2017-2024" FontSize="12" FontWeight="Bold" Margin="0 0 0 0"/>
@@ -166,11 +166,11 @@
                         <Hyperlink NavigateUri="https://github.com/JamXi233/WaveTools" UnderlineStyle="None"><Run Text="贡献代码"/></Hyperlink>
                     </TextBlock>
                     <StackPanel x:Name="debug_Mode" Margin="0 12 0 0" Visibility="Collapsed">
-                        <TextBlock Text="Debug设置" FontSize="16" FontWeight="Bold" Margin="0 0 0 10" Visibility="Collapsed"/>
-                        <Button x:Name="debug_Panic" Click="Debug_Panic_Click" Content="Debug_崩溃" Margin="0 0 0 10" Visibility="Collapsed"/>
-                        <ToggleButton x:Name="debug_DisableNavBtns" Click="Debug_Disable_NavBtns" Content="禁用所有导航按钮" Margin="0 0 0 10" Visibility="Collapsed"/>
-                        <Button x:Name="debug_NotificationTest" Click="Debug_Notification_Test" Content="全局通知测试" Margin="0 0 0 10" Visibility="Collapsed"/>
-                        <TextBlock x:Name="debug_Message" Text="处于Debug模式，控制台无法关闭" Margin="0 0 0 0" Visibility="Collapsed"/>
+                        <TextBlock Text="Debug设置" FontSize="16" FontWeight="Bold" Margin="0 0 0 10"/>
+                        <Button x:Name="debug_Panic" Click="Debug_Panic_Click" Content="Debug_崩溃" Margin="0 0 0 10"/>
+                        <ToggleButton x:Name="debug_DisableNavBtns" Click="Debug_Disable_NavBtns" Content="禁用所有导航按钮" Margin="0 0 0 10"/>
+                        <Button x:Name="debug_NotificationTest" Click="Debug_Notification_Test" Content="全局通知测试" Margin="0 0 0 10"/>
+                        <TextBlock x:Name="debug_Message" Text="处于Debug模式，控制台无法关闭" Margin="0 0 0 0"/>
                     </StackPanel>
                     <StackPanel Margin="210 110 0 0" VerticalAlignment="Bottom" HorizontalAlignment="Right">
                         <TextBlock x:Name="appVersion" Text="" FontSize="18" FontWeight="Bold" HorizontalAlignment="Right"/>

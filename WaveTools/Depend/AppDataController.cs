@@ -19,6 +19,7 @@
 // For more information, please refer to <https://www.gnu.org/licenses/gpl-3.0.html>
 
 using System;
+using SRTools.Depend;
 using Windows.Storage;
 
 namespace WaveTools.Depend

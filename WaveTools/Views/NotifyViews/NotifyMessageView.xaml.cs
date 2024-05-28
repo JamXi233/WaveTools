@@ -25,6 +25,8 @@ using Windows.Storage;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using SRTools.Depend;
+using System.IO;
 
 namespace WaveTools.Views.NotifyViews
 {
@@ -35,14 +37,25 @@ namespace WaveTools.Views.NotifyViews
         {
             this.InitializeComponent();
             Logging.Write("Switch to NotifyMessageView", 0);
-            var folder = KnownFolders.DocumentsLibrary;
-            var WaveToolsFolder = folder.GetFolderAsync("JSG-LLC\\WaveTools").AsTask().GetAwaiter().GetResult();
-            var settingsFile = WaveToolsFolder.GetFileAsync("Posts\\notice.json").AsTask().GetAwaiter().GetResult();
-            var notify = FileIO.ReadTextAsync(settingsFile).AsTask().GetAwaiter().GetResult();
-            GetNotify getNotify = new GetNotify();
-            var records = getNotify.GetData(notify);
-            NotifyMessageView_List.ItemsSource = records;
-            LoadData(records);
+
+            // 获取用户文档目录下的JSG-LLC\WaveTools\Posts目录
+            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            string waveToolsFolderPath = Path.Combine(documentsPath, "JSG-LLC", "WaveTools", "Posts");
+            string settingsFilePath = Path.Combine(waveToolsFolderPath, "notice.json");
+
+            // 确保目录和文件存在
+            if (File.Exists(settingsFilePath))
+            {
+                string notify = File.ReadAllText(settingsFilePath);
+                GetNotify getNotify = new GetNotify();
+                var records = getNotify.GetData(notify);
+                NotifyMessageView_List.ItemsSource = records;
+                LoadData(records);
+            }
+            else
+            {
+                Logging.Write("Notice file not found", 0);
+            }
         }
 
         private void LoadData(List<GetNotify> getNotifies)
@@ -65,5 +78,6 @@ namespace WaveTools.Views.NotifyViews
             await Task.Delay(TimeSpan.FromSeconds(0.1));
             NotifyMessageView_List.SelectedIndex = -1;
         }
+
     }
 }

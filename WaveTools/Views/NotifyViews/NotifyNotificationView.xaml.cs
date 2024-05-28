@@ -25,6 +25,8 @@ using Windows.Storage;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using SRTools.Depend;
+using System.IO;
 
 namespace WaveTools.Views.NotifyViews
 {
@@ -34,15 +36,26 @@ namespace WaveTools.Views.NotifyViews
         public NotifyNotificationView()
         {
             this.InitializeComponent();
-            Logging.Write("Switch to NotifyNotificationView", 0);
-            var folder = KnownFolders.DocumentsLibrary;
-            var WaveToolsFolder = folder.GetFolderAsync("JSG-LLC\\WaveTools").AsTask().GetAwaiter().GetResult();
-            var settingsFile = WaveToolsFolder.GetFileAsync("Posts\\activity.json").AsTask().GetAwaiter().GetResult();
-            var notify = FileIO.ReadTextAsync(settingsFile).AsTask().GetAwaiter().GetResult();
-            GetNotify getNotify = new GetNotify();
-            var records = getNotify.GetData(notify);
-            NotifyNotificationView_List.ItemsSource = records;
-            LoadData(records);
+            Logging.Write("Switch to NotifyMessageView", 0);
+
+            // 获取用户文档目录下的JSG-LLC\WaveTools\Posts目录
+            string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            string waveToolsFolderPath = Path.Combine(documentsPath, "JSG-LLC", "WaveTools", "Posts");
+            string settingsFilePath = Path.Combine(waveToolsFolderPath, "activity.json");
+
+            // 确保目录和文件存在
+            if (File.Exists(settingsFilePath))
+            {
+                string notify = File.ReadAllText(settingsFilePath);
+                GetNotify getNotify = new GetNotify();
+                var records = getNotify.GetData(notify);
+                NotifyNotificationView_List.ItemsSource = records;
+                LoadData(records);
+            }
+            else
+            {
+                Logging.Write("Notice file not found", 0);
+            }
         }
 
         private void LoadData(List<GetNotify> getNotifies)

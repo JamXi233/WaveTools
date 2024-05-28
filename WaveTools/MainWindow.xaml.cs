@@ -44,6 +44,8 @@ using Newtonsoft.Json.Linq;
 using System.IO.Compression;
 using WaveTools.Views.ToolViews;
 using System.ComponentModel;
+using SRTools.Depend;
+using System.Diagnostics;
 
 namespace WaveTools
 {
@@ -442,12 +444,16 @@ namespace WaveTools
         }
 
 
-        private async void ExpectionFolderOpen_Click() 
+        private void ExpectionFolderOpen_Click()
         {
-            StorageFolder folder = await KnownFolders.DocumentsLibrary.CreateFolderAsync("JSG-LLC\\Panic", CreationCollisionOption.OpenIfExists);
-            StorageFile file = await folder.GetFileAsync(ExpectionFileName);
-            StorageApplicationPermissions.MostRecentlyUsedList.Add(file);
-            await Launcher.LaunchFolderAsync(folder, new FolderLauncherOptions { ItemsToSelect = { file } });
+            string folderPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "JSG-LLC", "Panic");
+            Directory.CreateDirectory(folderPath);
+            string filePath = Path.Combine(folderPath, ExpectionFileName);
+            if (!File.Exists(filePath))
+            {
+                File.Create(filePath).Dispose();
+            }
+            Process.Start("explorer.exe", folderPath);
         }
 
 
@@ -597,7 +603,7 @@ namespace WaveTools
                     PrimaryButtonText = isPrimaryButtonEnabled ? primaryButtonContent : null,
                     SecondaryButtonText = isSecondaryButtonEnabled ? secondaryButtonContent : null,
                     CloseButtonText = "关闭",
-                    XamlRoot = this.Content.XamlRoot // 确保在正确的 XamlRoot 上显示
+                    XamlRoot = this.Content.XamlRoot
                 };
 
                 if (isPrimaryButtonEnabled)
@@ -614,27 +620,11 @@ namespace WaveTools
             }
         }
 
-        private void PrimaryButton_Click(ContentDialog sender, ContentDialogButtonClickEventArgs args)
-        {
-            // 处理主要按钮点击事件
-        }
-
-        private void SecondaryButton_Click(ContentDialog sender, ContentDialogButtonClickEventArgs args)
-        {
-            // 处理次要按钮点击事件
-        }
-
-        private void CloseButton_Click(ContentDialog sender, ContentDialogButtonClickEventArgs args)
-        {
-            // 处理关闭按钮点击事件
-        }
-
-
-
         private void MainWindow_Closed(object sender, WindowEventArgs e)
         {
             NotificationManager.OnNotificationRequested -= AddNotification;
             WaitOverlayManager.OnWaitOverlayRequested -= ShowWaitOverlay;
+            DialogManager.OnDialogRequested -= ShowDialog;
         }
 
     }

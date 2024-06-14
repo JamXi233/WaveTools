@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.UI;
@@ -14,9 +15,13 @@ using Microsoft.Web.WebView2.Core;
 using Newtonsoft.Json;
 using SRTools.Depend;
 using WaveTools.Depend;
+using WaveTools.Views.GachaViews;
 using Windows.Graphics;
+using Windows.Storage.Pickers;
+using Windows.Storage;
 using WinRT.Interop;
 using static WaveTools.App;
+using System.Runtime.InteropServices;
 
 namespace WaveTools.Views.ToolViews
 {
@@ -28,10 +33,13 @@ namespace WaveTools.Views.ToolViews
         public String GachaLink_String;
         public String GachaLinkCache_String;
         public bool isClearGachaSaved;
+        public static GachaModel.CardPoolInfo cardPoolInfo;
 
         private bool isUserInteraction = false;
         private string latestUpdatedUID = null;
 
+        [DllImport("User32.dll")]
+        public static extern short GetAsyncKeyState(int vKey);
 
         public GachaView()
         {
@@ -43,15 +51,44 @@ namespace WaveTools.Views.ToolViews
         private async void GachaView_Loaded(object sender, RoutedEventArgs e)
         {
             if (AppDataController.GetGamePath() == "Null") { GetGachaURL.IsEnabled = false; UpdateGacha.IsEnabled = false; noGamePathFound.Visibility = Visibility.Visible; }
-            else { noGamePathFound.Visibility = Visibility.Collapsed; await LoadUIDs(); }
+            else 
+            { 
+                noGamePathFound.Visibility = Visibility.Collapsed;
+                // 获取卡池信息
+                cardPoolInfo = await GetCardPoolInfo();
+
+                if (cardPoolInfo == null || cardPoolInfo.CardPools == null)
+                {
+                    Console.WriteLine("无法获取卡池信息或卡池列表为空");
+                    return;
+                }
+                await LoadUIDs(); 
+            }
+        }
+
+        private async Task<GachaModel.CardPoolInfo> GetCardPoolInfo()
+        {
+            try
+            {
+                using (var client = new HttpClient())
+                {
+                    var response = await client.GetStringAsync("https://wavetools.jamsg.cn/api/cardPoolRule");
+                    return JsonConvert.DeserializeObject<GachaModel.CardPoolInfo>(response);
+                }
+            }
+            catch (Exception ex)
+            {
+                NotificationManager.RaiseNotification("获取卡池信息时发生错误", null, InfoBarSeverity.Error, false, 5);
+                Logging.Write($"获取卡池信息时发生错误: {ex.Message}",2);
+                throw;
+            }
         }
 
         private async void GetGachaURL_Click(object sender, RoutedEventArgs e)
         {
-
             string recordsBasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), @"JSG-LLC\WaveTools\GachaRecords");
             string gachaLinksJson = await ProcessRun.WaveToolsHelperAsync($"/GetGachaURL {AppDataController.GetGamePathForHelper()}");
-            var gachaUrls = JsonConvert.DeserializeObject<List<GachaUrl>>(gachaLinksJson);
+            var gachaUrls = JsonConvert.DeserializeObject<List<GachaModel.GachaUrl>>(gachaLinksJson);
 
             // 创建新对话框
             var dialog = new ContentDialog
@@ -124,10 +161,18 @@ namespace WaveTools.Views.ToolViews
 
         private async void OpenGachaWeb_Click(object sender, RoutedEventArgs e)
         {
+            WaitOverlayManager.RaiseWaitOverlay(true, "正在获取抽卡连接", "请耐心等待", true, 0);
             string gachaUrl = await ProcessRun.WaveToolsHelperAsync($"/GetSavedGachaURL {selectedUid}");
+            if (!gachaUrl.Contains("https"))
+            {
+                NotificationManager.RaiseNotification("打开抽卡记录失败", "该抽卡记录可能是导入到工具箱的\n导入的抽卡记录无法打开抽卡记录 需获取本地抽卡记录才可打开", InfoBarSeverity.Warning);
+                WaitOverlayManager.RaiseWaitOverlay(false); // 添加这行以确保在错误情况下取消等待覆盖
+                return;
+            }
 
             var newWindow = new Window();
             newWindow.Title = $"[UID:{selectedUid}]抽卡记录";
+            WaitOverlayManager.RaiseWaitOverlay(true, "抽卡记录已在新窗口打开", null, false, 0 );
 
             var webView = new WebView2
             {
@@ -145,7 +190,13 @@ namespace WaveTools.Views.ToolViews
             WindowId windowId = Win32Interop.GetWindowIdFromWindow(hWnd);
             AppWindow appWindow = AppWindow.GetFromWindowId(windowId);
 
-            appWindow.Resize(new SizeInt32(951, 534));
+            appWindow.Resize(new SizeInt32(1141, 641));
+
+            // 订阅窗口关闭事件
+            newWindow.Closed += (s, args) =>
+            {
+                WaitOverlayManager.RaiseWaitOverlay(false);
+            };
 
             newWindow.Activate();
 
@@ -159,14 +210,17 @@ namespace WaveTools.Views.ToolViews
 
 
 
+
         private async void UpdateGacha_Click(object sender, RoutedEventArgs e)
         {
-            UpdateGacha_R(selectedUid);
+            bool isShiftPressed = (GetAsyncKeyState(0x10) & 0x8000) != 0;
+            if (isShiftPressed) DialogManager.RaiseDialog(XamlRoot, "抽卡记录遇到了问题?", $"可以尝试完全覆盖当前抽卡记录\n只有在抽卡记录完全混乱时才建议使用", true, "强制覆盖", () => { UpdateGacha_R(selectedUid,true); });
+            else UpdateGacha_R(selectedUid);
         }
 
         private async void SaveGachaLink(string UID)
         {
-            WaitOverlayManager.RaiseWaitOverlay(true, true, 0, "正在保存抽卡链接", "请稍等片刻");
+            WaitOverlayManager.RaiseWaitOverlay(true, "正在保存抽卡链接", "请稍等片刻", true, 0);
             await ProcessRun.WaveToolsHelperAsync($"/SaveGachaURL {AppDataController.GetGamePathForHelper()} {UID}");
             WaitOverlayManager.RaiseWaitOverlay(false);
             await GetGachaRecords(UID);
@@ -175,37 +229,49 @@ namespace WaveTools.Views.ToolViews
 
         private async Task GetGachaRecords(string UID)
         {
-            WaitOverlayManager.RaiseWaitOverlay(true, true, 0, "正在获取抽卡记录", "请稍等片刻");
+            WaitOverlayManager.RaiseWaitOverlay(true, "正在获取抽卡记录", "请稍等片刻", true, 0);
             await ProcessRun.WaveToolsHelperAsync($"/GetGachaRecords {UID}");
+            NotificationManager.RaiseNotification("获取完成",null,InfoBarSeverity.Success,false,2);
             WaitOverlayManager.RaiseWaitOverlay(false);
             ReloadGachaView();
         }
 
-        private async void UpdateGacha_R(string UID)
+        private async void UpdateGacha_R(string UID, bool isForce = false)
         {
-            if (UID is null) { NotificationManager.RaiseNotification($"更新抽卡记录", "更新记录失败:UID为空", InfoBarSeverity.Error); return; }
-            WaitOverlayManager.RaiseWaitOverlay(true, true, 0, "正在更新抽卡记录", "请稍等片刻");
-            await ProcessRun.WaveToolsHelperAsync($"/UpdateGachaRecords {UID}");
-            latestUpdatedUID = UID;
-            WaitOverlayManager.RaiseWaitOverlay(false);
+            if (isForce)
+            {
+                if (UID is null) { NotificationManager.RaiseNotification($"更新抽卡记录", "更新记录失败:UID为空", InfoBarSeverity.Error); return; }
+                WaitOverlayManager.RaiseWaitOverlay(true, "正在完全覆盖抽卡记录", "请稍等片刻", true, 0);
+                await ProcessRun.WaveToolsHelperAsync($"/UpdateGachaRecords {UID} /force");
+                latestUpdatedUID = UID;
+                WaitOverlayManager.RaiseWaitOverlay(false);
+                NotificationManager.RaiseNotification("覆盖完成", null, InfoBarSeverity.Success, false, 1);
+            }
+            else
+            {
+                if (UID is null) { NotificationManager.RaiseNotification($"更新抽卡记录", "更新记录失败:UID为空", InfoBarSeverity.Error); return; }
+                WaitOverlayManager.RaiseWaitOverlay(true, "正在更新抽卡记录", "请稍等片刻", true, 0);
+                await ProcessRun.WaveToolsHelperAsync($"/UpdateGachaRecords {UID}");
+                latestUpdatedUID = UID;
+                WaitOverlayManager.RaiseWaitOverlay(false);
+                NotificationManager.RaiseNotification("更新完成", null, InfoBarSeverity.Success, false, 1);
+            }
             ReloadGachaView();
         }
 
         private async void ReloadGachaView(TeachingTip sender = null, object args = null)
         {
-            GachaRecordsUID.SelectionChanged -= GachaRecordsUID_SelectionChanged; // 临时禁用事件处理程序
+            GachaRecordsUID.SelectionChanged -= GachaRecordsUID_SelectionChanged;
             await LoadUIDs();
-            GachaRecordsUID.SelectionChanged += GachaRecordsUID_SelectionChanged; // 重新启用事件处理程序
+            GachaRecordsUID.SelectionChanged += GachaRecordsUID_SelectionChanged;
 
-            // 重新加载其他UI元素
             ReloadGachaMainView();
 
-            // 切换到最新更新的UID
             if (!string.IsNullOrEmpty(latestUpdatedUID))
             {
-                isUserInteraction = false; // 设置为程序自动选择
+                isUserInteraction = false;
                 GachaRecordsUID.SelectedItem = latestUpdatedUID;
-                latestUpdatedUID = null; // 重置变量
+                latestUpdatedUID = null;
             }
             isUserInteraction = true;
         }
@@ -215,15 +281,16 @@ namespace WaveTools.Views.ToolViews
             isUserInteraction = true;
         }
 
-        // 新增的方法，用于重新加载 ComboBox (GachaRecordsUID)
         private void ReloadGachaComboBox()
         {
             selectedUid = null;
-            GachaRecordsUID.SelectionChanged -= GachaRecordsUID_SelectionChanged; // 临时禁用事件处理程序
+            GachaRecordsUID.SelectionChanged -= GachaRecordsUID_SelectionChanged;
             GachaRecordsUID.ItemsSource = null;
             GachaRecordsUID.Items.Clear();
 
-            string recordsDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "JSG-LLC", "WaveTools", "GachaLinks");
+            string linkDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "JSG-LLC", "WaveTools", "GachaLinks");
+            string recordsDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "JSG-LLC", "WaveTools", "GachaRecords");
+
             if (Directory.Exists(recordsDirectory))
             {
                 var uidFiles = Directory.GetFiles(recordsDirectory, "*.json");
@@ -242,39 +309,29 @@ namespace WaveTools.Views.ToolViews
         private void ReloadGachaMainView()
         {
             isUserInteraction = false;
-            // 先重新加载 ComboBox (GachaRecordsUID)
             ReloadGachaComboBox();
-
-            // 根据ComboBox的项数决定是否显示gachaView
             if (GachaRecordsUID.Items.Count == 0)
             {
                 gachaView.Visibility = Visibility.Collapsed;
+                loadGachaProgress.Visibility = Visibility.Collapsed;
+                noGachaFound.Visibility = Visibility.Visible;
             }
             else
             {
                 gachaView.Visibility = Visibility.Visible;
             }
-
-            // 重新加载其他可能需要重新加载的元素
-            // 例如，如果有其他控件需要更新，可以在这里添加相应的更新逻辑
-            // 假设有一个名为 gachaFrame 的 Frame 控件
             if (gachaFrame != null)
             {
-                gachaFrame.Navigate(typeof(GachaViews.TempGachaView), selectedUid);
+                gachaFrame.Navigate(typeof(TempGachaView), selectedUid);
             }
-
-            // 清空并重新加载 gachaNav
             gachaNav.Items.Clear();
             if (!string.IsNullOrEmpty(selectedUid))
             {
                 LoadGachaRecords(selectedUid);
             }
-
-            // 重新加载清除按钮的状态
             ClearGacha.IsEnabled = !string.IsNullOrEmpty(selectedUid);
             OpenGachaWeb.IsEnabled = !string.IsNullOrEmpty(selectedUid);
 
-            // 更新 UI 的其他部分（例如，显示或隐藏特定的控件）
             loadGachaProgress.Visibility = Visibility.Collapsed;
             noGachaFound.Visibility = Visibility.Collapsed;
         }
@@ -284,9 +341,30 @@ namespace WaveTools.Views.ToolViews
             GachaRecordsUID.ItemsSource = null;
             try
             {
-                string recordsDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "JSG-LLC", "WaveTools", "GachaLinks");
+                string linkDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "JSG-LLC", "WaveTools", "GachaLinks");
+                string recordsDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "JSG-LLC", "WaveTools", "GachaRecords");
 
-                if (!Directory.Exists(recordsDirectory))
+                HashSet<string> uidSet = new HashSet<string>();
+
+                if (Directory.Exists(recordsDirectory))
+                {
+                    var recordFiles = Directory.GetFiles(recordsDirectory, "*.json");
+                    foreach (var file in recordFiles)
+                    {
+                        uidSet.Add(Path.GetFileNameWithoutExtension(file));
+                    }
+                }
+
+                if (Directory.Exists(linkDirectory))
+                {
+                    var linkFiles = Directory.GetFiles(linkDirectory, "*.json");
+                    foreach (var file in linkFiles)
+                    {
+                        uidSet.Add(Path.GetFileNameWithoutExtension(file));
+                    }
+                }
+
+                if (uidSet.Count == 0)
                 {
                     //NotificationManager.RaiseNotification($"抽卡分析", "无抽卡记录", InfoBarSeverity.Warning);
                     loadGachaProgress.Visibility = Visibility.Collapsed;
@@ -294,23 +372,13 @@ namespace WaveTools.Views.ToolViews
                     return;
                 }
 
-                var uidFiles = Directory.GetFiles(recordsDirectory, "*.json");
-                if (uidFiles.Length == 0)
-                {
-                    //NotificationManager.RaiseNotification($"抽卡分析", "无抽卡记录", InfoBarSeverity.Warning);
-                    loadGachaProgress.Visibility = Visibility.Collapsed;
-                    noGachaFound.Visibility = Visibility.Visible;
-                    return;
-                }
-
-                var uidList = uidFiles.Select(Path.GetFileNameWithoutExtension).ToList();
-                GachaRecordsUID.ItemsSource = uidList;
-                if (uidList.Count > 0)
+                GachaRecordsUID.ItemsSource = uidSet.ToList();
+                if (uidSet.Count > 0)
                 {
                     GachaRecordsUID.SelectedIndex = 0;
                     loadGachaProgress.Visibility = Visibility.Collapsed;
                     noGachaFound.Visibility = Visibility.Collapsed;
-                    gachaView.Visibility = Visibility;
+                    gachaView.Visibility = Visibility.Visible;
                     ClearGacha.IsEnabled = true;
                     OpenGachaWeb.IsEnabled = true;
                 }
@@ -321,6 +389,7 @@ namespace WaveTools.Views.ToolViews
             }
         }
 
+
         private void GachaRecordsUID_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (GachaRecordsUID.SelectedItem != null)
@@ -330,20 +399,18 @@ namespace WaveTools.Views.ToolViews
                 {
                     if (isUserInteraction)
                     {
-                        // 用户手动选择
                         LoadGachaRecords(selectedUid);
                     }
                     else
                     {
-                        // 程序自动选择
-                        Console.WriteLine("程序自动选择了UID: " + selectedUid);
+                        Logging.Write("GachaUID:" + selectedUid);
                         LoadGachaRecords(selectedUid);
-                        isUserInteraction = true; // 重置标志变量
+                        isUserInteraction = true;
                     }
                 }
                 else
                 {
-                    Console.WriteLine("Selected UID 为空");
+                    Logging.Write("UID为空");
                 }
             }
         }
@@ -352,6 +419,7 @@ namespace WaveTools.Views.ToolViews
         {
             try
             {
+                Logging.Write("Load GachaRecords...");
                 string recordsDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "JSG-LLC", "WaveTools", "GachaRecords");
                 string filePath = Path.Combine(recordsDirectory, $"{uid}.json");
 
@@ -359,8 +427,8 @@ namespace WaveTools.Views.ToolViews
                 {
                     if (isUserInteraction)
                     {
-                        // 用户手动选择的情况，弹出对话框
-                        DialogManager.RaiseDialog(true, "抽卡记录未找到", $"未找到UID:{uid}的抽卡记录文件\n需要更新抽卡记录", true, "更新", () => { UpdateGacha_R(uid); });
+                        Logging.Write("GachaRecord Need Update",1);
+                        DialogManager.RaiseDialog(XamlRoot, "抽卡记录未找到", $"未找到UID:{uid}的抽卡记录文件\n需要更新抽卡记录", true, "更新", () => { UpdateGacha_R(uid); });
                         gachaNav.Visibility = Visibility.Collapsed;
                         gachaFrame.Visibility = Visibility.Collapsed;
                         return;
@@ -368,8 +436,8 @@ namespace WaveTools.Views.ToolViews
 
                     // 使用for循环遍历所有选项
                     bool recordFound = false;
-                    isUserInteraction = false; // 设置为程序自动选择
-                    GachaRecordsUID.SelectionChanged -= GachaRecordsUID_SelectionChanged; // 临时禁用事件处理程序
+                    isUserInteraction = false;
+                    GachaRecordsUID.SelectionChanged -= GachaRecordsUID_SelectionChanged;
                     for (int i = 0; i < GachaRecordsUID.Items.Count; i++)
                     {
                         GachaRecordsUID.SelectedIndex = i;
@@ -385,18 +453,17 @@ namespace WaveTools.Views.ToolViews
 
                     if (!recordFound)
                     {
-                        // 回到第一个项目并弹出通知
                         GachaRecordsUID.SelectedIndex = 0;
                         NotificationManager.RaiseNotification("无可用的抽卡记录", "", InfoBarSeverity.Warning);
                         gachaNav.Visibility = Visibility.Collapsed;
                         gachaFrame.Visibility = Visibility.Collapsed;
                     }
-                    GachaRecordsUID.SelectionChanged += GachaRecordsUID_SelectionChanged; // 重新启用事件处理程序
+                    GachaRecordsUID.SelectionChanged += GachaRecordsUID_SelectionChanged;
                     return;
                 }
 
                 var jsonContent = await File.ReadAllTextAsync(filePath);
-                var gachaData = JsonConvert.DeserializeObject<GachaData>(jsonContent);
+                var gachaData = JsonConvert.DeserializeObject<GachaModel.GachaData>(jsonContent);
 
                 DisplayGachaData(gachaData);
             }
@@ -406,13 +473,13 @@ namespace WaveTools.Views.ToolViews
             }
         }
 
-        private void DisplayGachaData(GachaData gachaData)
+        private void DisplayGachaData(GachaModel.GachaData gachaData)
         {
+            Logging.Write("Display GachaData...");
             gachaNav.Items.Clear();
 
             if (gachaData?.List == null || gachaData.List.Count == 0)
             {
-                // 显示无记录信息
                 return;
             }
 
@@ -432,7 +499,7 @@ namespace WaveTools.Views.ToolViews
                     firstEnabledItem = item;
                 }
 
-                item.Tapped += SelectorBarItem_Tapped; // 添加点击事件处理程序
+                item.Tapped += SelectorBarItem_Tapped;
                 gachaNav.Items.Add(item);
             }
 
@@ -445,7 +512,7 @@ namespace WaveTools.Views.ToolViews
             }
         }
 
-        private void SelectorBarItem_Tapped(object sender, Microsoft.UI.Xaml.Input.TappedRoutedEventArgs e)
+        private void SelectorBarItem_Tapped(object sender, TappedRoutedEventArgs e)
         {
             if (sender is SelectorBarItem item)
             {
@@ -462,18 +529,51 @@ namespace WaveTools.Views.ToolViews
             selectedCardPoolId = int.Parse(cardPoolId);
             if (gachaFrame != null)
             {
-                gachaFrame.Navigate(typeof(GachaViews.TempGachaView), selectedUid);
+                gachaFrame.Navigate(typeof(TempGachaView), selectedUid);
             }
         }
 
-        private void ExportWWGF_Click(object sender, RoutedEventArgs e)
+
+        private async void ExportWWGF_Click(object sender, RoutedEventArgs e)
         {
-            // 导出记录逻辑
+            var window = new Window();
+            string recordsBasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), @"JSG-LLC\WaveTools\GachaRecords");
+
+            // 打开文件选择器
+            var savePicker = new FileSavePicker();
+            var hwnd = WindowNative.GetWindowHandle(window);
+            InitializeWithWindow.Initialize(savePicker, hwnd);
+
+            savePicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+            savePicker.FileTypeChoices.Add("Wuthering Waves Gacha Format", new List<string>() { ".json" });
+            savePicker.SuggestedFileName = $"{selectedUid}_Export";
+
+            StorageFile exportFile = await savePicker.PickSaveFileAsync();
+            if (exportFile != null)
+            {
+                ExportGacha.Export($"{recordsBasePath}\\{selectedUid}.json", exportFile.Path);
+            }
         }
 
         private async void ImportWWGF_Click(object sender, RoutedEventArgs e)
         {
-            // 导入记录逻辑
+            var window = new Window();
+            // 打开文件选择器
+            var openPicker = new FileOpenPicker();
+            var hwnd = WindowNative.GetWindowHandle(window);
+            InitializeWithWindow.Initialize(openPicker, hwnd);
+
+            openPicker.ViewMode = PickerViewMode.Thumbnail;
+            openPicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+            openPicker.FileTypeFilter.Add(".json");
+
+            StorageFile importFile = await openPicker.PickSingleFileAsync();
+            if (importFile != null)
+            {
+                string recordsBasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), @"JSG-LLC\WaveTools\GachaRecords");
+                await ImportGacha.Import(importFile.Path);
+            }
+            ReloadGachaView();
         }
 
         private async void ClearGacha_Click(object sender, RoutedEventArgs e)
@@ -507,7 +607,6 @@ namespace WaveTools.Views.ToolViews
                 await ProcessRun.WaveToolsHelperAsync($"/DeleteGachaRecords {selectedUid}");
                 await ProcessRun.WaveToolsHelperAsync($"/DeleteGachaUID {selectedUid}");
             }
-            // 重新加载其他UI元素
             isUserInteraction = false;
             ReloadGachaMainView();
         }
@@ -524,53 +623,4 @@ namespace WaveTools.Views.ToolViews
         }
     }
 
-    
-
-    public class GachaData
-    {
-        public GachaInfo Info { get; set; }
-        public List<GachaPool> List { get; set; }
-    }
-
-    public class GachaInfo
-    {
-        public string Uid { get; set; }
-    }
-
-    public class GachaPool
-    {
-        public int CardPoolId { get; set; }
-        public string CardPoolType { get; set; }
-        public List<GachaRecord> Records { get; set; }
-    }
-
-    public class GachaRecord
-    {
-        public string ResourceId { get; set; }
-        public string Name { get; set; }
-        public int QualityLevel { get; set; }
-        public string ResourceType { get; set; }
-        public string Time { get; set; }
-    }
-
-    public class GachaUrl
-    {
-        [JsonProperty("gachaLink")]
-        public string GachaLink { get; set; }
-
-        [JsonProperty("playerId")]
-        public string PlayerId { get; set; }
-
-        [JsonProperty("cardPoolType")]
-        public string CardPoolType { get; set; }
-
-        [JsonProperty("serverId")]
-        public string ServerId { get; set; }
-
-        [JsonProperty("languageCode")]
-        public string LanguageCode { get; set; }
-
-        [JsonProperty("recordId")]
-        public string RecordId { get; set; }
-    }
 }

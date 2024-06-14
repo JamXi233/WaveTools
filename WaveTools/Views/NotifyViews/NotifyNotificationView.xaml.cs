@@ -36,7 +36,7 @@ namespace WaveTools.Views.NotifyViews
         public NotifyNotificationView()
         {
             this.InitializeComponent();
-            Logging.Write("Switch to NotifyMessageView", 0);
+            Logging.Write("Switch to NotifyActivityView", 0);
 
             // 获取用户文档目录下的JSG-LLC\WaveTools\Posts目录
             string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);

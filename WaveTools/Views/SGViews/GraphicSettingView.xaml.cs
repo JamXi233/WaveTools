@@ -127,6 +127,7 @@ namespace WaveTools.Views.SGViews
             { "KeyNvidiaSuperSamplingEnable", new Dictionary<string, int> { { "关闭", 0 }, { "开启", 1 } } },
             { "KeyNvidiaSuperSamplingMode", new Dictionary<string, int> { { "关闭", 0 }, { "自动", 1 }, { "质量", 3 }, { "平衡", 4 }, { "性能", 5 }, { "超级性能", 6 } } },
             { "KeyPcVsync", new Dictionary<string, int> { { "关闭", 0 }, { "开启", 1 } } },
+            { "KeyAntiAliasing", new Dictionary<string, int> { { "关闭", 0 }, { "开启", 1 } } },
             { "KeyNvidiaReflex", new Dictionary<string, int> { { "关闭", 0 }, { "开启", 1 } } }
         };
 

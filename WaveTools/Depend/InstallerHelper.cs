@@ -79,7 +79,7 @@ namespace WaveTools.Depend
             }
         }
 
-        public static int RunInstaller(string args = "")
+        public static async Task<int> RunInstallerAsync(string args = "")
         {
             if (!File.Exists(InstallerFullPath))
             {
@@ -99,7 +99,7 @@ namespace WaveTools.Depend
             {
                 using (Process process = Process.Start(startInfo))
                 {
-                    process.WaitForExit();
+                    await process.WaitForExitAsync();
 
                     // 检查退出代码
                     if (process.ExitCode != 0)
@@ -116,5 +116,6 @@ namespace WaveTools.Depend
                 return -2;
             }
         }
+
     }
 }

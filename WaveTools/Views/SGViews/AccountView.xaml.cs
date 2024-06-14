@@ -64,7 +64,7 @@ namespace WaveTools.Views.SGViews
             refreshAccount_Loading.Visibility = Visibility.Collapsed;
         }
 
-        private async void LoginAccount(object sender, RoutedEventArgs e)
+        private void LoginAccount(object sender, RoutedEventArgs e)
         {
             loginAccount.IsOpen = true;
         }
@@ -79,7 +79,7 @@ namespace WaveTools.Views.SGViews
                 // 删除所有登录信息
                 await ProcessRun.WaveToolsHelperAsync("/RemoveAllLogin");
                 // 显示等待提示，并启用按钮以强行停止进程
-                WaitOverlayManager.RaiseWaitOverlay(true, true, 0, "等待登录账号", "游戏已经启动，请登录您的账号记录下UID后退出游戏。", true, "取消登录", ProcessRun.StopWaveToolsHelperProcess);
+                WaitOverlayManager.RaiseWaitOverlay(true, "等待登录账号", "游戏已经启动，请登录您的账号记录下UID后退出游戏。", true, 0, true, "取消登录", ProcessRun.StopWaveToolsHelperProcess);
                 // 等待用户登录
                 await ProcessRun.WaveToolsHelperAsync("/WaitForLogin");
             }

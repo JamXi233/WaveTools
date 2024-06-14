@@ -21,66 +21,70 @@
             <StackPanel Grid.Column="0" HorizontalAlignment="Left">
 
                 <TextBlock Text="程序设置" FontSize="32" FontWeight="Bold" Margin="0 0 0 10"/>
-                <TextBlock Text="程序设置" FontSize="16" FontWeight="Bold" Margin="0 0 0 10"/>
 
-                <Grid>
+                <ScrollView Height="420" VerticalScrollBarVisibility="Hidden">
+                    <StackPanel HorizontalAlignment="Left">
+                        <TextBlock Text="程序设置" FontSize="16" FontWeight="Bold" Margin="0 0 0 10"/>
+                        <Grid>
 
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="3*"/>
-                        <ColumnDefinition Width="2*"/>
-                    </Grid.ColumnDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="3*"/>
+                                <ColumnDefinition Width="2*"/>
+                            </Grid.ColumnDefinitions>
 
-                    <StackPanel Grid.Column="0" Margin="0 0 20 0" Width="200">
-                        <ToggleButton x:Name="consoleToggle" Click="Console_Toggle" Content="开启控制台" Margin="0 0 0 10"/>
-                        <ToggleButton x:Name="terminalToggle" Click="TerminalMode_Toggle" Content="𝑻𝒆𝒓𝒎𝒊𝒏𝒂𝒍模式" Margin="0 0 0 10"/>
-                        <Button x:Name="checkUpdate" Click="Check_Update" Content="检查更新" Margin="0 0 0 10"/>
-                        <Button x:Name="checkDependUpdate" Click="Check_Depend_Update" Content="检查依赖更新" Margin="0 0 0 10"/>
-                        <RadioButtons x:Name="userviceRadio" Header="更新渠道" FontSize="16" FontWeight="Bold" Margin="0 12 0 0">
-                            <RadioButton x:Name="uservice_JSG" Content="JSG-LLC(JSG-DS)" Checked="uservice_JSG_Choose"/>
-                        </RadioButtons>
+                            <StackPanel Grid.Column="0" Margin="0 0 20 0" Width="200">
+                                <ToggleButton x:Name="consoleToggle" Click="Console_Toggle" Content="开启控制台" Margin="0 0 0 10"/>
+                                <ToggleButton x:Name="terminalToggle" Click="TerminalMode_Toggle" Content="𝑻𝒆𝒓𝒎𝒊𝒏𝒂𝒍模式" Margin="0 0 0 10"/>
+                                <Button x:Name="checkUpdate" Click="Check_Update" Content="检查更新" Margin="0 0 0 10"/>
+                                <Button x:Name="checkDependUpdate" Click="Check_Depend_Update" Content="检查依赖更新" Margin="0 0 0 10"/>
+                                <RadioButtons x:Name="userviceRadio" Header="更新渠道" FontSize="16" FontWeight="Bold" Margin="0 12 0 0">
+                                    <RadioButton x:Name="uservice_JSG" Content="JSG-LLC(JSG-DS)" Checked="uservice_JSG_Choose"/>
+                                </RadioButtons>
+                                
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Margin="0 0 0 0" Width="200">
+                                <Button x:Name="clearAllData" Click="Clear_AllData_TipShow" FontWeight="Bold" Foreground="Red" Content="清空所有数据" Margin="0 0 0 10"/>
+                                <Button x:Name="backupData" Click="Backup_Data" Content="备份数据" Margin="0 0 0 10"/>
+                                <Button x:Name="restoreData" Click="Restore_Data_Click" Content="还原数据" Margin="0 0 0 10"/>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button x:Name="installSFF" Click="Install_Font_Click" Content="安装图标字体" Margin="0 0 10 0"/>
+                                    <ProgressRing x:Name="installSFF_Progress" Height="20" Width="20" Visibility="Collapsed"/>
+                                </StackPanel>
+                                <StackPanel x:Name="other" Margin="0 12 0 10" Visibility="Visible">
+                                    <RadioButtons x:Name="themeRadio" Header="主题设置" FontSize="16" FontWeight="Bold" Margin="0 12 0 0">
+                                        <RadioButton x:Name="themeRadio_Follow" Checked="ThemeRadio_Follow">
+                                            <RadioButton.Content>
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                                    <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE713;"/>
+                                                    <TextBlock Text="跟随系统"/>
+                                                </StackPanel>
+                                            </RadioButton.Content>
+                                        </RadioButton>
+                                        <RadioButton x:Name="themeRadio_Light" Checked="ThemeRadio_Light">
+                                            <RadioButton.Content>
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                                    <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE706;"/>
+                                                    <TextBlock Text="浅色模式"/>
+                                                </StackPanel>
+                                            </RadioButton.Content>
+                                        </RadioButton>
+                                        <RadioButton x:Name="themeRadio_Dark" Checked="ThemeRadio_Dark">
+                                            <RadioButton.Content>
+                                                <StackPanel Orientation="Horizontal" Spacing="4">
+                                                    <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE708;"/>
+                                                    <TextBlock Text="深色模式"/>
+                                                </StackPanel>
+                                            </RadioButton.Content>
+                                        </RadioButton>
+                                    </RadioButtons>
+                                </StackPanel>
+
+                            </StackPanel>
+
+                        </Grid>
                     </StackPanel>
-
-                    <StackPanel Grid.Column="1" Margin="0 0 0 0" Width="200">
-                        <Button x:Name="clearAllData" Click="Clear_AllData_TipShow" FontWeight="Bold" Foreground="Red" Content="清空所有数据" Margin="0 0 0 10"/>
-                        <Button x:Name="backupData" Click="Backup_Data" Content="备份数据" Margin="0 0 0 10"/>
-                        <Button x:Name="restoreData" Click="Restore_Data_Click" Content="还原数据" Margin="0 0 0 10"/>
-                        <StackPanel Orientation="Horizontal">
-                            <Button x:Name="installSFF" Click="Install_Font_Click" Content="安装图标字体" Margin="0 0 10 0"/>
-                            <ProgressRing x:Name="installSFF_Progress" Height="20" Width="20" Visibility="Collapsed"/>
-                        </StackPanel>
-                        <StackPanel x:Name="other" Margin="0 12 0 10" Visibility="Visible">
-                            <RadioButtons x:Name="themeRadio" Header="主题设置" FontSize="16" FontWeight="Bold" Margin="0 12 0 0">
-                                <RadioButton x:Name="themeRadio_Follow" Checked="ThemeRadio_Follow">
-                                    <RadioButton.Content>
-                                        <StackPanel Orientation="Horizontal" Spacing="4">
-                                            <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE713;"/>
-                                            <TextBlock Text="跟随系统"/>
-                                        </StackPanel>
-                                    </RadioButton.Content>
-                                </RadioButton>
-                                <RadioButton x:Name="themeRadio_Light" Checked="ThemeRadio_Light">
-                                    <RadioButton.Content>
-                                        <StackPanel Orientation="Horizontal" Spacing="4">
-                                            <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE706;"/>
-                                            <TextBlock Text="浅色模式"/>
-                                        </StackPanel>
-                                    </RadioButton.Content>
-                                </RadioButton>
-                                <RadioButton x:Name="themeRadio_Dark" Checked="ThemeRadio_Dark">
-                                    <RadioButton.Content>
-                                        <StackPanel Orientation="Horizontal" Spacing="4">
-                                            <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xE708;"/>
-                                            <TextBlock Text="深色模式"/>
-                                        </StackPanel>
-                                    </RadioButton.Content>
-                                </RadioButton>
-                            </RadioButtons>
-                        </StackPanel>
-
-                    </StackPanel>
-                    
-
-                </Grid>
+                </ScrollView>
 
             </StackPanel>
 
@@ -165,14 +169,20 @@
                     <TextBlock Style="{ThemeResource BodyStrongTextBlockStyle}" Margin="0,8,0,4" HorizontalAlignment="Left">
                         <Hyperlink NavigateUri="https://github.com/JamXi233/WaveTools" UnderlineStyle="None"><Run Text="贡献代码"/></Hyperlink>
                     </TextBlock>
-                    <StackPanel x:Name="debug_Mode" Margin="0 12 0 0" Visibility="Collapsed">
-                        <TextBlock Text="Debug设置" FontSize="16" FontWeight="Bold" Margin="0 0 0 10"/>
-                        <Button x:Name="debug_Panic" Click="Debug_Panic_Click" Content="Debug_崩溃" Margin="0 0 0 10"/>
-                        <ToggleButton x:Name="debug_DisableNavBtns" Click="Debug_Disable_NavBtns" Content="禁用所有导航按钮" Margin="0 0 0 10"/>
-                        <Button x:Name="debug_NotificationTest" Click="Debug_Notification_Test" Content="全局通知测试" Margin="0 0 0 10"/>
-                        <TextBlock x:Name="debug_Message" Text="处于Debug模式，控制台无法关闭" Margin="0 0 0 0"/>
+                    <StackPanel x:Name="debug_Mode" Margin="0 12 0 0" Visibility="Collapsed" Spacing="5">
+                        <TextBlock Text="Debug设置" FontSize="16" FontWeight="Bold"/>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button x:Name="debug_Panic" Click="Debug_Panic_Click" Content="Debug_崩溃"/>
+                            <ToggleButton x:Name="debug_DisableNavBtns" Click="Debug_Disable_NavBtns" Content="禁用导航按钮"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button x:Name="debug_NotificationTest" Click="Debug_Notification_Test" Content="全局通知测试"/>
+                            <Button x:Name="debug_WaitOverlayManager" Click="Debug_WaitOverlayManager_Test" Content="全局等待测试"/>
+                            <Button x:Name="debug_ShowDialogTest" Click="Debug_ShowDialog_Test" Content="全局Dialog测试"/>
+                        </StackPanel>
+                        <TextBlock x:Name="debug_Message" Text="处于Debug模式，控制台无法关闭"/>
                     </StackPanel>
-                    <StackPanel Margin="210 110 0 0" VerticalAlignment="Bottom" HorizontalAlignment="Right">
+                    <StackPanel Margin="210 130 0 0" VerticalAlignment="Bottom" HorizontalAlignment="Right">
                         <TextBlock x:Name="appVersion" Text="" FontSize="18" FontWeight="Bold" HorizontalAlignment="Right"/>
                         <TextBlock x:Name="apiVersion" Text="" FontSize="12" FontWeight="Bold" Foreground="Gray" HorizontalAlignment="Right"/>
                         <TextBlock x:Name="antiCatVersion" Text="" FontSize="12" FontWeight="Bold" Foreground="Gray" HorizontalAlignment="Right"/>

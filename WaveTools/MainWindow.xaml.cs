@@ -18,7 +18,6 @@
 
 // For more information, please refer to <https://www.gnu.org/licenses/gpl-3.0.html>
 
-using WaveTools.Views;
 using Microsoft.UI;
 using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
@@ -28,24 +27,20 @@ using Vanara.PInvoke;
 using Windows.Graphics;
 using WinRT.Interop;
 using Microsoft.UI.Xaml.Controls;
-using Windows.Storage;
 using WaveTools.Depend;
 using System.Threading.Tasks;
 using System.IO;
 using System.Net.Http;
 using System.Text.Json;
 using Microsoft.UI.Xaml.Media.Imaging;
-using Spectre.Console;
-using Windows.System;
-using Windows.Storage.AccessCache;
 using WaveTools.Views.FirstRunViews;
 using static WaveTools.App;
 using Newtonsoft.Json.Linq;
 using System.IO.Compression;
-using WaveTools.Views.ToolViews;
-using System.ComponentModel;
 using SRTools.Depend;
 using System.Diagnostics;
+using Microsoft.UI.Xaml.Media;
+using Microsoft.UI.Xaml.Media.Animation;
 
 namespace WaveTools
 {
@@ -54,7 +49,7 @@ namespace WaveTools
         private static readonly HttpClient httpClient = new HttpClient();
         private IntPtr hwnd = IntPtr.Zero;
         private OverlappedPresenter presenter;
-        private AppWindow appWindow = null;
+        private AppWindow appWindow;
         private AppWindowTitleBar titleBar;
         string ExpectionFileName;
 
@@ -233,13 +228,11 @@ namespace WaveTools
 
             float scale = (float)User32.GetDpiForWindow(hwnd) / 96;
 
-            int windowX = (int)(560 * scale);
-            int windowY = (int)(280 * scale);
             int windowWidth = (int)(1024 * scale);
             int windowHeight = (int)(584 * scale);
 
             Logging.Write("MoveAndResize to " + windowWidth + "*" + windowHeight, 0);
-            appWindow.MoveAndResize(new RectInt32(windowX, windowY, windowWidth, windowHeight));
+            appWindow.Resize(new SizeInt32(windowWidth, windowHeight));
 
             if (AppWindowTitleBar.IsCustomizationSupported())
             {
@@ -247,7 +240,7 @@ namespace WaveTools
                 titleBar.ExtendsContentIntoTitleBar = true;
                 titleBar.ButtonBackgroundColor = Colors.Transparent;
                 titleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
-                if (App.CurrentTheme == ApplicationTheme.Light) titleBar.ButtonForegroundColor = Colors.Black;
+                if (AppDataController.GetDayNight() == 1) titleBar.ButtonForegroundColor = Colors.Black;
                 else titleBar.ButtonForegroundColor = Colors.White;
 
                 titleBar.SetDragRectangles(new RectInt32[] { new RectInt32((int)(48 * scale), 0, 10000, (int)(48 * scale)) });
@@ -351,7 +344,7 @@ namespace WaveTools
 
                 using (var stream = await response.Content.ReadAsStreamAsync())
                 {
-                    using (var decompressedStream = new System.IO.Compression.GZipStream(stream, System.IO.Compression.CompressionMode.Decompress))
+                    using (var decompressedStream = new GZipStream(stream, CompressionMode.Decompress))
                     {
                         using (var reader = new StreamReader(decompressedStream))
                         {
@@ -433,12 +426,12 @@ namespace WaveTools
                 ExpectionFileName = string.Format("WaveTools_Panic_{0:yyyyMMdd_HHmmss}.WaveToolsPanic", DateTime.Now);
 
                 // 显示InfoBar通知
-                AddNotification("严重错误", errorMessage, severity, () =>
+                AddNotification("严重错误", errorMessage, severity, true, 0, () =>
                 {
                     ExpectionFolderOpen_Click();
                 }, "打开文件夹");
 
-                AnsiConsole.WriteException(ex, ExceptionFormats.ShortenPaths | ExceptionFormats.ShortenTypes | ExceptionFormats.ShortenMethods | ExceptionFormats.ShowLinks | ExceptionFormats.Default);
+                Spectre.Console.AnsiConsole.WriteException(ex, Spectre.Console.ExceptionFormats.ShortenPaths | Spectre.Console.ExceptionFormats.ShortenTypes | Spectre.Console.ExceptionFormats.ShortenMethods | Spectre.Console.ExceptionFormats.ShowLinks | Spectre.Console.ExceptionFormats.Default);
                 await ExceptionSave.Write("源:" + ex.Source + "\n错误标题:" + ex.Message + "\n堆栈跟踪:\n" + ex.StackTrace + "\n内部异常:\n" + ex.InnerException + "\n结束代码:" + ex.HResult + "\n完整错误:\n" + ex.ToString(), 1, ExpectionFileName);
             }
         }
@@ -456,39 +449,39 @@ namespace WaveTools
             Process.Start("explorer.exe", folderPath);
         }
 
+        private DateTime lastNotificationTime = DateTime.MinValue;
+        private const int ThrottleTimeMilliseconds = 50;
 
-        public void AddNotification(string title, string message, InfoBarSeverity severity, Action actionButtonAction = null, string actionButtonText = null, bool isClosable = true)
+        public async void AddNotification(string title, string message, InfoBarSeverity severity, bool isClosable = true, int TimerSec = 0, Action actionButtonAction = null, string actionButtonText = null)
         {
+            DateTime currentTime = DateTime.Now;
+            if ((currentTime - lastNotificationTime).TotalMilliseconds < ThrottleTimeMilliseconds)
+            {
+                await Task.Delay(ThrottleTimeMilliseconds);
+            }
+            lastNotificationTime = DateTime.Now;
+
             if (IsNotificationPresent(title))
             {
+                Logging.Write($"Notification with title '{title}' already present, skipping.", 1);
                 return;
             }
-            InfoBar infoBar = new InfoBar();
-            if (isClosable == true)
+
+            Logging.WriteNotification(title, message, (int)severity);
+            string titleWithDate = $"{title}";
+            InfoBar infoBar = new InfoBar
             {
-                infoBar = new InfoBar
-                {
-                    Title = title,
-                    Message = message,
-                    Severity = severity,
-                    IsOpen = true,
-                    VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Top,
-                    Margin = new Thickness(0, 0, 0, 5),
-                };
-            }
-            else if(isClosable == false)
-            {
-                infoBar = new InfoBar
-                {
-                    Title = title,
-                    Message = message,
-                    Severity = severity,
-                    IsOpen = true,
-                    VerticalAlignment = Microsoft.UI.Xaml.VerticalAlignment.Top,
-                    Margin = new Thickness(0, 0, 0, 5),
-                    IsClosable = false
-                };
-            }
+                Title = titleWithDate,
+                Message = message,
+                Severity = severity,
+                IsOpen = true,
+                VerticalAlignment = VerticalAlignment.Top,
+                Margin = new Thickness(0, 0, 0, 5),
+                Opacity = 0,
+                RenderTransform = new TranslateTransform(),
+                IsClosable = isClosable
+            };
+
             if (actionButtonText != null)
             {
                 var actionButton = new Button { Content = actionButtonText };
@@ -498,54 +491,145 @@ namespace WaveTools
                 }
                 infoBar.ActionButton = actionButton;
             }
+
             infoBar.CloseButtonClick += (sender, args) =>
             {
-                InfoBarPanel.Children.Remove(sender as InfoBar);
+                InfoBarPanel.Children.Remove(infoBar);
             };
-            InfoBarPanel.Children.Add(infoBar);
-            int logMode;
-            switch (severity)
-            {
-                case InfoBarSeverity.Informational:
-                    logMode = 0; // INFO
-                    break;
-                case InfoBarSeverity.Success:
-                    logMode = 0; // INFO, assuming success also logs as info
-                    break;
-                case InfoBarSeverity.Warning:
-                    logMode = 1; // WARN
-                    break;
-                case InfoBarSeverity.Error:
-                    logMode = 2; // ERROR
-                    break;
-                default:
-                    logMode = 0; // Default to INFO if unspecified
-                    break;
-            }
-            Logging.WriteNotification(title, message, logMode);
 
+            Storyboard moveDownStoryboard = new Storyboard();
+            foreach (UIElement child in InfoBarPanel.Children)
+            {
+                TranslateTransform transform = new TranslateTransform();
+                child.RenderTransform = transform;
+
+                DoubleAnimation moveDownAnimation = new DoubleAnimation
+                {
+                    Duration = new Duration(TimeSpan.FromSeconds(0.2)),
+                    From = -20,
+                    To = infoBar.ActualHeight,
+                    EasingFunction = new BackEase { EasingMode = EasingMode.EaseOut }
+                };
+                Storyboard.SetTarget(moveDownAnimation, child);
+                Storyboard.SetTargetProperty(moveDownAnimation, "(UIElement.RenderTransform).(TranslateTransform.Y)");
+
+                moveDownStoryboard.Children.Add(moveDownAnimation);
+            }
+            InfoBarPanel.Children.Insert(0, infoBar);
+            Storyboard flyInStoryboard = new Storyboard();
+
+            DoubleAnimation translateInAnimation = new DoubleAnimation
+            {
+                Duration = new Duration(TimeSpan.FromSeconds(0.2)),
+                From = 40,
+                To = 0,
+                EasingFunction = new BackEase { EasingMode = EasingMode.EaseOut }
+            };
+            Storyboard.SetTarget(translateInAnimation, infoBar);
+            Storyboard.SetTargetProperty(translateInAnimation, "(UIElement.RenderTransform).(TranslateTransform.X)");
+
+            DoubleAnimation fadeInAnimation = new DoubleAnimation
+            {
+                Duration = new Duration(TimeSpan.FromSeconds(0.5)),
+                From = 0,
+                To = 1,
+                EasingFunction = new BackEase { EasingMode = EasingMode.EaseOut }
+            };
+            Storyboard.SetTarget(fadeInAnimation, infoBar);
+            Storyboard.SetTargetProperty(fadeInAnimation, "Opacity");
+
+            moveDownStoryboard.Begin();
+            flyInStoryboard.Children.Add(translateInAnimation);
+            flyInStoryboard.Children.Add(fadeInAnimation);
+            flyInStoryboard.Begin();
+            await Task.Delay(10);
+
+            if (TimerSec > 0)
+            {
+                ProgressBar progressBar = new ProgressBar
+                {
+                    Width = 300,
+                    Height = 2,
+                    IsIndeterminate = false,
+                    Margin = new Thickness(-48, -8, 0, 0),
+                    Maximum = 100,
+                    Value = 100
+                };
+
+                if (isClosable)
+                {
+                    progressBar.Margin = new Thickness(-54, -4, -48, 0);
+                }
+
+                infoBar.Content = progressBar;
+                var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(TimerSec * 10) };
+                timer.Start();
+                timer.Tick += async (s, e) =>
+                {
+                    if (progressBar.Value > 0)
+                    {
+                        progressBar.Value -= 1;
+                    }
+                    else
+                    {
+                        timer.Stop();
+                        Storyboard closeStoryboard = new Storyboard();
+
+                        DoubleAnimation translateOutAnimation = new DoubleAnimation
+                        {
+                            Duration = new Duration(TimeSpan.FromSeconds(0.3)),
+                            From = 0,
+                            To = 40,
+                            EasingFunction = new BackEase { EasingMode = EasingMode.EaseIn }
+                        };
+                        Storyboard.SetTarget(translateOutAnimation, infoBar);
+                        Storyboard.SetTargetProperty(translateOutAnimation, "(UIElement.RenderTransform).(TranslateTransform.X)");
+
+                        DoubleAnimation fadeOutAnimation = new DoubleAnimation
+                        {
+                            Duration = new Duration(TimeSpan.FromSeconds(0.3)),
+                            From = 1,
+                            To = 0,
+                            EasingFunction = new BackEase { EasingMode = EasingMode.EaseIn }
+                        };
+                        Storyboard.SetTarget(fadeOutAnimation, infoBar);
+                        Storyboard.SetTargetProperty(fadeOutAnimation, "Opacity");
+                        closeStoryboard.Children.Add(translateOutAnimation);
+                        closeStoryboard.Children.Add(fadeOutAnimation);
+
+                        closeStoryboard.Completed += (s, e) =>
+                        {
+                            infoBar.IsOpen = false;
+                            InfoBarPanel.Children.Remove(infoBar);
+                        };
+
+                        closeStoryboard.Begin();
+                    }
+                };
+            }
         }
 
         public bool IsNotificationPresent(string title)
         {
             foreach (InfoBar infoBar in InfoBarPanel.Children)
             {
-                if ((string)infoBar.Title == title)
+                if (infoBar.Title == title)
                 {
-                    return true;  // 发现已有相同标题的通知
+                    return true;
                 }
             }
-            return false;  // 没有发现相同标题的通知
+            return false;
         }
 
 
-        public void ShowWaitOverlay(bool status, bool isProgress = false, int progress = 0, string title = null, string subtitle = null, bool isBtnEnabled = false, string btnContent = "", Action btnAction = null)
+        public async void ShowWaitOverlay(bool status, string title = null, string subtitle = null, bool isProgress = false, int progress = 0, bool isBtnEnabled = false, string btnContent = "", Action btnAction = null)
         {
             if (status)
             {
+                FadeInStoryboard.Begin();
                 WaitOverlay.Visibility = Visibility.Visible;
-                if (isProgress) WaitOverlay_Progress.Visibility = Visibility.Visible;
-                else WaitOverlay_Success.Visibility = Visibility.Visible;
+                if (isProgress) { WaitOverlay_Progress_Grid.Visibility = Visibility.Visible; WaitOverlay_Progress.Visibility = Visibility.Visible; }
+                else WaitOverlay_Progress_Grid.Visibility = Visibility.Collapsed;
                 if (progress > 0)
                 {
                     WaitOverlay_ProgressBar.Visibility = Visibility.Visible;
@@ -578,6 +662,8 @@ namespace WaveTools
             }
             else
             {
+                FadeOutStoryboard.Begin();
+                await Task.Delay(100);
                 WaitOverlay.Visibility = Visibility.Collapsed;
                 WaitOverlay_Progress.Visibility = Visibility.Collapsed;
                 WaitOverlay_Success.Visibility = Visibility.Collapsed;
@@ -592,32 +678,31 @@ namespace WaveTools
             buttonAction?.Invoke();
         }
 
-        private async void ShowDialog(bool status, string title = null, string content = null, bool isPrimaryButtonEnabled = false, string primaryButtonContent = "", Action primaryButtonAction = null, bool isSecondaryButtonEnabled = false, string secondaryButtonContent = "", Action secondaryButtonAction = null)
+        private async void ShowDialog(XamlRoot xamlRoot, string title = null, string content = null, bool isPrimaryButtonEnabled = false, string primaryButtonContent = "", Action primaryButtonAction = null, bool isSecondaryButtonEnabled = false, string secondaryButtonContent = "", Action secondaryButtonAction = null)
         {
-            if (status)
+            ContentDialog dialog = new ContentDialog();
+
+            // XamlRoot must be set in the case of a ContentDialog running in a Desktop app
+            dialog.XamlRoot = xamlRoot;
+            dialog.Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style;
+            dialog.Title = title;
+            dialog.PrimaryButtonText = isPrimaryButtonEnabled ? primaryButtonContent : null;
+            dialog.SecondaryButtonText = isSecondaryButtonEnabled ? secondaryButtonContent : null;
+            dialog.CloseButtonText = "关闭";
+            dialog.DefaultButton = ContentDialogButton.Primary;
+            dialog.Content = new TextBlock { Text = content, FontSize = 14 };
+            if (isPrimaryButtonEnabled)
             {
-                ContentDialog dialog = new ContentDialog
-                {
-                    Title = title,
-                    Content = new TextBlock { Text = content, FontSize = 14 },
-                    PrimaryButtonText = isPrimaryButtonEnabled ? primaryButtonContent : null,
-                    SecondaryButtonText = isSecondaryButtonEnabled ? secondaryButtonContent : null,
-                    CloseButtonText = "关闭",
-                    XamlRoot = this.Content.XamlRoot
-                };
-
-                if (isPrimaryButtonEnabled)
-                {
-                    dialog.PrimaryButtonClick += (sender, args) => primaryButtonAction?.Invoke();
-                }
-
-                if (isSecondaryButtonEnabled)
-                {
-                    dialog.SecondaryButtonClick += (sender, args) => secondaryButtonAction?.Invoke();
-                }
-
-                await dialog.ShowAsync();
+                dialog.PrimaryButtonClick += (sender, args) => primaryButtonAction?.Invoke();
             }
+
+            if (isSecondaryButtonEnabled)
+            {
+                dialog.SecondaryButtonClick += (sender, args) => secondaryButtonAction?.Invoke();
+            }
+
+            var result = await dialog.ShowAsync();
+
         }
 
         private void MainWindow_Closed(object sender, WindowEventArgs e)

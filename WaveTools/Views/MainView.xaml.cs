@@ -1,24 +1,4 @@
-﻿// Copyright (c) 2021-2024, JamXi JSG-LLC.
-// All rights reserved.
-
-// This file is part of WaveTools.
-
-// WaveTools is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-
-// WaveTools is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-
-// You should have received a copy of the GNU General Public License
-// along with WaveTools.  If not, see <http://www.gnu.org/licenses/>.
-
-// For more information, please refer to <https://www.gnu.org/licenses/gpl-3.0.html>
-
-using System;
+﻿using System;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
@@ -56,30 +36,33 @@ namespace WaveTools.Views
         {
             this.InitializeComponent();
             Logging.Write("Switch to MainView", 0);
-            Loaded += MainView_Loaded;  // 订阅 Loaded 事件
+            Loaded += MainView_Loaded;
         }
 
         private async void MainView_Loaded(object sender, RoutedEventArgs e)
         {
-            await LoadBackgroundAsync();
-            await LoadPicturesAsync();  // 异步加载图片
-            await LoadPostAsync();
+            Logging.Write("MainView loaded", 0);
+            LoadBackgroundAsync();
+            LoadPicturesAsync();
+            LoadPostAsync();
 
             try
             {
-                await getNotify.Get();  // 异步等待 getNotify.Get() 完成
+                await getNotify.Get();
                 Notify_Grid.Visibility = Visibility.Visible;
+                Logging.Write("Notifications loaded successfully", 0);
             }
-            catch
+            catch (Exception ex)
             {
+                Logging.Write("Failed to load notifications: " + ex.Message, 1);
                 loadRing.Visibility = Visibility.Collapsed;
                 loadErr.Visibility = Visibility.Visible;
             }
         }
 
-
         private async Task LoadBackgroundAsync()
         {
+            Logging.Write("Loading background", 0);
             string apiUrl = "https://prod-cn-alicdn-gamestarter.kurogame.com/pcstarter/prod/starter/10003_Y8xXrXk65DqFHEDgApn3cpK5lfczpFx5/G152/index.json";
             JObject response = await FetchData(apiUrl);
 
@@ -102,33 +85,37 @@ namespace WaveTools.Views
                 if (cachedMd5 == newMd5)
                 {
                     // MD5匹配，直接加载
+                    Logging.Write("MD5 matches, loading cached files", 0);
                     await LoadAdvertisementDataAsync(backgroundPath, iconPath);
                     return;
                 }
             }
 
             // MD5不匹配或文件不存在，下载并解压
+            Logging.Write("MD5 does not match or files do not exist, downloading and extracting new files", 0);
             await DownloadFileAsync(zipUrl, zipFilePath);
             ExtractZipFile(zipFilePath, targetPath);
 
             // 保存新的MD5
             await File.WriteAllTextAsync(md5FilePath, newMd5);
-
-            await LoadAdvertisementDataAsync(backgroundPath, iconPath);
+            LoadAdvertisementDataAsync(backgroundPath, iconPath);
         }
 
         private async Task LoadPicturesAsync()
         {
+            Logging.Write("Loading pictures", 0);
             string apiUrl = "https://pcdownload-wangsu.aki-game.com/pcstarter/prod/starter/10003_Y8xXrXk65DqFHEDgApn3cpK5lfczpFx5/G152/guidance/zh-Hans.json";
             var response = await FetchPopulateData(apiUrl);
             var guidanceData = JsonConvert.DeserializeObject<GuidanceRoot>(response);
 
             // 填充图片数据
+            Logging.Write("Populating pictures", 0);
             PopulatePicturesAsync(guidanceData.slideshow);
         }
 
         private async Task LoadPostAsync()
         {
+            Logging.Write("Loading posts", 0);
             await getNotify.Get();
             NotifyLoad.Visibility = Visibility.Collapsed;
             NotifyNav.Visibility = Visibility.Visible;
@@ -138,6 +125,7 @@ namespace WaveTools.Views
                 if (menuItem is SelectorBarItem item && item.IsEnabled)
                 {
                     NotifyNav.SelectedItem = item;
+                    Logging.Write("Selected first enabled notification item", 0);
                     break;
                 }
             }
@@ -145,21 +133,20 @@ namespace WaveTools.Views
 
         private async Task LoadAdvertisementDataAsync(string backgroundPath, string iconPath)
         {
-            Logging.Write("LoadAdvertisementData...", 0);
-            Logging.Write("Getting Background: " + backgroundPath, 0);
+            Logging.Write("Loading advertisement data", 0);
             BitmapImage backgroundImage = new BitmapImage(new Uri(backgroundPath));
             BackgroundImage.Source = backgroundImage;
 
             // 设置按钮图标
             try
             {
-                Logging.Write("Getting Button Image: " + iconPath, 0);
+                Logging.Write("Setting button icon", 0);
                 BitmapImage iconImage = new BitmapImage(new Uri(iconPath));
                 IconImageBrush.ImageSource = iconImage;
             }
             catch (Exception e)
             {
-                Logging.Write("Getting Button Image Error: " + e.Message, 0);
+                Logging.Write("Error setting button icon: " + e.Message, 1);
             }
 
             var result = await GetUpdate.GetDependUpdate();
@@ -180,12 +167,14 @@ namespace WaveTools.Views
 
         private void BackgroundImage_ImageOpened(object sender, RoutedEventArgs e)
         {
+            Logging.Write("Background image opened", 0);
             StartFadeAnimation(BackgroundImage, 0, 1, TimeSpan.FromSeconds(0.2));
             StartFadeAnimation(OpenUrlButton, 0, 1, TimeSpan.FromSeconds(0.2));
         }
 
         private void StartFadeAnimation(FrameworkElement target, double from, double to, TimeSpan duration)
         {
+            Logging.Write($"Starting fade animation on {target.Name} from {from} to {to} over {duration.TotalSeconds} seconds", 0);
             DoubleAnimation opacityAnimation = new DoubleAnimation
             {
                 From = from,
@@ -203,7 +192,7 @@ namespace WaveTools.Views
 
         private async Task<JObject> FetchData(string apiUrl)
         {
-            Logging.Write("FetchData:" + apiUrl, 0);
+            Logging.Write("Fetching data from " + apiUrl, 0);
             using (HttpClient client = new HttpClient())
             {
                 client.DefaultRequestHeaders.AcceptEncoding.Add(new System.Net.Http.Headers.StringWithQualityHeaderValue("gzip"));
@@ -226,33 +215,36 @@ namespace WaveTools.Views
 
         private async Task<string> FetchPopulateData(string apiUrl)
         {
+            Logging.Write("Fetching populate data from " + apiUrl, 0);
             using (HttpClient client = new HttpClient())
             {
                 return await client.GetStringAsync(apiUrl);
             }
         }
 
-
         public void PopulatePicturesAsync(List<Slideshow> slideshows)
         {
+            Logging.Write("Populating pictures from slideshow data", 0);
             foreach (var slideshow in slideshows)
             {
-                Pictures.Add(slideshow.url);  // 将 URL 添加到集合
-                list.Add(slideshow.jumpUrl);  // 将跳转 URL 添加到集合
+                Pictures.Add(slideshow.url);
+                list.Add(slideshow.jumpUrl);
             }
-            FlipViewPipsPager.NumberOfPages = slideshows.Count;  // 一次性设置总页数
-            Gallery_Grid.Visibility = Visibility.Visible;  // 显示 FlipView
+            FlipViewPipsPager.NumberOfPages = slideshows.Count;
+            Gallery_Grid.Visibility = Visibility.Visible;
+            Logging.Write("Pictures populated successfully", 0);
         }
-
-
 
         private void Gallery_PointerPressed(object sender, PointerRoutedEventArgs e)
         {
+            Logging.Write("Gallery item pressed", 0);
             // 获取当前选中的图片
             int selectedPicture = Gallery.SelectedIndex;
+            Logging.Write("Selected picture index: " + selectedPicture, 0);
 
             // 如果选中了图片，则打开浏览器并导航到指定的网页
             string url = list[selectedPicture]; // 替换为要打开的网页地址
+            Logging.Write("Opening URL: " + url, 0);
             Process.Start(new ProcessStartInfo
             {
                 FileName = url,
@@ -262,8 +254,10 @@ namespace WaveTools.Views
 
         private void Notify_NavView_SelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args)
         {
+            Logging.Write("Notification navigation selection changed", 0);
             SelectorBarItem selectedItem = sender.SelectedItem;
             int currentSelectedIndex = sender.Items.IndexOf(selectedItem);
+            Logging.Write("Current selected index: " + currentSelectedIndex, 0);
             switch (currentSelectedIndex)
             {
                 case 0:
@@ -278,33 +272,9 @@ namespace WaveTools.Views
             }
         }
 
-        private async Task<BitmapImage> LoadImageAsync(string imageUrl)
-        {
-            // 检查缓存中是否已存在图片
-            if (imageCache.ContainsKey(imageUrl))
-            {
-                return imageCache[imageUrl];
-            }
-
-            // 从网络加载图片
-            BitmapImage bitmapImage = new BitmapImage();
-            using (var stream = await new HttpClient().GetStreamAsync(imageUrl))
-            using (var memStream = new MemoryStream())
-            {
-                await stream.CopyToAsync(memStream);
-                memStream.Position = 0;
-                var randomAccessStream = memStream.AsRandomAccessStream();
-                await bitmapImage.SetSourceAsync(randomAccessStream);
-            }
-
-            // 将加载的图片添加到缓存中
-            imageCache[imageUrl] = bitmapImage;
-
-            return bitmapImage;
-        }
-
         private async Task DownloadFileAsync(string url, string destinationPath)
         {
+            Logging.Write("Downloading file from URL: " + url + " to path: " + destinationPath, 0);
             using (HttpClient client = new HttpClient())
             {
                 using (HttpResponseMessage response = await client.GetAsync(url))
@@ -316,10 +286,12 @@ namespace WaveTools.Views
                     }
                 }
             }
+            Logging.Write("File downloaded successfully", 0);
         }
 
         private void ExtractZipFile(string zipFilePath, string extractPath)
         {
+            Logging.Write("Extracting zip file: " + zipFilePath + " to path: " + extractPath, 0);
             using (ZipArchive archive = ZipFile.OpenRead(zipFilePath))
             {
                 foreach (ZipArchiveEntry entry in archive.Entries)
@@ -328,6 +300,7 @@ namespace WaveTools.Views
                     entry.ExtractToFile(destinationPath, true);
                 }
             }
+            Logging.Write("Zip file extracted successfully", 0);
         }
 
         public class GuidanceRoot
@@ -344,5 +317,4 @@ namespace WaveTools.Views
             public string url { get; set; }
         }
     }
-
 }

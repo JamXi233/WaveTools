@@ -117,7 +117,7 @@
                                         </Grid>
                                     </Grid>
 
-                                    <Grid x:Name="Frame_AccountView_Launched_Disable" CornerRadius="8"  Visibility="Collapsed" Canvas.ZIndex="100">
+                                    <Grid x:Name="Frame_AccountView_Launched_Disable" CornerRadius="8"  Visibility="Collapsed" Canvas.ZIndex="120">
                                         <StackPanel Background="{ThemeResource SystemControlAcrylicElementBrush}"/>
                                         <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
                                             <StackPanel>

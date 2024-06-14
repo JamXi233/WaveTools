@@ -98,7 +98,7 @@ namespace WaveTools.Depend
             {
                 process.Kill();
             }
-            foreach (var process in Process.GetProcessesByName("Wuthering Waves.exe"))
+            foreach (var process in Process.GetProcessesByName("Wuthering Waves"))
             {
                 process.Kill();
             }

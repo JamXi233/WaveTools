@@ -182,12 +182,12 @@ namespace WaveTools.Depend
             var fileselect = 2;
             Console.Clear();
             Logging.Write("选择游戏文件", 0);
-            Logging.Write("通常位于(游戏根目录\\Game\\StarRail.exe)", 0);
+            Logging.Write("通常位于(游戏根目录\\Wuthering Waves Game\\Wuthering Waves.exe)", 0);
             await AnsiConsole.Status().StartAsync("等待选择文件...", async ctx =>
             {
                 var file = await picker.PickSingleFileAsync();
                 if (file == null) { fileselect = 1; }
-                else if (file.Name == "StarRail.exe")
+                else if (file.Name == "Wuthering Waves.exe")
                 {
                     localSettings.Values["Config_GamePath"] = @file.Path;
                     fileselect = 0;
@@ -199,7 +199,7 @@ namespace WaveTools.Depend
             { await Init(1); }
             else
             {
-                Logging.Write("选择文件不正确，请确保是StarRail.exe\n等待3秒后重新选择", 2);
+                Logging.Write("选择文件不正确，请确保是Wuthering Waves.exe\n等待3秒后重新选择", 2);
                 await Task.Delay(TimeSpan.FromSeconds(3));
                 SelectGame();
             }

@@ -89,10 +89,11 @@
   </ItemGroup>
 
   <ItemGroup>
-	<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.5.240404000" />
+	<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.5.240428000" />
 	<PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.22621.756" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 	<PackageReference Include="Spectre.Console" Version="0.47.0" />
+	<PackageReference Include="System.Management" Version="8.0.0" />
 	<PackageReference Include="Vanara.PInvoke.User32" Version="3.4.17" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>

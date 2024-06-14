@@ -26,17 +26,11 @@ using Windows.Storage.Pickers;
 using System.Diagnostics;
 using Microsoft.UI.Dispatching;
 using WaveTools.Depend;
-using Spectre.Console;
-using Microsoft.Win32;
 using WaveTools.Views.SGViews;
 using System.Net.Http;
 using System.Threading.Tasks;
 using static WaveTools.App;
 using Windows.Foundation;
-using System.Security.Cryptography.X509Certificates;
-using System.Security.Cryptography;
-using Microsoft.UI.Xaml.Navigation;
-using Windows.Devices.Geolocation;
 using System.IO;
 using SRTools.Depend;
 
@@ -52,7 +46,6 @@ namespace WaveTools.Views
         public static string GS = null;
         public static string SelectedUID = null;
         public static string SelectedName = null;
-
 
         public StartGameView()
         {
@@ -163,14 +156,15 @@ namespace WaveTools.Views
         {
             if (Directory.Exists(AppDataController.GetGamePathWithoutGameName() + "Client\\Binaries\\Win64\\ThirdParty\\KrPcSdk_Mainland\\KRSDKRes\\wegame"))
             {
-                if (isFirst)NotificationManager.RaiseNotification("检测到WeGame版本", "游戏将无法从WaveTools启动\n无法账号切换", InfoBarSeverity.Warning);
+                if (isFirst) NotificationManager.RaiseNotification("检测到WeGame版本", "游戏将无法从WaveTools启动\n无法账号切换", InfoBarSeverity.Warning, true, 5);
                 startGame.IsEnabled = false;
                 startLauncher.IsEnabled = false;
-                Frame_AccountView_Launched_Disable.Visibility = Visibility.Visible;
-                Frame_AccountView_Launched_Disable_Title.Text = "检测到WeGame版鸣潮";
-                Frame_AccountView_Launched_Disable_Subtitle.Text = "无法进行账号切换";
+                Frame_AccountView_Disable.Visibility = Visibility.Visible;
+                Frame_AccountView_Disable_Title.Text = "检测到WeGame版鸣潮";
+                Frame_AccountView_Disable_Subtitle.Text = "无法进行账号切换";
                 return true;
             }
+            else Frame_AccountView_Disable.Visibility = Visibility.Collapsed;
             return false;
         }
 
@@ -347,6 +341,7 @@ namespace WaveTools.Views
                 Frame_AccountView_Loading.Visibility = Visibility.Collapsed;
                 Frame_AccountView.Visibility = Visibility.Visible;
                 Frame_AccountView.Navigate(typeof(AccountView));
+                CheckIsWeGameVersion(false);
             }
         }
 

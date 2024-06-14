@@ -94,7 +94,7 @@ namespace WaveTools.Depend
             // 打开字体文件以供用户安装
             Process.Start("explorer", fontFilePath);
 
-            App.WaitOverlayManager.RaiseWaitOverlay(true, false, 0, "请点击安装", "安装后需要重启工具箱来生效");
+            App.WaitOverlayManager.RaiseWaitOverlay(true, "请点击安装", "安装后需要重启工具箱来生效", false, 0);
 
             return 0; // 表示字体文件已打开等待用户操作
         }

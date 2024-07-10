@@ -56,7 +56,7 @@
                                 </StackPanel>
 
                                 <StackPanel x:Name="depend_Progress_Grid" Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed">
-                                    <TextBlock Text="正在下载..." FontSize="12"/>
+                                    <TextBlock x:Name="depend_Progress_Text" Text="正在下载..." FontSize="12"/>
                                     <StackPanel Height="8"/>
                                     <ProgressBar x:Name="depend_Btn_Bar" Width="130" IsIndeterminate="False" ShowPaused="False" ShowError="False" />
                                 </StackPanel>

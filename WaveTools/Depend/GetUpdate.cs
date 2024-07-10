@@ -24,12 +24,13 @@ using Windows.ApplicationModel;
 using Windows.Storage;
 using System.IO;
 using System.Diagnostics;
-using SRTools.Depend;
+using WaveTools.Depend;
 
 namespace WaveTools.Depend
 {
     class GetUpdate
     {
+        private static readonly GetGithubLatest _getGithubLatest = new GetGithubLatest();
         private static readonly GetJSGLatest _getJSGLatest = new GetJSGLatest();
 
         public static async Task<UpdateResult> GetWaveToolsUpdate()
@@ -58,15 +59,23 @@ namespace WaveTools.Depend
                 switch (AppDataController.GetUpdateService())
                 {
                     case 0:
-                        Logging.Write("UService:Github", 0);
+                        Logging.Write("UpdateService:Github", 0);
+                        if (Mode == "Depend")
+                        {
+                            latestReleaseInfo = await _getGithubLatest.GetLatestDependReleaseInfoAsync("JamXi233", "Releases", PkgName);
+                        }
+                        else
+                        {
+                            latestReleaseInfo = await _getGithubLatest.GetLatestReleaseInfoAsync("JamXi233", PkgName);
+                        }
                         break;
                     case 2:
-                        Logging.Write("UService:JSG-DS", 0);
+                        Logging.Write("UpdateService:JSG-DS", 0);
                         latestReleaseInfo = await _getJSGLatest.GetLatestReleaseInfoAsync("cn.jamsg." + PkgName);
                         break;
                     default:
-                        Logging.Write($"Invalid update service value: {localSettings.Values["Config_UpdateService"]}", 0);
-                        throw new InvalidOperationException($"Invalid update service value: {localSettings.Values["Config_UpdateService"]}");
+                        Logging.Write($"Invalid update service value: {AppDataController.GetUpdateService()}", 0);
+                        throw new InvalidOperationException($"Invalid update service value: {AppDataController.GetUpdateService()}");
                 }
 
                 Logging.Write("Software Name:" + latestReleaseInfo.Name, 0);

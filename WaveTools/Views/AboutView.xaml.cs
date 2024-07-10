@@ -15,12 +15,13 @@ using Windows.Storage.Pickers;
 using Newtonsoft.Json;
 using System.Net.Http;
 using static WaveTools.App;
-using SRTools.Depend;
+using WaveTools.Depend;
 
 namespace WaveTools.Views
 {
     public sealed partial class AboutView : Page
     {
+        private readonly GetGithubLatest _getGithubLatest = new GetGithubLatest();
         private readonly GetJSGLatest _getJSGLatest = new GetJSGLatest();
 
         private bool isProgrammaticChange = false;
@@ -59,7 +60,9 @@ namespace WaveTools.Views
             Logging.Write("Loading settings", 0);
             consoleToggle.IsChecked = AppDataController.GetConsoleMode() == 1;
             terminalToggle.IsChecked = AppDataController.GetTerminalMode() == 1;
-            userviceRadio.SelectedIndex = new[] { 1, 2, 0 }[AppDataController.GetUpdateService()];
+            autoCheckUpdateToggle.IsChecked = AppDataController.GetAutoCheckUpdate() == 1;
+            adminModeToggle.IsChecked = AppDataController.GetAdminMode() == 1;
+            userviceRadio.SelectedIndex = AppDataController.GetUpdateService() == 0 ? 1 : AppDataController.GetUpdateService() == 2 ? 0 : -1;
             themeRadio.SelectedIndex = AppDataController.GetDayNight();
         }
 
@@ -100,6 +103,16 @@ namespace WaveTools.Views
             Logging.Write("Toggling terminal mode", 0);
             TerminalTip.IsOpen = terminalToggle.IsChecked ?? false;
             AppDataController.SetTerminalMode(terminalToggle.IsChecked == true ? 1 : 0);
+        }
+
+        private void Auto_Check_Update_Toggle(object sender, RoutedEventArgs e)
+        {
+            AppDataController.SetAutoCheckUpdate(autoCheckUpdateToggle.IsChecked == true ? 1 : 0);
+        }
+
+        private void Admin_Mode_Toggle(object sender, RoutedEventArgs e)
+        {
+            AppDataController.SetAdminMode(adminModeToggle.IsChecked == true ? 1 : 0);
         }
 
         public void Clear_AllData_TipShow(object sender, RoutedEventArgs e)
@@ -246,51 +259,62 @@ namespace WaveTools.Views
 
         public async void StartUpdate()
         {
-            Logging.Write("Starting update", 0);
             UpdateTip.IsOpen = false;
             WaitOverlayManager.RaiseWaitOverlay(true, "正在更新", "请稍等片刻", true, 0);
             await InstallerHelper.GetInstaller();
-            if (await InstallerHelper.RunInstallerAsync() != 0)
+            string channelArgument = GetChannelArgument();
+            if (InstallerHelper.RunInstaller(channelArgument) != 0)
             {
-                NotificationManager.RaiseNotification("更新失败", "", InfoBarSeverity.Error);
+                NotificationManager.RaiseNotification("更新失败", "", InfoBarSeverity.Error, true, 3);
             }
             WaitOverlayManager.RaiseWaitOverlay(false);
         }
 
         public async void StartForceUpdate(TeachingTip sender, object args)
         {
-            Logging.Write("Starting forced update", 0);
             UpdateTip.IsOpen = false;
             WaitOverlayManager.RaiseWaitOverlay(true, "正在强制重装WaveTools", "请稍等片刻", true, 0);
             await InstallerHelper.GetInstaller();
-            if (await InstallerHelper.RunInstallerAsync("/force") != 0)
+            string channelArgument = GetChannelArgument();
+            if (InstallerHelper.RunInstaller($"/force {channelArgument}") != 0)
             {
-                NotificationManager.RaiseNotification("更新失败", "", InfoBarSeverity.Error);
+                NotificationManager.RaiseNotification("更新失败", "", InfoBarSeverity.Error, true, 3);
             }
             WaitOverlayManager.RaiseWaitOverlay(false);
         }
 
         public async void StartDependUpdate()
         {
-            Logging.Write("Starting dependency update", 0);
             UpdateTip.IsOpen = false;
             WaitOverlayManager.RaiseWaitOverlay(true, "正在更新依赖", "请稍等片刻", true, 0);
             await InstallerHelper.GetInstaller();
-            await InstallerHelper.RunInstallerAsync("/depend");
+            string channelArgument = GetChannelArgument();
+            InstallerHelper.RunInstaller($"/depend {channelArgument}");
             WaitOverlayManager.RaiseWaitOverlay(false);
         }
 
         public async void StartDependForceUpdate(TeachingTip sender, object args)
         {
-            Logging.Write("Starting forced dependency update", 0);
             UpdateTip.IsOpen = false;
             WaitOverlayManager.RaiseWaitOverlay(true, "正在强制重装依赖", "请稍等片刻", true, 0);
             await InstallerHelper.GetInstaller();
-            if (await InstallerHelper.RunInstallerAsync("/depend /force") != 0)
+            string channelArgument = GetChannelArgument();
+            if (InstallerHelper.RunInstaller($"/depend /force {channelArgument}") != 0)
             {
-                NotificationManager.RaiseNotification("强制重装依赖失败", "", InfoBarSeverity.Error);
+                NotificationManager.RaiseNotification("强制重装依赖失败", "", InfoBarSeverity.Error, true, 3);
             }
             WaitOverlayManager.RaiseWaitOverlay(false);
+        }
+
+        private string GetChannelArgument()
+        {
+            int channel = AppDataController.GetUpdateService();
+            return channel switch
+            {
+                0 => "/channel github",
+                2 => "/channel ds",
+                _ => string.Empty
+            };
         }
 
         // 选择主题开始

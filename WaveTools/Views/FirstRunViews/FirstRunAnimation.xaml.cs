@@ -21,7 +21,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
-using SRTools.Depend;
+using WaveTools.Depend;
 using WaveTools.Depend;
 
 namespace WaveTools.Views.FirstRunViews

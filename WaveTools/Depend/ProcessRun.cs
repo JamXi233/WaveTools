@@ -21,9 +21,10 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Security.Principal;
 using System.Threading.Tasks;
 using Microsoft.UI.Xaml.Controls;
-using SRTools.Depend;
+using WaveTools.Depend;
 using static WaveTools.App;
 
 namespace WaveTools.Depend
@@ -104,8 +105,6 @@ namespace WaveTools.Depend
             }
         }
 
-
-
         public async static Task RestartApp()
         {
             Logging.Write("Restart WaveTools Requested",2);
@@ -118,6 +117,30 @@ namespace WaveTools.Depend
             Process.Start(info);
             await Task.Delay(100);
             Process.GetProcessById(processId).Kill();
-        } 
+        }
+
+        public async static Task RequestAdminAndRestart()
+        {
+            Logging.Write("Restart WaveTools Requested", 2);
+            var processId = Process.GetCurrentProcess().Id;
+            var fileName = Process.GetCurrentProcess().MainModule.FileName;
+            ProcessStartInfo info = new ProcessStartInfo(fileName)
+            {
+                UseShellExecute = true,
+                Verb = "runas"
+            };
+            Process.Start(info);
+            Process.GetProcessById(processId).Kill();
+        }
+
+        public static bool IsRunAsAdmin()
+        {
+            using (WindowsIdentity identity = WindowsIdentity.GetCurrent())
+            {
+                WindowsPrincipal principal = new WindowsPrincipal(identity);
+                return principal.IsInRole(WindowsBuiltInRole.Administrator);
+            }
+        }
+
     }
 }

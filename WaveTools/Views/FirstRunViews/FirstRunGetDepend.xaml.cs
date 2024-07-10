@@ -27,7 +27,7 @@ using Windows.Storage;
 using System.IO;
 using System.IO.Compression;
 using Microsoft.UI.Xaml.Media;
-using SRTools.Depend;
+using WaveTools.Depend;
 
 namespace WaveTools.Views.FirstRunViews
 {
@@ -36,6 +36,7 @@ namespace WaveTools.Views.FirstRunViews
         private MainWindow mainWindow;
         string fileUrl;
         private GetNetData _getNetData;
+        private readonly GetGithubLatest _getGithubLatest = new GetGithubLatest();
         private readonly GetJSGLatest _getJSGLatest = new GetJSGLatest();
 
         public FirstRunGetDepend()
@@ -54,6 +55,7 @@ namespace WaveTools.Views.FirstRunViews
 
         private async void DependDownload_Click(object sender, RoutedEventArgs e)
         {
+            depend_Progress_Text.Text = "正在下载...";
             _getNetData = new GetNetData();
             string userDocumentsFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             string localFilePath = Path.Combine(userDocumentsFolderPath + FileFolder, ZipFileName);
@@ -68,6 +70,7 @@ namespace WaveTools.Views.FirstRunViews
             }
             catch (Exception ex)
             {
+                Logging.Write($"Download error: {ex.Message}", 0);
                 throw new Exception(ex.Message);
             }
 
@@ -111,6 +114,7 @@ namespace WaveTools.Views.FirstRunViews
 
         private async void OnGetDependLatestReleaseInfo()
         {
+            depend_Progress_Text.Text = "正在获取...";
             depend_Grid.Visibility = Visibility.Collapsed;
             depend_Progress_Grid.Visibility = Visibility.Visible;
             var dispatcher = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
@@ -121,7 +125,7 @@ namespace WaveTools.Views.FirstRunViews
                 switch (localSettings.Values["Config_UpdateService"])
                 {
                     case 0:
-                        //latestReleaseInfo = await _getGithubLatest.GetLatestReleaseInfoAsync("JamXi233", "WaveToolsHelper");
+                        latestReleaseInfo = await _getGithubLatest.GetLatestDependReleaseInfoAsync("JamXi233", "Releases", "WaveToolsHelper");
                         break;
                     case 2:
                         latestReleaseInfo = await _getJSGLatest.GetLatestReleaseInfoAsync("cn.jamsg.WaveToolshelper");
@@ -150,6 +154,7 @@ namespace WaveTools.Views.FirstRunViews
                     depend_Latest_Version.Text = ex.Message;
                     depend_Btn_Bar.Visibility = Visibility.Collapsed;
                 });
+                Logging.Write($"Error fetching latest release info: {ex.Message}", 0);
             }
         }
 

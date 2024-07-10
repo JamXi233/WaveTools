@@ -19,7 +19,7 @@
 // For more information, please refer to <https://www.gnu.org/licenses/gpl-3.0.html>
 
 using Newtonsoft.Json;
-using SRTools.Depend;
+using WaveTools.Depend;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -31,7 +31,7 @@ namespace WaveTools.Depend
     public class InstallerHelper
     {
         private static readonly string BaseInstallerPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "JSG-LLC", "WaveTools", "Installer");
-        private static string InstallerFileName = ""; 
+        private static string InstallerFileName = "WaveToolsInstaller.exe"; 
         private static string InstallerFullPath = Path.Combine(BaseInstallerPath, InstallerFileName);
         private static readonly string InstallerInfoUrl = "https://api.jamsg.cn/release/getversion?package=cn.jamsg.WaveToolsinstaller";
 
@@ -39,24 +39,26 @@ namespace WaveTools.Depend
         {
             return File.Exists(InstallerFullPath);
         }
+
+        // 检查 Installer 是否存在
         public static async Task GetInstaller()
         {
             using (var httpClient = new HttpClient())
             {
                 try
                 {
+                    // 从 API 获取安装程序信息
                     string json = await httpClient.GetStringAsync(InstallerInfoUrl);
                     dynamic installerInfo = JsonConvert.DeserializeObject(json);
-                    string version = installerInfo.version;
                     string downloadLink = installerInfo.link;
 
-                    InstallerFileName = $"WaveToolsInstaller_{version}.exe";
-                    InstallerFullPath = Path.Combine(BaseInstallerPath, InstallerFileName);
-
+                    // 确保安装程序目录存在
                     if (!Directory.Exists(BaseInstallerPath))
                     {
                         Directory.CreateDirectory(BaseInstallerPath);
                     }
+
+                    // 下载安装程序
                     using (var response = await httpClient.GetAsync(downloadLink))
                     {
                         if (response.IsSuccessStatusCode)
@@ -79,7 +81,7 @@ namespace WaveTools.Depend
             }
         }
 
-        public static async Task<int> RunInstallerAsync(string args = "")
+        public static int RunInstaller(string args = "")
         {
             if (!File.Exists(InstallerFullPath))
             {
@@ -91,15 +93,15 @@ namespace WaveTools.Depend
             {
                 FileName = InstallerFullPath,
                 Arguments = args,
-                UseShellExecute = true,
-                Verb = "runas"
+                UseShellExecute = true, // 使用Shell以提升权限
+                Verb = "runas" // 请求提升权限
             };
 
             try
             {
                 using (Process process = Process.Start(startInfo))
                 {
-                    await process.WaitForExitAsync();
+                    process.WaitForExit();
 
                     // 检查退出代码
                     if (process.ExitCode != 0)

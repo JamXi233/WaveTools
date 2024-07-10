@@ -35,10 +35,12 @@
                             <StackPanel Grid.Column="0" Margin="0 0 20 0" Width="200">
                                 <ToggleButton x:Name="consoleToggle" Click="Console_Toggle" Content="开启控制台" Margin="0 0 0 10"/>
                                 <ToggleButton x:Name="terminalToggle" Click="TerminalMode_Toggle" Content="𝑻𝒆𝒓𝒎𝒊𝒏𝒂𝒍模式" Margin="0 0 0 10"/>
+                                <ToggleButton x:Name="autoCheckUpdateToggle" Click="Auto_Check_Update_Toggle" Content="自动检查更新" Margin="0 0 0 10"/>
                                 <Button x:Name="checkUpdate" Click="Check_Update" Content="检查更新" Margin="0 0 0 10"/>
                                 <Button x:Name="checkDependUpdate" Click="Check_Depend_Update" Content="检查依赖更新" Margin="0 0 0 10"/>
                                 <RadioButtons x:Name="userviceRadio" Header="更新渠道" FontSize="16" FontWeight="Bold" Margin="0 12 0 0">
                                     <RadioButton x:Name="uservice_JSG" Content="JSG-LLC(JSG-DS)" Checked="uservice_JSG_Choose"/>
+                                    <RadioButton x:Name="uservice_Github" Content="Github" Checked="uservice_Github_Choose"/>
                                 </RadioButtons>
                                 
                             </StackPanel>
@@ -48,9 +50,10 @@
                                 <Button x:Name="backupData" Click="Backup_Data" Content="备份数据" Margin="0 0 0 10"/>
                                 <Button x:Name="restoreData" Click="Restore_Data_Click" Content="还原数据" Margin="0 0 0 10"/>
                                 <StackPanel Orientation="Horizontal">
-                                    <Button x:Name="installSFF" Click="Install_Font_Click" Content="安装图标字体" Margin="0 0 10 0"/>
+                                    <Button x:Name="installSFF" Click="Install_Font_Click" Content="安装图标字体" Margin="0 0 0 10"/>
                                     <ProgressRing x:Name="installSFF_Progress" Height="20" Width="20" Visibility="Collapsed"/>
                                 </StackPanel>
+                                <ToggleButton x:Name="adminModeToggle" Click="Admin_Mode_Toggle" Content="使用管理员身份运行" Margin="0 0 10 0"/>
                                 <StackPanel x:Name="other" Margin="0 12 0 10" Visibility="Visible">
                                     <RadioButtons x:Name="themeRadio" Header="主题设置" FontSize="16" FontWeight="Bold" Margin="0 12 0 0">
                                         <RadioButton x:Name="themeRadio_Follow" Checked="ThemeRadio_Follow">
@@ -159,7 +162,7 @@
                         <Image Grid.Row="0" Source="ms-appx:///Imgs/Logo_2.jpg" Width="128" Height="128"/>
                     </Border>
                     <TextBlock Text="关于" FontSize="18" FontWeight="Bold" Margin="0 12 0 0"/>
-                    <TextBlock x:Name="appName" Text="WaveTools(鸣潮工具箱) Stable" FontSize="12" FontWeight="Bold" Margin="0 4 0 0"/>
+                    <TextBlock x:Name="appName" Text="WaveTools(鸣潮工具箱)" FontSize="12" FontWeight="Bold" Margin="0 4 0 0"/>
                     <TextBlock x:Name="appToolName" Text="用于《鸣潮》" FontSize="12" FontWeight="Bold" Margin="0 0 0 0"/>
                     <TextBlock Text="Created by JamXi" FontSize="12" Margin="0 0 0 0"/>
                     <TextBlock Text="Copyright © JSG-LLC 2017-2024" FontSize="12" FontWeight="Bold" Margin="0 0 0 0"/>

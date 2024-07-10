@@ -37,7 +37,7 @@ using WaveTools.Views.FirstRunViews;
 using static WaveTools.App;
 using Newtonsoft.Json.Linq;
 using System.IO.Compression;
-using SRTools.Depend;
+using WaveTools.Depend;
 using System.Diagnostics;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;
@@ -91,7 +91,12 @@ namespace WaveTools
             this.Activated -= MainWindow_Activated;
             await InitializeAppDataAsync();
             await LoadBackgroundAsync();
+            InitStatus();
             CleanUpdate();
+            if (AppDataController.GetAutoCheckUpdate() == 1)
+            {
+                await AutoGetUpdate();
+            }
         }
 
         private void InitShiftPress()
@@ -177,6 +182,20 @@ namespace WaveTools
             }
         }
 
+        private void InitStatus()
+        {
+            if (AppDataController.GetAdminMode() == 1)
+            {
+                if (!ProcessRun.IsRunAsAdmin())
+                {
+                    NotificationManager.RaiseNotification("获取管理员权限时出现问题", "您在设置中开启了\n[使用管理员身份运行]\n\n但WaveTools并没有正确获取到管理员权限", InfoBarSeverity.Warning);
+                    AppTitleBar_Status.Text = "Refusal";
+                }
+                else AppTitleBar_Status.Text = "Privileged";
+            }
+            if (Debugger.IsAttached || App.SDebugMode) AppTitleBar_Status.Text = "Debugging";
+        }
+
         private void NavView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
         {
             if (args.IsSettingsSelected)
@@ -187,6 +206,23 @@ namespace WaveTools
             {
                 string tag = args.SelectedItemContainer.Tag.ToString();
                 mainFrameController.Navigate(tag);
+            }
+        }
+
+        private async Task AutoGetUpdate()
+        {
+
+            var result = await GetUpdate.GetDependUpdate();
+            var status = result.Status;
+            if (status == 1)
+            {
+                NotificationManager.RaiseNotification("更新提示", "依赖包需要更新\n请尽快到[设置-检查依赖更新]进行更新", InfoBarSeverity.Warning, false, 5);
+            }
+            result = await GetUpdate.GetWaveToolsUpdate();
+            status = result.Status;
+            if (status == 1)
+            {
+                NotificationManager.RaiseNotification("更新提示", "WaveTools有更新\n可到[设置-检查更新]进行更新", InfoBarSeverity.Warning, false, 5);
             }
         }
 
@@ -451,7 +487,6 @@ namespace WaveTools
 
         private DateTime lastNotificationTime = DateTime.MinValue;
         private const int ThrottleTimeMilliseconds = 50;
-
         public async void AddNotification(string title, string message, InfoBarSeverity severity, bool isClosable = true, int TimerSec = 0, Action actionButtonAction = null, string actionButtonText = null)
         {
             DateTime currentTime = DateTime.Now;
@@ -461,7 +496,7 @@ namespace WaveTools
             }
             lastNotificationTime = DateTime.Now;
 
-            if (IsNotificationPresent(title))
+            if (IsNotificationPresent(message))
             {
                 Logging.Write($"Notification with title '{title}' already present, skipping.", 1);
                 return;
@@ -476,7 +511,7 @@ namespace WaveTools
                 Severity = severity,
                 IsOpen = true,
                 VerticalAlignment = VerticalAlignment.Top,
-                Margin = new Thickness(0, 0, 0, 5),
+                Margin = new Thickness(0, 0, 0, 8),
                 Opacity = 0,
                 RenderTransform = new TranslateTransform(),
                 IsClosable = isClosable
@@ -551,9 +586,10 @@ namespace WaveTools
                     Width = 300,
                     Height = 2,
                     IsIndeterminate = false,
-                    Margin = new Thickness(-48, -8, 0, 0),
+                    Margin = new Thickness(-48, -4, 0, 0),
                     Maximum = 100,
-                    Value = 100
+                    Value = 100,
+
                 };
 
                 if (isClosable)
@@ -609,18 +645,17 @@ namespace WaveTools
             }
         }
 
-        public bool IsNotificationPresent(string title)
+        public bool IsNotificationPresent(string message)
         {
             foreach (InfoBar infoBar in InfoBarPanel.Children)
             {
-                if (infoBar.Title == title)
+                if (infoBar.Message == message)
                 {
                     return true;
                 }
             }
             return false;
         }
-
 
         public async void ShowWaitOverlay(bool status, string title = null, string subtitle = null, bool isProgress = false, int progress = 0, bool isBtnEnabled = false, string btnContent = "", Action btnAction = null)
         {

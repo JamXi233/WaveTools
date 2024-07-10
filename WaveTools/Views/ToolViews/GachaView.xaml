@@ -20,13 +20,11 @@
                 <Button x:Name="UpdateGacha" Content="更新记录" Click="UpdateGacha_Click" Margin="8 0 0 8"/>
                 <Button x:Name="OpenGachaWeb" Content="打开抽卡记录" Click="OpenGachaWeb_Click" IsEnabled="False" Margin="8 0 0 8"/>
                 <Button x:Name="ImportWWGF" Click="ImportWWGF_Click" Margin="8 0 0 8">
-                    <Button.Content>
-                        <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="导入记录"/>
-                            <TextBlock Text="[CN]" FontWeight="Bold"/>
-                            <TextBlock Text="Beta" Foreground="Red" FontWeight="SemiBold"/>
-                        </StackPanel>
-                    </Button.Content>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="导入记录"/>
+                        <TextBlock Text="[CN]" FontWeight="Bold"/>
+                        <TextBlock Text="Beta" Foreground="Red" FontWeight="SemiBold"/>
+                    </StackPanel>
                 </Button>
                 <Button x:Name="ExportWWGF" Click="ExportWWGF_Click" Margin="8 0 0 8">
                     <StackPanel Orientation="Horizontal">
@@ -60,12 +58,6 @@
                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                     <FontIcon Visibility="Visible" FontFamily="Segoe Fluent Icons" Glyph="&#xeb90;"/>
                     <TextBlock Visibility="Visible" Text="无抽卡记录" Margin="0 12 0 0"/>
-                </StackPanel>
-            </Grid>
-            <Grid x:Name="noGamePathFound" Visibility="Visible" Width="120" Height="120" CornerRadius="12" Background="{ThemeResource SystemControlAcrylicElementMediumHighBrush}">
-                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                    <FontIcon Visibility="Visible" FontFamily="Segoe Fluent Icons" Glyph="&#xeb90;"/>
-                    <TextBlock Visibility="Visible" Text="未选择游戏路径" Margin="0 12 0 0"/>
                 </StackPanel>
             </Grid>
             <StackPanel x:Name="gachaView" Grid.Column="0" Visibility="Collapsed">

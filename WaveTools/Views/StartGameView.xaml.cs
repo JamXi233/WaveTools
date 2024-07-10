@@ -32,7 +32,7 @@ using System.Threading.Tasks;
 using static WaveTools.App;
 using Windows.Foundation;
 using System.IO;
-using SRTools.Depend;
+using WaveTools.Depend;
 
 namespace WaveTools.Views
 {

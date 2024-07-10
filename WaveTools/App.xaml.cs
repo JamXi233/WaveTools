@@ -27,7 +27,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.Storage;
 using WaveTools.Views;
-using SRTools.Depend;
+using WaveTools.Depend;
 
 
 namespace WaveTools
@@ -50,11 +50,13 @@ namespace WaveTools
         private Window m_window;
 
         // 私有构造函数以确保单例
-        public App() 
+        public App()
         {
             InitializeComponent();
+            Init();
             InitAppData();
             SetupTheme();
+            InitAdminMode();
         }
 
         public static bool IsRequireReboot { get; set; } = false;
@@ -64,7 +66,6 @@ namespace WaveTools
 
         protected override async void OnLaunched(LaunchActivatedEventArgs args)
         {
-            await InitAsync();
             if (AppDataController.GetTerminalMode() == -1 || AppDataController.GetTerminalMode() == 0)
             {
                 m_window = new MainWindow();
@@ -82,6 +83,14 @@ namespace WaveTools
             {
                 AppDataController appDataController = new AppDataController();
                 appDataController.FirstRunInit();
+            }
+        }
+
+        private void InitAdminMode()
+        {
+            if (AppDataController.GetAdminMode() == 1)
+            {
+                if (!ProcessRun.IsRunAsAdmin()) ProcessRun.RequestAdminAndRestart();
             }
         }
 
@@ -119,7 +128,7 @@ namespace WaveTools
             }
         }
 
-        public async Task InitAsync()
+        public void Init()
         {
             AllocConsole();
             Console.OutputEncoding = Encoding.UTF8;

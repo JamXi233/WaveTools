@@ -65,7 +65,6 @@
     <None Remove="Views\GachaViews\CharacterRegularGachaView.xaml" />
     <None Remove="Views\GachaViews\NewbieGachaView.xaml" />
     <None Remove="Views\GachaViews\NewbieSPGachaView.xaml" />
-    <None Remove="Views\GachaViews\TempGachaView.xaml" />
     <None Remove="Views\GachaViews\WeaponGachaView.xaml" />
     <None Remove="Views\GachaViews\WeaponRegularGachaView.xaml" />
   </ItemGroup>
@@ -220,6 +219,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Views\DonationView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Views\GachaViews\TempGachaView.xaml">
       <Generator>MSBuild:Compile</Generator>
     </None>
     <None Update="Views\SGViews\AccountView.xaml">

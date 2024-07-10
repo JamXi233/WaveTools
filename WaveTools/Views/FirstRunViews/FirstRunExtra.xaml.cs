@@ -23,7 +23,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using WaveTools.Depend;
 using System;
-using SRTools.Depend;
+using WaveTools.Depend;
 
 namespace WaveTools.Views.FirstRunViews
 {

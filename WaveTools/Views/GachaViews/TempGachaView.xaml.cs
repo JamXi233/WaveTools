@@ -1,20 +1,20 @@
 // Copyright (c) 2021-2024, JamXi JSG-LLC.
 // All rights reserved.
 
-// This file is part of SRTools.
+// This file is part of WaveTools.
 
-// SRTools is free software: you can redistribute it and/or modify
+// WaveTools is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// SRTools is distributed in the hope that it will be useful,
+// WaveTools is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with SRTools.  If not, see <http://www.gnu.org/licenses/>.
+// along with WaveTools.  If not, see <http://www.gnu.org/licenses/>.
 
 // For more information, please refer to <https://www.gnu.org/licenses/gpl-3.0.html>
 
@@ -29,7 +29,6 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media;
 using Newtonsoft.Json;
-using SRTools.Depend;
 using WaveTools.Depend;
 using WaveTools.Views.ToolViews;
 using static WaveTools.App;
@@ -260,7 +259,7 @@ namespace WaveTools.Views.GachaViews
 
             Gacha_UID.Text = gachaData.Info.Uid;
             GachaRecords_Count.Text = "共" + selectedRecords.Count() + "抽";
-            GachaInfo_SinceLast5Star.Text = $"垫了{(selectedRecords.Count - selectedRecords.FindLastIndex(r => r.QualityLevel == 5) - 1)}发";
+            GachaInfo_SinceLast5Star.Text = $"垫了{countSinceLast5Star}发";
 
             var basicInfoPanel = CreateDetailBorder();
             var stackPanelBasicInfo = new StackPanel();

@@ -45,27 +45,15 @@
                                 </StackPanel>
                             </StackPanel>
                         </Button>
-                    
-                        <StackPanel Height="8"/>
-
-                        <Button HorizontalAlignment="Left" Width="150" IsEnabled="False" Click="DService_Gitee_Choose">
-                            <StackPanel Orientation="Horizontal" Spacing="10">
-                                <Image Source="ms-appx:///Imgs/Logo_Gitee.jpg" Width="32" Height="32"/>
-                                <StackPanel Orientation="Vertical" HorizontalAlignment="Left">
-                                    <TextBlock Text="Gitee" FontWeight="SemiBold"/>
-                                    <TextBlock Text="暂不可用" Opacity="0.6"/>
-                                </StackPanel>
-                            </StackPanel>
-                        </Button>
 
                         <StackPanel Height="8"/>
 
-                        <Button HorizontalAlignment="Left" Width="150" IsEnabled="False" Click="DService_Github_Choose">
+                        <Button HorizontalAlignment="Left" Width="150" Click="DService_Github_Choose">
                             <StackPanel Orientation="Horizontal" Spacing="10">
                                 <Image Source="ms-appx:///Imgs/Logo_Github.png" Width="32" Height="32"/>
                                 <StackPanel Orientation="Vertical" HorizontalAlignment="Left">
                                     <TextBlock Text="Github" FontWeight="SemiBold"/>
-                                    <TextBlock Text="暂不可用" Opacity="0.6"/>
+                                    <TextBlock Text="目前可用" Opacity="0.6"/>
                                 </StackPanel>
                             </StackPanel>
                         </Button>

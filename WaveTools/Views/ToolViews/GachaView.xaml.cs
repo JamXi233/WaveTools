@@ -13,7 +13,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.Web.WebView2.Core;
 using Newtonsoft.Json;
-using SRTools.Depend;
+using WaveTools.Depend;
 using WaveTools.Depend;
 using WaveTools.Views.GachaViews;
 using Windows.Graphics;
@@ -50,20 +50,16 @@ namespace WaveTools.Views.ToolViews
 
         private async void GachaView_Loaded(object sender, RoutedEventArgs e)
         {
-            if (AppDataController.GetGamePath() == "Null") { GetGachaURL.IsEnabled = false; UpdateGacha.IsEnabled = false; noGamePathFound.Visibility = Visibility.Visible; }
-            else 
-            { 
-                noGamePathFound.Visibility = Visibility.Collapsed;
-                // 获取卡池信息
-                cardPoolInfo = await GetCardPoolInfo();
+            if (AppDataController.GetGamePath() == "Null") { GetGachaURL.IsEnabled = false; UpdateGacha.IsEnabled = false; }
+            // 获取卡池信息
+            cardPoolInfo = await GetCardPoolInfo();
 
-                if (cardPoolInfo == null || cardPoolInfo.CardPools == null)
-                {
-                    Console.WriteLine("无法获取卡池信息或卡池列表为空");
-                    return;
-                }
-                await LoadUIDs(); 
+            if (cardPoolInfo == null || cardPoolInfo.CardPools == null)
+            {
+                Console.WriteLine("无法获取卡池信息或卡池列表为空");
+                return;
             }
+            await LoadUIDs();
         }
 
         private async Task<GachaModel.CardPoolInfo> GetCardPoolInfo()
@@ -88,75 +84,80 @@ namespace WaveTools.Views.ToolViews
         {
             string recordsBasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), @"JSG-LLC\WaveTools\GachaRecords");
             string gachaLinksJson = await ProcessRun.WaveToolsHelperAsync($"/GetGachaURL {AppDataController.GetGamePathForHelper()}");
-            var gachaUrls = JsonConvert.DeserializeObject<List<GachaModel.GachaUrl>>(gachaLinksJson);
-
-            // 创建新对话框
-            var dialog = new ContentDialog
+            try 
             {
-                Title = "选择UID",
-                PrimaryButtonText = "确认",
-                CloseButtonText = "取消",
-                XamlRoot = XamlRoot,
-                Width = 300
-            };
+                var gachaUrls = JsonConvert.DeserializeObject<List<GachaModel.GachaUrl>>(gachaLinksJson);
 
-            var stackPanel = new StackPanel
-            {
-                Width = 300,
-                HorizontalAlignment = HorizontalAlignment.Left,
-                VerticalAlignment = VerticalAlignment.Top,
-                Spacing = 2
-            };
-
-            stackPanel.Children.Add(new TextBlock { Text = "注：未显示已保存的UID", TextAlignment = TextAlignment.Left });
-
-            var comboBox = new ComboBox
-            {
-                Width = 300,
-                HorizontalAlignment = HorizontalAlignment.Left,
-            };
-
-            if (gachaUrls.Count == 0)
-            {
-                var noFound = new TextBlock { Text = "未找到新的抽卡记录\n请到游戏内打开一次抽卡记录", TextAlignment = TextAlignment.Left };
-                stackPanel.Children.Add(noFound);
-                comboBox.IsEnabled = false;
-            }
-            else
-            {
-                var items = new List<string>();
-                foreach (var url in gachaUrls)
+                // 创建新对话框
+                var dialog = new ContentDialog
                 {
-                    string playerFilePath = Path.Combine(recordsBasePath, $"{url.PlayerId}.json");
-                    if (!File.Exists(playerFilePath))
-                    {
-                        items.Add(url.PlayerId);
-                    }
-                }
+                    Title = "选择UID",
+                    PrimaryButtonText = "确认",
+                    CloseButtonText = "取消",
+                    XamlRoot = XamlRoot,
+                    Width = 300
+                };
 
-                if (items.Count == 0)
+                var stackPanel = new StackPanel
                 {
-                    var noFound = new TextBlock { Text = "未找到新的抽卡记录", TextAlignment = TextAlignment.Left };
+                    Width = 300,
+                    HorizontalAlignment = HorizontalAlignment.Left,
+                    VerticalAlignment = VerticalAlignment.Top,
+                    Spacing = 2
+                };
+
+                stackPanel.Children.Add(new TextBlock { Text = "注：未显示已保存的UID", TextAlignment = TextAlignment.Left });
+
+                var comboBox = new ComboBox
+                {
+                    Width = 300,
+                    HorizontalAlignment = HorizontalAlignment.Left,
+                };
+
+                if (gachaUrls.Count == 0)
+                {
+                    var noFound = new TextBlock { Text = "未找到新的抽卡记录\n请到游戏内打开一次抽卡记录", TextAlignment = TextAlignment.Left };
                     stackPanel.Children.Add(noFound);
                     comboBox.IsEnabled = false;
                 }
                 else
                 {
-                    comboBox.ItemsSource = items;
-                    comboBox.SelectedIndex = 0;
+                    var items = new List<string>();
+                    foreach (var url in gachaUrls)
+                    {
+                        string playerFilePath = Path.Combine(recordsBasePath, $"{url.PlayerId}.json");
+                        if (!File.Exists(playerFilePath))
+                        {
+                            items.Add(url.PlayerId);
+                        }
+                    }
+
+                    if (items.Count == 0)
+                    {
+                        var noFound = new TextBlock { Text = "未找到新的抽卡记录", TextAlignment = TextAlignment.Left };
+                        stackPanel.Children.Add(noFound);
+                        comboBox.IsEnabled = false;
+                    }
+                    else
+                    {
+                        comboBox.ItemsSource = items;
+                        comboBox.SelectedIndex = 0;
+                    }
+                }
+
+                stackPanel.Children.Add(comboBox);
+                dialog.Content = stackPanel;
+
+                var result = await dialog.ShowAsync();
+
+                if (result == ContentDialogResult.Primary && comboBox.SelectedItem != null && comboBox.IsEnabled)
+                {
+                    string selectedUid = comboBox.SelectedItem as string;
+                    SaveGachaLink(selectedUid);
                 }
             }
+            catch { NotificationManager.RaiseNotification("获取抽卡记录失败", "可能是未打开过游戏\n或未打开抽卡记录", InfoBarSeverity.Warning, true, 2); }
 
-            stackPanel.Children.Add(comboBox);
-            dialog.Content = stackPanel;
-
-            var result = await dialog.ShowAsync();
-
-            if (result == ContentDialogResult.Primary && comboBox.SelectedItem != null && comboBox.IsEnabled)
-            {
-                string selectedUid = comboBox.SelectedItem as string;
-                SaveGachaLink(selectedUid);
-            }
         }
 
         private async void OpenGachaWeb_Click(object sender, RoutedEventArgs e)
@@ -207,9 +208,6 @@ namespace WaveTools.Views.ToolViews
             webView.CoreWebView2.Settings.AreDefaultContextMenusEnabled = false;
             webView.Source = new Uri(gachaUrl);
         }
-
-
-
 
         private async void UpdateGacha_Click(object sender, RoutedEventArgs e)
         {

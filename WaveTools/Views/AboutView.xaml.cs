@@ -357,85 +357,50 @@ namespace WaveTools.Views
 
         private async void Backup_Data(object sender, RoutedEventArgs e)
         {
-            Logging.Write("Starting data backup", 0);
             DateTime now = DateTime.Now;
             string formattedDate = now.ToString("yyyy_MM_dd_HH_mm_ss");
             string userDocumentsFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            var savePicker = new FileSavePicker();
-            savePicker.FileTypeChoices.Add("Zip Archive", new List<string>() { ".WaveToolsBackup" });
-            savePicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
-            savePicker.SuggestedFileName = "WaveTools_Backup_" + formattedDate;
-            var window = new Window();
-            var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
-            WinRT.Interop.InitializeWithWindow.Initialize(savePicker, hwnd);
-            StorageFile file = await savePicker.PickSaveFileAsync();
-            if (file != null)
+            var suggestFileName = "WaveTools_Backup_" + formattedDate;
+            var fileTypeChoices = new Dictionary<string, List<string>>
+            {
+                { "WaveTools Backup File", new List<string> { ".WaveToolsBackup" } }
+            };
+            var defaultExtension = ".WaveToolsBackup";
+
+            string filePath = await CommonHelpers.FileHelpers.SaveFile(suggestFileName, fileTypeChoices, defaultExtension);
+
+            if (filePath != null)
             {
                 string startPath = userDocumentsFolderPath + @"\JSG-LLC\WaveTools";
-                string zipPath = file.Path;
+                string zipPath = filePath;
                 if (File.Exists(zipPath))
                 {
                     File.Delete(zipPath);
-                    Logging.Write($"Deleted existing file: {zipPath}", 0);
                 }
                 ZipFile.CreateFromDirectory(startPath, zipPath);
-                Logging.Write($"Backup created at: {zipPath}", 0);
-            }
-            else
-            {
-                Logging.Write("No file selected for backup", 1);
+                NotificationManager.RaiseNotification("备份完成", null, InfoBarSeverity.Success, true, 1);
             }
         }
 
         private void Restore_Data_Click(object sender, RoutedEventArgs e)
         {
-            Logging.Write("Showing Restore Data Tip", 0);
-            RestoreTip.IsOpen = true;
+            DialogManager.RaiseDialog(this.XamlRoot, "是否要还原数据？", "还原数据将会清空当前所有数据\n还原成功后会进入首次设置", true, "选择文件", Restore_Data);
         }
 
-        private async void Restore_Data(TeachingTip sender, object args)
+        private async void Restore_Data()
         {
-            Logging.Write("Starting data restore", 0);
-            var picker = new FileOpenPicker();
-            picker.FileTypeFilter.Add(".WaveToolsBackup");
+            WaitOverlayManager.RaiseWaitOverlay(true, "等待选择还原文件", null, false);
 
-            var window = new Window();
-            try
-            {
-                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
-                WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
-                var file = await picker.PickSingleFileAsync();
-                if (file != null)
-                {
-                    string userDocumentsFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                    try
-                    {
-                        // 使用异步方式执行数据清理和解压缩操作
-                        await Task.Run(() => ClearAllData_NoClose(null, null));
-                        await Task.Run(() => ZipFile.ExtractToDirectory(file.Path, userDocumentsFolderPath + "\\JSG-LLC\\WaveTools\\"));
-                        Logging.Write($"Restored data from: {file.Path}", 0);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logging.Write($"Error during restore process: {ex.Message}", 1);
-                        Debug.WriteLine("Error during restore process: " + ex.Message);
-                        sender.Subtitle = "Restore failed: " + ex.Message;
-                        sender.IsOpen = true;
-                        return;
-                    }
+            string filePath = await CommonHelpers.FileHelpers.OpenFile(".WaveToolsBackup");
 
-                    // 重启应用
-                    await ProcessRun.RestartApp();
-                }
-                else
-                {
-                    Logging.Write("No file selected for restore", 1);
-                }
-            }
-            finally
+            if (filePath != null)
             {
-                window.Close();  // 确保Window在结束时关闭，释放资源
+                string userDocumentsFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                Task.Run(() => ClearAllData_NoClose(null, null, false)).Wait();
+                Task.Run(() => ZipFile.ExtractToDirectory(filePath, userDocumentsFolderPath + "\\JSG-LLC\\WaveTools\\")).Wait();
+                await ProcessRun.RestartApp();
             }
+            else WaitOverlayManager.RaiseWaitOverlay(false);
         }
 
         private async void Install_Font_Click(object sender, RoutedEventArgs e)

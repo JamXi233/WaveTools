@@ -20,6 +20,7 @@
 
 using System;
 using System.Diagnostics;
+using System.IO;
 using Windows.Storage;
 
 namespace WaveTools.Depend
@@ -27,15 +28,22 @@ namespace WaveTools.Depend
     internal class GameStartUtil
     {
         ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
-        public void StartGame()
+        public async void StartGame()
         {
+            string userDocumentsFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
             string gamePath = localSettings.Values["Config_GamePath"] as string;
+
+            // 获取游戏的执行路径（目录）
+            string gameDirectory = Path.GetDirectoryName(gamePath);
+
             var processInfo = new ProcessStartInfo(gamePath)
             {
                 UseShellExecute = true,
-                Verb = "runas"
+                Verb = "runas",
+                WorkingDirectory = gameDirectory // 设置当前路径为执行路径
             };
 
+            // 启动程序
             Process.Start(processInfo);
         }
 

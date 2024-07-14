@@ -54,40 +54,18 @@ namespace WaveTools.Views.FirstRunViews
 
         private async void Restore_Data(object sender, RoutedEventArgs e)
         {
-            var picker = new FileOpenPicker();
-            picker.FileTypeFilter.Add(".WaveToolsBackup");
-            var window = new Window();
-            try
+            string filePath = await CommonHelpers.FileHelpers.OpenFile(".WaveToolsBackup");
+
+            if (filePath != null)
             {
-                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
-                WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
-                var file = await picker.PickSingleFileAsync();
-                if (file != null)
+                string userDocumentsFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                DeleteFolder(userDocumentsFolderPath + "\\JSG-LLC\\WaveTools\\", "0");
+                Task.Run(() => ZipFile.ExtractToDirectory(filePath, userDocumentsFolderPath + "\\JSG-LLC\\WaveTools\\")).Wait();
+                Frame parentFrame = GetParentFrame(this);
+                if (parentFrame != null)
                 {
-                    string userDocumentsFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                    DeleteFolder(userDocumentsFolderPath + "\\JSG-LLC\\WaveTools\\", "0");
-                    try
-                    {
-                        await Task.Run(() => ZipFile.ExtractToDirectory(file.Path, userDocumentsFolderPath + "\\JSG-LLC\\WaveTools\\"));
-                    }
-                    catch (Exception ex)
-                    {
-                        // 处理解压缩过程中可能出现的异常
-                        Debug.WriteLine("Failed to extract backup: " + ex.Message);
-                    }
-                    Frame parentFrame = GetParentFrame(this);
-                    if (parentFrame != null)
-                    {
-                        // 前往下载依赖页面
-                        parentFrame.Navigate(typeof(FirstRunTheme));
-                    }
-                }
-            }
-            finally
-            {
-                if (window != null)
-                {
-                    window.Close(); // 确保窗口被关闭
+                    // 前往下载依赖页面
+                    parentFrame.Navigate(typeof(FirstRunTheme));
                 }
             }
         }

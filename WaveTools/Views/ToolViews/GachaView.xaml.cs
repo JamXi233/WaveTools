@@ -119,6 +119,7 @@ namespace WaveTools.Views.ToolViews
                     var noFound = new TextBlock { Text = "未找到新的抽卡记录\n请到游戏内打开一次抽卡记录", TextAlignment = TextAlignment.Left };
                     stackPanel.Children.Add(noFound);
                     comboBox.IsEnabled = false;
+                    
                 }
                 else
                 {
@@ -367,6 +368,7 @@ namespace WaveTools.Views.ToolViews
                     //NotificationManager.RaiseNotification($"抽卡分析", "无抽卡记录", InfoBarSeverity.Warning);
                     loadGachaProgress.Visibility = Visibility.Collapsed;
                     noGachaFound.Visibility = Visibility.Visible;
+                    ExportWWGF.IsEnabled = false;
                     return;
                 }
 
@@ -379,6 +381,7 @@ namespace WaveTools.Views.ToolViews
                     gachaView.Visibility = Visibility.Visible;
                     ClearGacha.IsEnabled = true;
                     OpenGachaWeb.IsEnabled = true;
+                    ExportWWGF.IsEnabled = true;
                 }
             }
             catch (Exception ex)

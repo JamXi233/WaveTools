@@ -120,34 +120,20 @@ namespace WaveTools.Views
 
         private async void SelectGame(object sender, RoutedEventArgs e)
         {
-            var picker = new FileOpenPicker();
-            picker.FileTypeFilter.Add(".exe");
-
-            var window = new Window(); // 创建Window对象
-            try
+            string filePath = await CommonHelpers.FileHelpers.OpenFile(".exe");
+            if (filePath != null && filePath.Contains("Wuthering Waves.exe"))
             {
-                var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
-                WinRT.Interop.InitializeWithWindow.Initialize(picker, hwnd);
-
-                var file = await picker.PickSingleFileAsync();
-                if (file != null && file.Name == "Wuthering Waves.exe")
-                {
-                    // 更新为新的存储管理机制
-                    AppDataController.SetGamePath(@file.Path);
-                    UpdateUIElementsVisibility(1);
-                    CheckProcess_Graphics();
-                    CheckProcess_Account();
-                    CheckIsWeGameVersion(true);
-                }
-                else
-                {
-                    ValidGameFile.Subtitle = "选择正确的Wuthering Waves.exe\n通常位于[游戏根目录\\Wuthering Waves Game\\Wuthering Waves.exe]";
-                    ValidGameFile.IsOpen = true;
-                }
+                // 更新为新的存储管理机制
+                AppDataController.SetGamePath(filePath);
+                UpdateUIElementsVisibility(1);
+                CheckProcess_Graphics();
+                CheckProcess_Account();
+                CheckIsWeGameVersion(true);
             }
-            finally
+            else
             {
-                window.Close(); // 手动关闭Window对象
+                ValidGameFile.Subtitle = "选择正确的Wuthering Waves.exe\n通常位于[游戏根目录\\Wuthering Waves Game\\Wuthering Waves.exe]";
+                ValidGameFile.IsOpen = true;
             }
         }
 

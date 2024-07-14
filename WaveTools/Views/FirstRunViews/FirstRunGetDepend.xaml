@@ -26,10 +26,10 @@
                     <ColumnDefinition Width="1*"/>
                 </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0" VerticalAlignment="Center" Width="285">
-
-                    <TextBlock Text="下载依赖" FontSize="32" FontWeight="Bold" HorizontalAlignment="Right" Margin="0,0,0,20"/>
-
+                <StackPanel Grid.Column="0" VerticalAlignment="Center" Width="220">
+                    <TextBlock Text="下载依赖" FontSize="24" FontWeight="Bold" HorizontalAlignment="Right"/>
+                    <StackPanel Orientation="Horizontal" Spacing="10"/>
+                    <TextBlock Text="运行所需的必备程序" FontSize="18" HorizontalAlignment="Right"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Height="200" Width="1" Background="Gray" Opacity="0.5" Margin="24 0"/>

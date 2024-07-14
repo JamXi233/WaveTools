@@ -124,19 +124,6 @@
                 </TeachingTip.IconSource>
             </TeachingTip>
 
-            <TeachingTip x:Name="RestoreTip"
-                Background="{ThemeResource SystemControlAcrylicElementMediumHighBrush}"
-                Target="{x:Bind restoreData}"
-                Title="注意！"
-                Subtitle="还原配置文件会清空当前所有配置文件，请小心使用。恢复完成会自动关闭程序。"
-                ActionButtonContent="选择文件"
-                ActionButtonClick="Restore_Data"
-	            CloseButtonContent="关闭">
-                <TeachingTip.IconSource>
-                    <SymbolIconSource Symbol="Refresh" />
-                </TeachingTip.IconSource>
-            </TeachingTip>
-
             <TeachingTip x:Name="ClearAllDataTip"
                 Background="{ThemeResource SystemControlAcrylicElementMediumHighBrush}"
                 Target="{x:Bind clearAllData}"
@@ -185,14 +172,17 @@
                         </StackPanel>
                         <TextBlock x:Name="debug_Message" Text="处于Debug模式，控制台无法关闭"/>
                     </StackPanel>
-                    <StackPanel Margin="210 130 0 0" VerticalAlignment="Bottom" HorizontalAlignment="Right">
-                        <TextBlock x:Name="appVersion" Text="" FontSize="18" FontWeight="Bold" HorizontalAlignment="Right"/>
-                        <TextBlock x:Name="apiVersion" Text="" FontSize="12" FontWeight="Bold" Foreground="Gray" HorizontalAlignment="Right"/>
-                        <TextBlock x:Name="antiCatVersion" Text="" FontSize="12" FontWeight="Bold" Foreground="Gray" HorizontalAlignment="Right"/>
-                    </StackPanel>
                 </StackPanel>
             </Grid>
 
+        </Grid>
+
+        <Grid HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="12">
+            <StackPanel Orientation="Vertical">
+                <TextBlock x:Name="appVersion" Text="" FontSize="18" FontWeight="Bold" HorizontalAlignment="Right"/>
+                <TextBlock x:Name="apiVersion" Text="" FontSize="12" FontWeight="Bold" Foreground="Gray" HorizontalAlignment="Right"/>
+                <TextBlock x:Name="antiCatVersion" Text="" FontSize="12" FontWeight="Bold" Foreground="Gray" HorizontalAlignment="Right"/>
+            </StackPanel>
         </Grid>
 
     </Grid>

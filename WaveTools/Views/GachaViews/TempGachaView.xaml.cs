@@ -471,7 +471,7 @@ namespace WaveTools.Views.GachaViews
             int count = int.Parse((string)value);
 
             // 定义最大宽度
-            double maxWidth = 290;
+            double maxWidth = 294;
             double width = (count / 80.0) * maxWidth;
             Logging.Write($"Converting count {count} to progress width {width}", 0);
             return Math.Min(width, maxWidth);

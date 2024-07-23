@@ -49,11 +49,6 @@
 
                 <NavigationView.FooterMenuItems>
 
-                    <NavigationViewItem Content="JSG-LLC账号(计划中)" Tag="jsg_account"  SelectsOnInvoked="False" IsEnabled="False">
-                        <NavigationViewItem.Icon>
-                            <ImageIcon Source="ms-appx:///Imgs/JSG_Logo.png"/>
-                        </NavigationViewItem.Icon>
-                    </NavigationViewItem>
                     <NavigationViewItem Content="赞助" Tag="donation">
                         <NavigationViewItem.Icon>
                             <ImageIcon Source="ms-appx:///Imgs/Don_Icon.gif"/>

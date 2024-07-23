@@ -137,6 +137,11 @@ namespace WaveTools.Views
             }
         }
 
+        private void GameSettings(object sender, RoutedEventArgs e)
+        {
+            Frame_GraphicSettingView.Navigate(typeof(GraphicSettingView));
+        }
+
 
         private bool CheckIsWeGameVersion(bool isFirst)
         {
@@ -312,7 +317,7 @@ namespace WaveTools.Views
 
         private async Task CheckProcess_Account()
         {
-            if (AppDataController.GetAccountChangeMode() == 0)
+            if (AppDataController.GetAccountChangeMode() != 1)
             {
                 AccountChange_Off_Btn.Visibility = Visibility.Collapsed;
                 Frame_AccountView_Usage_Disable.Visibility = Visibility.Visible;

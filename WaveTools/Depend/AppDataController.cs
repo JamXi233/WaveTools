@@ -40,6 +40,8 @@ namespace WaveTools.Depend
             SetDefaultIfNull("Config_ConsoleMode", 0);
             SetDefaultIfNull("Config_TerminalMode", 0);
             SetDefaultIfNull("Config_AdminMode", 0);
+
+            SetDefaultIfNull("GameSettings_Parameter", "Null");
         }
 
         public int CheckOldData()
@@ -95,6 +97,7 @@ namespace WaveTools.Depend
             Logging.WriteCustom("AppDataController", $"Remove {key}");
         }
 
+        // 通用设置
         public static int GetAutoCheckUpdate() => GetValue("Config_AutoCheckUpdate", -1);
         public static int GetFirstRun() => GetValue("Config_FirstRun", -1);
         public static int GetFirstRunStatus() => GetValue("Config_FirstRunStatus", -1);
@@ -129,5 +132,10 @@ namespace WaveTools.Depend
         public static void RMTerminalMode() => RemoveValue("Config_TerminalMode");
         public static void RMAccountChangeMode() => RemoveValue("Config_AccountChange");
         public static void RMAdminMode() => RemoveValue("Config_AdminMode");
+
+        // 游戏设置
+        public static string GetGameSettingsParameter() => GetValue("GameSettings_Parameter", "Null");
+        public static void SetGameSettingsParameter(string gameSettingsParameter) => SetValue("GameSettings_Parameter", gameSettingsParameter);
+        public static void RMGameSettingsParameter() => RemoveValue("GameSettings_Parameter");
     }
 }

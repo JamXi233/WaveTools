@@ -58,24 +58,6 @@
   <ItemGroup>
     <None Remove="Assets\Don_Alipay.jpg" />
     <None Remove="Assets\Don_Wechat.jpg" />
-    <None Remove="Views\BlankPage1.xaml" />
-    <None Remove="Views\Dialog.xaml" />
-    <None Remove="Views\GachaView.xaml.cs.bak" />
-    <None Remove="Views\GachaViews\CharacterGachaView.xaml" />
-    <None Remove="Views\GachaViews\CharacterRegularGachaView.xaml" />
-    <None Remove="Views\GachaViews\NewbieGachaView.xaml" />
-    <None Remove="Views\GachaViews\NewbieSPGachaView.xaml" />
-    <None Remove="Views\GachaViews\WeaponGachaView.xaml" />
-    <None Remove="Views\GachaViews\WeaponRegularGachaView.xaml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Page Remove="Views\Dialog.xaml" />
-    <Page Remove="Views\GachaViews\CharacterGachaView.xaml" />
-    <Page Remove="Views\GachaViews\CharacterRegularGachaView.xaml" />
-    <Page Remove="Views\GachaViews\NewbieGachaView.xaml" />
-    <Page Remove="Views\GachaViews\NewbieSPGachaView.xaml" />
-    <Page Remove="Views\GachaViews\WeaponGachaView.xaml" />
-    <Page Remove="Views\GachaViews\WeaponRegularGachaView.xaml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -88,6 +70,7 @@
   </ItemGroup>
 
   <ItemGroup>
+	<PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
 	<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.5.240428000" />
 	<PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.22621.756" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
@@ -222,6 +205,10 @@
       <Generator>MSBuild:Compile</Generator>
     </None>
     <None Update="Views\GachaViews\TempGachaView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+    <None Update="Views\SGViews\GameSettingsView.xaml">
+      <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </None>
     <None Update="Views\SGViews\AccountView.xaml">

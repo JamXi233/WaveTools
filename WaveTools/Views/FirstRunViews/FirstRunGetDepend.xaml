@@ -36,9 +36,9 @@
 
                 <StackPanel Grid.Column="2" VerticalAlignment="Center">
 
-                    <StackPanel HorizontalAlignment="Center" Width="285">
+                    <StackPanel HorizontalAlignment="Center" Width="220">
 
-                        <TextBlock Text="WaveToolsHelper" FontSize="32" FontWeight="Bold"/>
+                        <TextBlock Text="WaveToolsHelper" FontSize="24" FontWeight="Bold"/>
 
                         <StackPanel Height="8"/>
 

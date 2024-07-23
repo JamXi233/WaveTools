@@ -187,22 +187,17 @@ namespace WaveTools.Views.ToolViews
 
             newWindow.Content = grid;
 
-            // 获取 AppWindow 对象并设置窗口大小
             IntPtr hWnd = WindowNative.GetWindowHandle(newWindow);
             WindowId windowId = Win32Interop.GetWindowIdFromWindow(hWnd);
             AppWindow appWindow = AppWindow.GetFromWindowId(windowId);
 
             appWindow.Resize(new SizeInt32(1141, 641));
-
-            // 订阅窗口关闭事件
             newWindow.Closed += (s, args) =>
             {
                 WaitOverlayManager.RaiseWaitOverlay(false);
             };
 
             newWindow.Activate();
-
-            // 初始化 WebView2 并禁用开发者工具和右键菜单
             await webView.EnsureCoreWebView2Async(null);
 
             webView.CoreWebView2.Settings.AreDevToolsEnabled = false;

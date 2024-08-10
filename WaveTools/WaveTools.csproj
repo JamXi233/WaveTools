@@ -38,15 +38,6 @@
 	<StartupObject>WaveTools.Program</StartupObject>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-    <ItemGroup>
-    <Compile Remove="Views\Dialog.xaml.cs" />
-    <Compile Remove="Views\GachaViews\CharacterGachaView.xaml.cs" />
-    <Compile Remove="Views\GachaViews\CharacterRegularGachaView.xaml.cs" />
-    <Compile Remove="Views\GachaViews\NewbieGachaView.xaml.cs" />
-    <Compile Remove="Views\GachaViews\NewbieSPGachaView.xaml.cs" />
-    <Compile Remove="Views\GachaViews\WeaponGachaView.xaml.cs" />
-    <Compile Remove="Views\GachaViews\WeaponRegularGachaView.xaml.cs" />
-  </ItemGroup>
   <ItemGroup>
     <Content Remove="Assets\BadgeLogo.scale-100.png" />
     <Content Remove="Assets\BadgeLogo.scale-125.png" />
@@ -91,9 +82,6 @@
   <ItemGroup>
     <Page Update="Views\AccountViews\AccountView.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
-    </Page>
-    <Page Update="Views\BlankPage1.xaml">
-      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Update="Views\DonationView.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>

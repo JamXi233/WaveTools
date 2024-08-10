@@ -22,7 +22,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
-using Windows.Storage.Pickers;
 using System.Diagnostics;
 using Microsoft.UI.Dispatching;
 using WaveTools.Depend;
@@ -32,14 +31,12 @@ using System.Threading.Tasks;
 using static WaveTools.App;
 using Windows.Foundation;
 using System.IO;
-using WaveTools.Depend;
 
 namespace WaveTools.Views
 {
     public sealed partial class StartGameView : Page
     {
         private DispatcherQueue dispatcherQueue;
-/*        private DispatcherQueueTimer dispatcherTimer_Launcher;*/
         private DispatcherQueueTimer dispatcherTimer_Game;
         private DispatcherQueueTimer dispatcherTimer_Launcher;
 
@@ -85,11 +82,11 @@ namespace WaveTools.Views
 
         private async void StartGameView_Loaded(object sender, RoutedEventArgs e)
         {
-            await LoadDataAsync();
+            LoadDataAsync();
             await GetPromptAsync();
         }
 
-        private async Task LoadDataAsync(string mode = null)
+        private void LoadDataAsync(string mode = null)
         {
             if (AppDataController.GetGamePath() != null)
             {
@@ -169,7 +166,7 @@ namespace WaveTools.Views
             StartGameView_Loaded(sender, e);
         }
 
-        //启动游戏
+        // 启动游戏
         private void StartGame_Click(object sender, RoutedEventArgs e)
         {
             StartGame(null, null);
@@ -205,7 +202,7 @@ namespace WaveTools.Views
 
         public async void StartGame(TeachingTip sender, object args)
         {
-            if (AppDataController.GetAccountChangeMode() == 0)
+            if (AppDataController.GetAccountChangeMode() == 0 || AppDataController.GetAccountChangeMode() == -1)
             {
                 GameStartUtil gameStartUtil = new GameStartUtil();
                 gameStartUtil.StartGame();
@@ -274,7 +271,7 @@ namespace WaveTools.Views
             }
         }
 
-        private async Task CheckProcess_Graphics()
+        private async void CheckProcess_Graphics()
         {
             Frame_GraphicSettingView_Loading.Visibility = Visibility.Visible;
             Frame_GraphicSettingView.Content = null;
@@ -309,13 +306,12 @@ namespace WaveTools.Views
                 }
                 catch (Exception ex)
                 {
-                    // 处理异常，记录日志或者显示错误信息
                     Logging.Write($"Exception in CheckProcess_Graphics: {ex.Message}", 3, "CheckProcess_Graphics");
                 }
             }
         }
 
-        private async Task CheckProcess_Account()
+        private void CheckProcess_Account()
         {
             if (AppDataController.GetAccountChangeMode() != 1)
             {
@@ -363,27 +359,23 @@ namespace WaveTools.Views
             }
             catch (Exception ex)
             {
-                // 处理异常，例如记录错误或显示错误消息
                 Logging.Write($"Error fetching prompt: {ex.Message}", 2);
             }
         }
 
         private void OnUnloaded(object sender, RoutedEventArgs e)
         {
-            // 停止游戏检查定时器
             if (dispatcherTimer_Game != null)
             {
                 dispatcherTimer_Game.Stop();
-                dispatcherTimer_Game.Tick -= CheckProcess_Game;  // 取消事件订阅
+                dispatcherTimer_Game.Tick -= CheckProcess_Game;
                 dispatcherTimer_Game = null;
                 Logging.Write("Game Timer Stopped", 0);
             }
-
-            // 停止启动器检查定时器
             if (dispatcherTimer_Launcher != null)
             {
                 dispatcherTimer_Launcher.Stop();
-                dispatcherTimer_Launcher.Tick -= CheckProcess_Launcher;  // 取消事件订阅
+                dispatcherTimer_Launcher.Tick -= CheckProcess_Launcher;
                 dispatcherTimer_Launcher = null;
                 Logging.Write("Launcher Timer Stopped", 0);
             }

@@ -49,7 +49,6 @@ namespace WaveTools.Depend
 
                         process.Start();
 
-
                         // 同时读取标准输出和标准错误
                         string output = process.StandardOutput.ReadToEnd();
                         string error = process.StandardError.ReadToEnd();

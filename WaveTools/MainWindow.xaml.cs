@@ -54,6 +54,8 @@ namespace WaveTools
         private AppWindowTitleBar titleBar;
         string ExpectionFileName;
 
+        public static bool isWindowOpen = true;
+
         private const int GWL_STYLE = -16;
         private const int WS_MAXIMIZEBOX = 0x00010000;
         private const int WM_NCLBUTTONDBLCLK = 0x00A3;
@@ -866,6 +868,7 @@ namespace WaveTools
             NotificationManager.OnNotificationRequested -= AddNotification;
             WaitOverlayManager.OnWaitOverlayRequested -= ShowWaitOverlay;
             DialogManager.OnDialogRequested -= ShowDialog;
+            isWindowOpen = false;
         }
 
     }

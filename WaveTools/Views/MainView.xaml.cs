@@ -137,7 +137,6 @@ namespace WaveTools.Views
             BitmapImage backgroundImage = new BitmapImage(new Uri(backgroundPath));
             BackgroundImage.Source = backgroundImage;
 
-            // 设置按钮图标
             try
             {
                 Logging.Write("Setting button icon", 0);

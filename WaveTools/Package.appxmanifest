@@ -9,7 +9,7 @@
   <Identity
     Name="JSG.WaveTools"
     Publisher="CN=JSG-Software, O=JSG-LLC, C=CN"
-    Version="1.1.5.0" />
+    Version="1.1.6.0" />
 
   <Properties>
     <DisplayName>WaveTools(鸣潮工具箱)</DisplayName>

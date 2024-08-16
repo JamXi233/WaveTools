@@ -91,6 +91,7 @@ namespace WaveTools.Views.ToolViews
                 // 创建新对话框
                 var dialog = new ContentDialog
                 {
+                    Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
                     Title = "选择UID",
                     PrimaryButtonText = "确认",
                     CloseButtonText = "取消",
@@ -106,7 +107,7 @@ namespace WaveTools.Views.ToolViews
                     Spacing = 2
                 };
 
-                stackPanel.Children.Add(new TextBlock { Text = "注：未显示已保存的UID", TextAlignment = TextAlignment.Left });
+                stackPanel.Children.Add(new TextBlock { Text = "注：未显示已保存的UID\n再次保存[已存在]的UID来更新抽卡链接", TextAlignment = TextAlignment.Left , Margin = new Thickness(0, 0, 0, 8), });
 
                 var comboBox = new ComboBox
                 {
@@ -131,6 +132,10 @@ namespace WaveTools.Views.ToolViews
                         {
                             items.Add(url.PlayerId);
                         }
+                        else
+                        {
+                            items.Add(url.PlayerId+"[已存在]");
+                        }
                     }
 
                     if (items.Count == 0)
@@ -154,6 +159,12 @@ namespace WaveTools.Views.ToolViews
                 if (result == ContentDialogResult.Primary && comboBox.SelectedItem != null && comboBox.IsEnabled)
                 {
                     string selectedUid = comboBox.SelectedItem as string;
+
+                    if (selectedUid.Contains("[已存在]"))
+                    {
+                        selectedUid = selectedUid.Replace("[已存在]", "").Trim();
+                    }
+
                     SaveGachaLink(selectedUid);
                 }
             }
@@ -216,7 +227,6 @@ namespace WaveTools.Views.ToolViews
         {
             WaitOverlayManager.RaiseWaitOverlay(true, "正在保存抽卡链接", "请稍等片刻", true, 0);
             await ProcessRun.WaveToolsHelperAsync($"/SaveGachaURL {AppDataController.GetGamePathForHelper()} {UID}");
-            WaitOverlayManager.RaiseWaitOverlay(false);
             await GetGachaRecords(UID);
             ReloadGachaView();
         }
@@ -224,8 +234,9 @@ namespace WaveTools.Views.ToolViews
         private async Task GetGachaRecords(string UID)
         {
             WaitOverlayManager.RaiseWaitOverlay(true, "正在获取抽卡记录", "请稍等片刻", true, 0);
-            await ProcessRun.WaveToolsHelperAsync($"/GetGachaRecords {UID}");
-            NotificationManager.RaiseNotification("获取完成",null,InfoBarSeverity.Success,false,2);
+            var result = await ProcessRun.WaveToolsHelperAsync($"/GetGachaRecords {UID}");
+            if (result.Contains("失效")) NotificationManager.RaiseNotification("抽卡链接已经失效\n需要重新获取抽卡记录。", null, InfoBarSeverity.Error, false, 2);
+            else NotificationManager.RaiseNotification("获取完成",null,InfoBarSeverity.Success,false,2);
             WaitOverlayManager.RaiseWaitOverlay(false);
             ReloadGachaView();
         }
@@ -236,19 +247,27 @@ namespace WaveTools.Views.ToolViews
             {
                 if (UID is null) { NotificationManager.RaiseNotification($"更新抽卡记录", "更新记录失败:UID为空", InfoBarSeverity.Error); return; }
                 WaitOverlayManager.RaiseWaitOverlay(true, "正在完全覆盖抽卡记录", "请稍等片刻", true, 0);
-                await ProcessRun.WaveToolsHelperAsync($"/UpdateGachaRecords {UID} /force");
-                latestUpdatedUID = UID;
+                var result = await ProcessRun.WaveToolsHelperAsync($"/UpdateGachaRecords {UID} /force");
+                if (result.Contains("失效")) NotificationManager.RaiseNotification("抽卡链接已经失效\n需要重新获取抽卡记录。", null, InfoBarSeverity.Error, false, 2);
+                else
+                {
+                    latestUpdatedUID = UID;
+                    NotificationManager.RaiseNotification("覆盖完成", null, InfoBarSeverity.Success, false, 1);
+                }
                 WaitOverlayManager.RaiseWaitOverlay(false);
-                NotificationManager.RaiseNotification("覆盖完成", null, InfoBarSeverity.Success, false, 1);
             }
             else
             {
                 if (UID is null) { NotificationManager.RaiseNotification($"更新抽卡记录", "更新记录失败:UID为空", InfoBarSeverity.Error); return; }
                 WaitOverlayManager.RaiseWaitOverlay(true, "正在更新抽卡记录", "请稍等片刻", true, 0);
-                await ProcessRun.WaveToolsHelperAsync($"/UpdateGachaRecords {UID}");
-                latestUpdatedUID = UID;
+                var result = await ProcessRun.WaveToolsHelperAsync($"/UpdateGachaRecords {UID}");
+                if (result.Contains("失效")) NotificationManager.RaiseNotification("抽卡链接已经失效\n需要重新获取抽卡记录。", null, InfoBarSeverity.Error, false, 2);
+                else
+                {
+                    latestUpdatedUID = UID;
+                    NotificationManager.RaiseNotification("更新完成", null, InfoBarSeverity.Success, false, 1);
+                }
                 WaitOverlayManager.RaiseWaitOverlay(false);
-                NotificationManager.RaiseNotification("更新完成", null, InfoBarSeverity.Success, false, 1);
             }
             ReloadGachaView();
         }
@@ -424,7 +443,7 @@ namespace WaveTools.Views.ToolViews
                     if (isUserInteraction)
                     {
                         Logging.Write("GachaRecord Need Update",1);
-                        DialogManager.RaiseDialog(XamlRoot, "抽卡记录未找到", $"未找到UID:{uid}的抽卡记录文件\n需要更新抽卡记录", true, "更新", () => { UpdateGacha_R(uid); });
+                        DialogManager.RaiseDialog(XamlRoot, "抽卡记录未找到", $"未找到UID:{uid}的抽卡记录文件\n需要更新抽卡记录", false, "更新", () => { UpdateGacha_R(uid); });
                         gachaNav.Visibility = Visibility.Collapsed;
                         gachaFrame.Visibility = Visibility.Collapsed;
                         return;

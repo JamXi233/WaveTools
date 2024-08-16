@@ -24,10 +24,10 @@
                     <DropDownButton x:Name="DDB_FPS" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="KeyCustomFrameRate" Text="30" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyCustomFrameRate" Text="45" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyCustomFrameRate" Text="60" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyCustomFrameRate" Text="120" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="CustomFrameRate" Text="30" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="CustomFrameRate" Text="45" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="CustomFrameRate" Text="60" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="CustomFrameRate" Text="120" Click="ChangeGraphic"/>
                             </MenuFlyout>
                         </DropDownButton.Flyout>
                     </DropDownButton>
@@ -47,8 +47,8 @@
                     <DropDownButton x:Name="DDB_EnableVSync" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="KeyPcVsync" Text="开启" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyPcVsync" Text="关闭" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="PcVsync" Text="开启" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="PcVsync" Text="关闭" Click="ChangeGraphic"/>
                             </MenuFlyout>
                         </DropDownButton.Flyout>
                     </DropDownButton>
@@ -68,8 +68,8 @@
                     <DropDownButton x:Name="DDB_EnableAA" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="KeyAntiAliasing" Text="开启" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyAntiAliasing" Text="关闭" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="AntiAliasing" Text="开启" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="AntiAliasing" Text="关闭" Click="ChangeGraphic"/>
                             </MenuFlyout>
                         </DropDownButton.Flyout>
                     </DropDownButton>
@@ -89,10 +89,10 @@
                     <DropDownButton x:Name="DDB_ShadowQuality" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="KeyNewShadowQuality" Text="低" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyNewShadowQuality" Text="中" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyNewShadowQuality" Text="高" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyNewShadowQuality" Text="极高" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="ShadowQuality" Text="低" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="ShadowQuality" Text="中" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="ShadowQuality" Text="高" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="ShadowQuality" Text="极高" Click="ChangeGraphic"/>
                             </MenuFlyout>
                         </DropDownButton.Flyout>
                     </DropDownButton>
@@ -112,8 +112,8 @@
                     <DropDownButton x:Name="DDB_SFXQuality" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="KeyNiagaraQuality" Text="低" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyNiagaraQuality" Text="高" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NiagaraQuality" Text="低" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NiagaraQuality" Text="高" Click="ChangeGraphic"/>
                             </MenuFlyout>
                         </DropDownButton.Flyout>
                     </DropDownButton>
@@ -133,9 +133,9 @@
                     <DropDownButton x:Name="DDB_EnvDetailQuality" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="KeyImageDetail" Text="低" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyImageDetail" Text="中" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyImageDetail" Text="高" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="ImageDetail" Text="低" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="ImageDetail" Text="中" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="ImageDetail" Text="高" Click="ChangeGraphic"/>
                             </MenuFlyout>
                         </DropDownButton.Flyout>
                     </DropDownButton>
@@ -155,8 +155,8 @@
                     <DropDownButton x:Name="DDB_AO" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="KeySceneAo" Text="关闭" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeySceneAo" Text="开启" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="SceneAo" Text="关闭" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="SceneAo" Text="开启" Click="ChangeGraphic"/>
                             </MenuFlyout>
                         </DropDownButton.Flyout>
                     </DropDownButton>
@@ -176,8 +176,8 @@
                     <DropDownButton x:Name="DDB_VolumeFog" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="KeyVolumeFog" Text="关闭" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyVolumeFog" Text="开启" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="VolumeFog" Text="关闭" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="VolumeFog" Text="开启" Click="ChangeGraphic"/>
                             </MenuFlyout>
                         </DropDownButton.Flyout>
                     </DropDownButton>
@@ -197,8 +197,8 @@
                     <DropDownButton x:Name="DDB_VolumeLight" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="KeyVolumeLight" Text="关闭" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyVolumeLight" Text="开启" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="VolumeLight" Text="关闭" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="VolumeLight" Text="开启" Click="ChangeGraphic"/>
                             </MenuFlyout>
                         </DropDownButton.Flyout>
                     </DropDownButton>
@@ -218,8 +218,8 @@
                     <DropDownButton x:Name="DDB_MotionBlur" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="KeyMotionBlur" Text="关闭" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyMotionBlur" Text="开启" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="MotionBlur" Text="关闭" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="MotionBlur" Text="开启" Click="ChangeGraphic"/>
                             </MenuFlyout>
                         </DropDownButton.Flyout>
                     </DropDownButton>
@@ -239,8 +239,8 @@
                     <DropDownButton x:Name="DDB_DLSS" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="KeyNvidiaSuperSamplingEnable" Text="关闭" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyNvidiaSuperSamplingEnable" Text="开启" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingEnable" Text="关闭" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingEnable" Text="开启" Click="ChangeGraphic"/>
                             </MenuFlyout>
                         </DropDownButton.Flyout>
                     </DropDownButton>
@@ -260,12 +260,12 @@
                     <DropDownButton x:Name="DDB_SuperResolution" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="KeyNvidiaSuperSamplingMode" Text="关闭" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyNvidiaSuperSamplingMode" Text="自动" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyNvidiaSuperSamplingMode" Text="质量" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyNvidiaSuperSamplingMode" Text="平衡" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyNvidiaSuperSamplingMode" Text="性能" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyNvidiaSuperSamplingMode" Text="超级性能" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingMode" Text="关闭" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingMode" Text="自动" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingMode" Text="质量" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingMode" Text="平衡" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingMode" Text="性能" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingMode" Text="超级性能" Click="ChangeGraphic"/>
                             </MenuFlyout>
                         </DropDownButton.Flyout>
                     </DropDownButton>
@@ -285,28 +285,48 @@
                     <DropDownButton x:Name="DDB_Sharpness" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
-                                <!-- 根据实际情况添加锐化值菜单项 -->
-                                <MenuFlyoutItem Tag="KeyNvidiaSuperSamplingSharpness" Text="1.0" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyNvidiaSuperSamplingSharpness" Text="0.9" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyNvidiaSuperSamplingSharpness" Text="0.8" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyNvidiaSuperSamplingSharpness" Text="0.7" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyNvidiaSuperSamplingSharpness" Text="0.6" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyNvidiaSuperSamplingSharpness" Text="0.5" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyNvidiaSuperSamplingSharpness" Text="0.4" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyNvidiaSuperSamplingSharpness" Text="0.3" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyNvidiaSuperSamplingSharpness" Text="0.2" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyNvidiaSuperSamplingSharpness" Text="0.1" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyNvidiaSuperSamplingSharpness" Text="0.0" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyNvidiaSuperSamplingSharpness" Text="-0.1" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyNvidiaSuperSamplingSharpness" Text="-0.2" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyNvidiaSuperSamplingSharpness" Text="-0.3" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyNvidiaSuperSamplingSharpness" Text="-0.4" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyNvidiaSuperSamplingSharpness" Text="-0.5" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyNvidiaSuperSamplingSharpness" Text="-0.6" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyNvidiaSuperSamplingSharpness" Text="-0.7" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyNvidiaSuperSamplingSharpness" Text="-0.8" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyNvidiaSuperSamplingSharpness" Text="-0.9" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyNvidiaSuperSamplingSharpness" Text="-1.0" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="1.0" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="0.9" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="0.8" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="0.7" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="0.6" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="0.5" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="0.4" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="0.3" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="0.2" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="0.1" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="0.0" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="-0.1" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="-0.2" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="-0.3" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="-0.4" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="-0.5" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="-0.6" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="-0.7" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="-0.8" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="-0.9" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="-1.0" Click="ChangeGraphic"/>
+                            </MenuFlyout>
+                        </DropDownButton.Flyout>
+                    </DropDownButton>
+                </Grid>
+
+                <!-- Bloom Setting -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="Bloom" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
+                    <DropDownButton x:Name="DDB_BloomEnable" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
+                        <DropDownButton.Flyout>
+                            <MenuFlyout Placement="Bottom">
+                                <MenuFlyoutItem Tag="BloomEnable" Text="关闭" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="BloomEnable" Text="开启" Click="ChangeGraphic"/>
                             </MenuFlyout>
                         </DropDownButton.Flyout>
                     </DropDownButton>
@@ -326,8 +346,51 @@
                     <DropDownButton x:Name="DDB_NvidiaReflex" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="KeyNvidiaReflex" Text="关闭" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="KeyNvidiaReflex" Text="开启" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaReflex" Text="关闭" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaReflex" Text="开启" Click="ChangeGraphic"/>
+                            </MenuFlyout>
+                        </DropDownButton.Flyout>
+                    </DropDownButton>
+                </Grid>
+
+                <!-- Npc Density Setting -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="场景细节" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
+                    <DropDownButton x:Name="DDB_NpcDensity" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
+                        <DropDownButton.Flyout>
+                            <MenuFlyout Placement="Bottom">
+                                <MenuFlyoutItem Tag="NpcDensity" Text="低" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NpcDensity" Text="中" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NpcDensity" Text="高" Click="ChangeGraphic"/>
+                            </MenuFlyout>
+                        </DropDownButton.Flyout>
+                    </DropDownButton>
+                </Grid>
+
+                <!-- Enemy Hit Setting -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="怪物受击材质效果" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
+                    <DropDownButton x:Name="DDB_EnemyHitDisplayMode" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
+                        <DropDownButton.Flyout>
+                            <MenuFlyout Placement="Bottom">
+                                <MenuFlyoutItem Tag="EnemyHitDisplayMode" Text="关闭" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="EnemyHitDisplayMode" Text="开启" Click="ChangeGraphic"/>
                             </MenuFlyout>
                         </DropDownButton.Flyout>
                     </DropDownButton>

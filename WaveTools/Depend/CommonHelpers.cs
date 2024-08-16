@@ -1,4 +1,4 @@
-﻿using Microsoft.UI.Xaml;
+﻿using Microsoft.UI;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.WindowsAPICodePack.Taskbar;
 using System;
@@ -7,9 +7,12 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using Windows.Graphics;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
 using static WaveTools.App;
+using Microsoft.UI.Windowing;
+using Microsoft.UI.Xaml;
 
 namespace WaveTools.Depend
 {
@@ -161,7 +164,6 @@ namespace WaveTools.Depend
             public static extern IntPtr GetActiveWindow();
         }
 
-
         public static class TaskbarHelper
         {
             public static void SetProgressValue(int value, int max)
@@ -180,5 +182,107 @@ namespace WaveTools.Depend
                 }
             }
         }
+
+        public static class WebViewHelper
+        {
+            private const int GWL_STYLE = -16;
+            private const uint WS_SYSMENU = 0x80000;
+            private const uint WS_MAXIMIZEBOX = 0x10000;
+            private const uint WS_MINIMIZEBOX = 0x20000;
+
+            [DllImport("user32.dll", SetLastError = true)]
+            private static extern uint GetWindowLong(IntPtr hWnd, int nIndex);
+
+            [DllImport("user32.dll", SetLastError = true)]
+            private static extern int SetWindowLong(IntPtr hWnd, int nIndex, uint dwNewLong);
+
+            public static async void RaiseWebViewWindow(string url, string title, bool inwindow = false, int width = 1141, int height = 641, string script = null)
+            {
+                WaitOverlayManager.RaiseWaitOverlay(true, "正在检查链接", "请耐心等待", true, 0);
+                if (!url.Contains("https"))
+                {
+                    NotificationManager.RaiseNotification("打开失败", "链接不正确", InfoBarSeverity.Warning);
+                    WaitOverlayManager.RaiseWaitOverlay(false); // 添加这行以确保在错误情况下取消等待覆盖
+                    return;
+                }
+
+                var newWindow = new Window();
+                newWindow.Title = $"{title}";
+                newWindow.SetTitleBar(null);
+                newWindow.ExtendsContentIntoTitleBar = true;
+
+                WaitOverlayManager.RaiseWaitOverlay(true, "页面已在新窗口打开", null, false, 0);
+
+                var webView = new WebView2
+                {
+                    HorizontalAlignment = HorizontalAlignment.Stretch,
+                    VerticalAlignment = VerticalAlignment.Stretch,
+                };
+
+                var grid = new Grid();
+                grid.Children.Add(webView);
+
+                newWindow.Content = grid;
+
+                IntPtr hWnd = WindowNative.GetWindowHandle(newWindow);
+                WindowId windowId = Win32Interop.GetWindowIdFromWindow(hWnd);
+                AppWindow appWindow = AppWindow.GetFromWindowId(windowId);
+
+                // Remove minimize, maximize, and close buttons
+                uint styles = GetWindowLong(hWnd, GWL_STYLE);
+                styles &= ~(WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX);
+                SetWindowLong(hWnd, GWL_STYLE, styles);
+
+                appWindow.Resize(new SizeInt32(width, height));
+                newWindow.Closed += (s, args) =>
+                {
+                    WaitOverlayManager.RaiseWaitOverlay(false);
+                };
+
+                newWindow.Activate();
+                await webView.EnsureCoreWebView2Async(null);
+
+                // 注入脚本
+                if (!string.IsNullOrEmpty(script))
+                {
+                    webView.CoreWebView2.DOMContentLoaded += async (s, e) =>
+                    {
+                        await webView.CoreWebView2.ExecuteScriptAsync(script);
+                    };
+                }
+
+
+                webView.CoreWebView2.WebMessageReceived += (sender, args) =>
+                {
+                    if (args.TryGetWebMessageAsString() == "announcements_link_clicked")
+                    {
+                        DialogManager.RaiseDialog(newWindow.Content.XamlRoot, "公告内链接", "工具箱内公告仅供查看\n点击公告内链接基本无效\n跳转的页面均需要在游戏内打开");
+                    }
+                };
+
+
+                webView.CoreWebView2.WebMessageReceived += (sender, args) =>
+                {
+                    if (args.TryGetWebMessageAsString() == "window_closed")
+                    {
+                        newWindow.Close();
+                    }
+                };
+
+                webView.Source = new Uri(url);
+            }
+
+        }
+
+        public class MemHelper
+        {
+            public static void Release()
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+            }
+        }
+
     }
 }

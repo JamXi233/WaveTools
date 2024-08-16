@@ -38,6 +38,7 @@ namespace WaveTools.Depend
 
             var processInfo = new ProcessStartInfo(gamePath)
             {
+                Arguments = AppDataController.GetGameParameter(),
                 UseShellExecute = true,
                 Verb = "runas",
                 WorkingDirectory = gameDirectory // 设置当前路径为执行路径

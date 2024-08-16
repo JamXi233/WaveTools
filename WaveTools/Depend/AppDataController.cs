@@ -40,8 +40,6 @@ namespace WaveTools.Depend
             SetDefaultIfNull("Config_ConsoleMode", 0);
             SetDefaultIfNull("Config_TerminalMode", 0);
             SetDefaultIfNull("Config_AdminMode", 0);
-
-            SetDefaultIfNull("GameSettings_Parameter", "Null");
         }
 
         public int CheckOldData()
@@ -110,6 +108,7 @@ namespace WaveTools.Depend
         public static int GetTerminalMode() => GetValue("Config_TerminalMode", -1);
         public static int GetAccountChangeMode() => GetValue("Config_AccountChange", -1);
         public static int GetAdminMode() => GetValue("Config_AdminMode", -1);
+        public static string GetGameParameter() => GetValue("Config_GameParameter", "");
 
         public static void SetAutoCheckUpdate(int autocheckupdate) => SetValue("Config_AutoCheckUpdate", autocheckupdate);
         public static void SetFirstRunStatus(int firstRunStatus) => SetValue("Config_FirstRunStatus", firstRunStatus);
@@ -121,6 +120,7 @@ namespace WaveTools.Depend
         public static void SetTerminalMode(int terminalMode) => SetValue("Config_TerminalMode", terminalMode);
         public static void SetAccountChangeMode(int accountChangeMode) => SetValue("Config_AccountChange", accountChangeMode);
         public static void SetAdminMode(int adminMode) => SetValue("Config_AdminMode", adminMode);
+        public static void SetGameParameter(string gamePath) => SetValue("Config_GameParameter", gamePath);
 
         public static void RMAutoCheckUpdate() => RemoveValue("Config_AutoCheckUpdate");
         public static void RMFirstRunStatus() => RemoveValue("Config_FirstRunStatus");
@@ -132,10 +132,6 @@ namespace WaveTools.Depend
         public static void RMTerminalMode() => RemoveValue("Config_TerminalMode");
         public static void RMAccountChangeMode() => RemoveValue("Config_AccountChange");
         public static void RMAdminMode() => RemoveValue("Config_AdminMode");
-
-        // 游戏设置
-        public static string GetGameSettingsParameter() => GetValue("GameSettings_Parameter", "Null");
-        public static void SetGameSettingsParameter(string gameSettingsParameter) => SetValue("GameSettings_Parameter", gameSettingsParameter);
-        public static void RMGameSettingsParameter() => RemoveValue("GameSettings_Parameter");
+        public static void RMGameParameter() => RemoveValue("Config_GameParameter");
     }
 }

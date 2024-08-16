@@ -1,0 +1,411 @@
+<Page
+    x:Class="WaveTools.Views.ToolViews.AdvancedGraphicSettingsView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:WaveTools.Views.ToolViews"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="Transparent">
+
+    <Grid Width="500" Height="350">
+        <StackPanel Orientation="Vertical" Spacing="2">
+            <StackPanel Orientation="Vertical">
+                <TextBlock Foreground="Red" FontWeight="ExtraBold" Text="实验性功能"/>
+                <TextBlock Foreground="Red" FontWeight="ExtraBold" Text="使用此功能导致的后果概不负责"/>
+                <TextBlock Foreground="Green" FontWeight="SemiBold" Text="如果您觉得【这下看懂了！】"/>
+                <TextBlock Foreground="Green" FontWeight="SemiBold" Text="那么【使用，请！】。"/>
+            </StackPanel>
+            <StackPanel>
+                <StackPanel Spacing="12" Orientation="Horizontal" Width="500">
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock Text="Engine.ini 配置" FontSize="16" FontWeight="Bold"/>
+                        <ListView SelectionMode="None" Height="242" Width="510" Margin="-16 8 0 0">
+                            <StackPanel x:Name="settingsStackPanel" Spacing="4">
+                                <!-- 使用 Grid 来分配 TextBlock 和 TextBox 在左右两边 -->
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.ScreenPercentage (屏幕百分比)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.ScreenPercentage" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.Color.Max (颜色最大值)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.Color.Max" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.Color.Mid (颜色中间值)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.Color.Mid" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.KuroTonemapping (Kuro色调映射)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.KuroTonemapping" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.Kuro.GlobalLightQuality (Kuro全局光照质量)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.Kuro.GlobalLightQuality" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.kuro.LensflareSunDiskSize (Kuro镜头光晕太阳盘大小)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.kuro.LensflareSunDiskSize" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.AmbientOcclusionMaxQuality (环境光遮蔽最大质量)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.AmbientOcclusionMaxQuality" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.Shadow.FilterMethod (阴影过滤方法)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.Shadow.FilterMethod" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.Shadow.MaxCSMResolution (阴影最大CSM分辨率)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.Shadow.MaxCSMResolution" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.Shadow.MinResolution (阴影最小分辨率)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.Shadow.MinResolution" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.Shadow.PerObjectShadowMapResolution (单个对象阴影贴图分辨率)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.Shadow.PerObjectShadowMapResolution" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.Shadow.PerObjectResolutionMax (单个对象最大分辨率)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.Shadow.PerObjectResolutionMax" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.Shadow.PerObjectResolutionMin (单个对象最小分辨率)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.Shadow.PerObjectResolutionMin" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.DetailMode (细节模式)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.DetailMode" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.MaterialQualityLevel (材质质量等级)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.MaterialQualityLevel" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.ViewDistanceScale (视距比例)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.ViewDistanceScale" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="foliage.LODDistanceScale (植被LOD距离比例)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="foliage.LODDistanceScale" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.Streaming.FullyLoadUsedTextures (完全加载使用的纹理)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.Streaming.FullyLoadUsedTextures" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.Streaming.HLODStrategy (HLOD策略)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.Streaming.HLODStrategy" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.Streaming.LimitPoolSizeToVRAM (限制池大小为VRAM)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.Streaming.LimitPoolSizeToVRAM" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.Streaming.PoolSizeForMeshes (网格池大小)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.Streaming.PoolSizeForMeshes" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.XGEShaderCompile (XGE着色器编译)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.XGEShaderCompile" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.SSR.Quality (SSR质量)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.SSR.Quality" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.SSR.Temporal (SSR时间域)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.SSR.Temporal" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.SSR.MaxRoughness (SSR最大粗糙度)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.SSR.MaxRoughness" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.SSR.HalfResSceneColor (SSR半分辨率场景颜色)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.SSR.HalfResSceneColor" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.DefaultFeature.AntiAliasing (默认功能抗锯齿)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.DefaultFeature.AntiAliasing" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.TemporalAA.Algorithm (时间域抗锯齿算法)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.TemporalAA.Algorithm" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.TemporalAA.Upsampling (时间域抗锯齿上采样)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.TemporalAA.Upsampling" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.TemporalAA.ClampTolerant (时间域抗锯齿容差)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.TemporalAA.ClampTolerant" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.TemporalAACurrentFrameWeight (时间域抗锯齿当前帧权重)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.TemporalAACurrentFrameWeight" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.TemporalAAFilterSize (时间域抗锯齿过滤尺寸)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.TemporalAAFilterSize" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.TemporalAASamples (时间域抗锯齿采样数)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.TemporalAASamples" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.Kuro.SMAALevelOverride (KuroSMAA等级覆盖)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.Kuro.SMAALevelOverride" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="FX.BatchAsync (批处理异步)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="FX.BatchAsync" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="FX.EarlyScheduleAsync (提前调度异步)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="FX.EarlyScheduleAsync" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="fx.Niagara.ForceAutoPooling (Niagara强制自动池化)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="fx.Niagara.ForceAutoPooling" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="a.URO.ForceAnimRate (URO强制动画速率)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="a.URO.ForceAnimRate" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="p.Chaos.Collision.ISPC (Chaos碰撞ISPC)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="p.Chaos.Collision.ISPC" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.AllowUseAnyLODAsOcclusionData (允许使用任何LOD作为遮挡数据)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.AllowUseAnyLODAsOcclusionData" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.InstanceCulling.OcclusionCull (实例剔除遮挡剔除)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.InstanceCulling.OcclusionCull" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.InstanceCulling.AllowInstanceOrderPreservation (实例剔除允许实例顺序保留)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.InstanceCulling.AllowInstanceOrderPreservation" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.MeshDrawCommands.DynamicInstancing (网格绘制命令动态实例化)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.MeshDrawCommands.DynamicInstancing" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="r.MeshDrawCommands.ParallelPassSetup (网格绘制命令并行通道设置)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="r.MeshDrawCommands.ParallelPassSetup" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="wp.Runtime.KuroRuntimeStreamingRangeOverallScale (Kuro运行时流式范围整体比例)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="wp.Runtime.KuroRuntimeStreamingRangeOverallScale" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="tick.AllowAsyncTickCleanup (允许异步Tick清理)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="tick.AllowAsyncTickCleanup" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                                <Grid HorizontalAlignment="Stretch">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Text="tick.AllowAsyncTickDispatch (允许异步Tick分发)" Grid.Column="0" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                    <TextBox Tag="tick.AllowAsyncTickDispatch" Grid.Column="1" HorizontalAlignment="Right" Margin="10,0,0,0"/>
+                                </Grid>
+                            </StackPanel>
+                        </ListView>
+
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+
+</Page>

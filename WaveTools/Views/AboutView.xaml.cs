@@ -16,6 +16,7 @@ using Newtonsoft.Json;
 using System.Net.Http;
 using static WaveTools.App;
 using WaveTools.Depend;
+using static WaveTools.Depend.CommonHelpers;
 
 namespace WaveTools.Views
 {
@@ -43,7 +44,6 @@ namespace WaveTools.Views
             Logging.Write("AboutView loaded", 0);
             isProgrammaticChange = true;
             bool isDebug = Debugger.IsAttached || App.SDebugMode;
-            consoleToggle.IsEnabled = !isDebug;
             debug_Mode.Visibility = isDebug ? Visibility.Visible : Visibility.Collapsed;
             debug_Message.Text = App.SDebugMode ? "您现在处于手动Debug模式" : "";
             appVersion.Text = $"WaveTools {Package.Current.Id.Version.Major}.{Package.Current.Id.Version.Minor}.{Package.Current.Id.Version.Build}.{Package.Current.Id.Version.Revision}";
@@ -423,6 +423,18 @@ namespace WaveTools.Views
         }
 
         // Debug_Clicks
+
+        private void Debug_GeneralTest_2(object sender, RoutedEventArgs e)
+        {
+            MemHelper.Release();
+        }
+
+        private void Debug_GeneralTest(object sender, RoutedEventArgs e)
+        {
+            WebViewHelper.RaiseWebViewWindow("https://sdk.mihoyo.com/nap/announcement/index.html?auth_appid=announcement&authkey_ver=1&bundle_id=nap_cn&channel_id=1&game=nap&game_biz=nap_cn&lang=zh-cn&level=60&platform=pc&region=prod_gf_cn&sdk_presentation_style=fullscreen&sdk_screen_transparent=true&sign_type=2&uid=100000000&", "绝区零游戏内公告", false, 1141, 647, Script);
+        }
+        private string Script = "window.onload = function() { console.log('ZenlessTools_Cathced!'); setInterval(() => { if (window.closed) { window.chrome.webview.postMessage('window_closed'); } }, 100); (function() { const originalFunction = window.linkClicked; window.linkClicked = function(...args) { window.chrome.webview.postMessage('announcements_link_clicked'); return originalFunction.apply(this, args); }; })(); const root = document.getElementById('root'); root.style.backgroundRepeat = 'no-repeat'; root.style.backgroundPosition = 'left bottom'; root.style.backgroundSize = 'cover'; const bodyHome = document.getElementsByClassName('home__body--pc'); if (bodyHome.length > 0) { bodyHome[0].style.transform = 'scale(1.27, 1.32)'; } const home = document.getElementsByClassName('home'); if (home.length > 0) { home[0].style.background = 'transparent'; } const closeBtn = document.getElementsByClassName('home__close'); if (closeBtn.length > 0) { closeBtn[0].onclick = function() { window.close(); }; } document.addEventListener('click', function(event) { let target = event.target; while (target && target.tagName !== 'A') { target = target.parentNode; } if (target && target.tagName === 'A') { const href = target.getAttribute('href'); const jsRegex = /javascript:miHoYoGameJSSDK\\.openInBrowser\\('([^']+)'\\)/; const jsMatch = href.match(jsRegex); if (jsMatch && jsMatch[1]) { event.preventDefault(); linkClicked(); return; } const uniwebviewPrefix = 'uniwebview://open_url?url='; if (href.startsWith(uniwebviewPrefix)) { event.preventDefault(); const newUrl = decodeURIComponent(href.replace(uniwebviewPrefix, '')); linkClicked(); return; } } }); };";
+
         private void Debug_Panic_Click(object sender, RoutedEventArgs e) 
         {
             Logging.Write("Triggering global exception handler test", 0);

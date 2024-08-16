@@ -36,6 +36,7 @@ namespace WaveTools
     {
         public static MainWindow MainWindow { get; private set; }
         public static ApplicationTheme CurrentTheme { get; private set; }
+        public static bool GDebugMode { get; set; }
         public static bool SDebugMode { get; set; }
         // 导入 AllocConsole 和 FreeConsole 函数
         [DllImport("kernel32.dll", SetLastError = true)]
@@ -137,10 +138,12 @@ namespace WaveTools
             Console.SetBufferSize(60, 25);
             TerminalMode.HideConsole();
             bool isDebug = false;
-            #if DEBUG
+            GDebugMode = false;
+#if DEBUG
             isDebug = true;
-            #else
-            #endif
+            GDebugMode = true;
+#else
+#endif
 
             ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
             if (localSettings.Values["Config_FirstRun"] != null) { 
@@ -158,17 +161,6 @@ namespace WaveTools
                 }
             }
 
-            if (isDebug)
-            {
-                Logging.Write("Debug Mode", 1);
-                Console.Title = "𝐃𝐞𝐛𝐮𝐠𝐌𝐨𝐝𝐞:WaveTools";
-                TerminalMode.ShowConsole();
-            }
-            else
-            {
-                Logging.Write("Release Mode", 1);
-                Console.Title = "𝐍𝐨𝐫𝐦𝐚𝐥𝐌𝐨𝐝𝐞:WaveTools";
-            }
 
             if (AppDataController.GetTerminalMode() != -1)
             {

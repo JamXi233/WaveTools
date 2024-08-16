@@ -31,6 +31,7 @@ using System.Threading.Tasks;
 using static WaveTools.App;
 using Windows.Foundation;
 using System.IO;
+using WaveTools.Views.ToolViews;
 
 namespace WaveTools.Views
 {
@@ -134,12 +135,6 @@ namespace WaveTools.Views
             }
         }
 
-        private void GameSettings(object sender, RoutedEventArgs e)
-        {
-            Frame_GraphicSettingView.Navigate(typeof(GraphicSettingView));
-        }
-
-
         private bool CheckIsWeGameVersion(bool isFirst)
         {
             if (Directory.Exists(AppDataController.GetGamePathWithoutGameName() + "Client\\Binaries\\Win64\\ThirdParty\\KrPcSdk_Mainland\\KRSDKRes\\wegame"))
@@ -154,6 +149,16 @@ namespace WaveTools.Views
             }
             else Frame_AccountView_Disable.Visibility = Visibility.Collapsed;
             return false;
+        }
+
+        public void AdvancedSettings(object sender, RoutedEventArgs e)
+        {
+            StackPanel advancedPanel = new StackPanel();
+            advancedPanel.Children.Add(new TextBlock { Text = "游戏启动参数" });
+            TextBox gameArgs = new TextBox();
+            gameArgs.Text = AppDataController.GetGameParameter();
+            advancedPanel.Children.Add(gameArgs);
+            DialogManager.RaiseDialog(XamlRoot, "高级设置", advancedPanel, true, "保存", () => AppDataController.SetGameParameter(gameArgs.Text));
         }
 
         public void RMGameLocation(object sender, RoutedEventArgs e)
@@ -183,6 +188,7 @@ namespace WaveTools.Views
                 selectGame.IsEnabled = true;
                 selectGame.Visibility = Visibility.Visible;
                 rmGame.Visibility = Visibility.Collapsed;
+                advancedSettings.Visibility = Visibility.Collapsed;
                 rmGame.IsEnabled = false;
                 startGame.IsEnabled = false;
                 startLauncher.IsEnabled = false;
@@ -193,6 +199,7 @@ namespace WaveTools.Views
                 selectGame.IsEnabled = false;
                 selectGame.Visibility = Visibility.Collapsed;
                 rmGame.Visibility = Visibility.Visible;
+                advancedSettings.Visibility = Visibility.Visible;
                 rmGame.IsEnabled = true;
                 startGame.IsEnabled = true;
                 startLauncher.IsEnabled = true;
@@ -287,7 +294,7 @@ namespace WaveTools.Views
                 try
                 {
                     string GSValue = await ProcessRun.WaveToolsHelperAsync($"/GetGS {AppDataController.GetGamePathForHelper()}");
-                    if (!GSValue.Contains("KeyQualityLevel"))
+                    if (!GSValue.Contains("QualityLevel"))
                     {
                         GraphicSelect.IsEnabled = false;
                         GraphicSelect.IsSelected = false;
@@ -342,6 +349,11 @@ namespace WaveTools.Views
         {
             AppDataController.SetAccountChangeMode(0);
             LoadDataAsync("Account");
+        }
+
+        private void Advanced_Graphics_Click(object sender, RoutedEventArgs e)
+        {
+            DialogManager.RaiseDialog(XamlRoot, "高级画质设置", new AdvancedGraphicSettingsView());
         }
 
         private async Task GetPromptAsync()

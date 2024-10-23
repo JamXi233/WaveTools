@@ -7,6 +7,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using WaveTools.Depend;
 using WaveTools.Depend;
+using Microsoft.UI.Xaml.Controls.Primitives;
 
 namespace WaveTools.Views.SGViews
 {
@@ -53,7 +54,7 @@ namespace WaveTools.Views.SGViews
             JObject config = JObject.Parse(returnValue);
 
             // 设置UI控件的值
-            SetUIValue(config, "CustomFrameRate", DDB_FPS, new Dictionary<string, string> { { "30", "30" }, { "45", "45" }, { "60", "60" }, { "120", "120" }, { "240", "240" }, { "320", "320" } });
+            SetUIValue(config, "CustomFrameRate", DDB_FPS, new Dictionary<string, string> { { "0", "30" }, { "1", "45" }, { "2", "60" }, { "3", "120" } });
             SetUIValue(config, "PcVsync", DDB_EnableVSync, new Dictionary<string, string> { { "0", "关闭" }, { "1", "开启" } });
             SetUIValue(config, "AntiAliasing", DDB_EnableAA, new Dictionary<string, string> { { "0", "关闭" }, { "1", "开启" } });
             SetUIValue(config, "ShadowQuality", DDB_ShadowQuality, new Dictionary<string, string> { { "0", "低" }, { "1", "中" }, { "2", "高" }, { "3", "极高" } });
@@ -62,7 +63,7 @@ namespace WaveTools.Views.SGViews
             SetUIValue(config, "SceneAo", DDB_AO, new Dictionary<string, string> { { "0", "关闭" }, { "1", "开启" } });
             SetUIValue(config, "VolumeFog", DDB_VolumeFog, new Dictionary<string, string> { { "0", "关闭" }, { "1", "开启" } });
             SetUIValue(config, "VolumeLight", DDB_VolumeLight, new Dictionary<string, string> { { "0", "关闭" }, { "1", "开启" } });
-            SetUIValue(config, "MotionBlur", DDB_MotionBlur, new Dictionary<string, string> { { "0", "关闭" }, { "1", "开启" } });
+            SetUIValue(config, "MotionBlur", DDB_MotionBlur, new Dictionary<string, string> { { "0", "关闭" }, { "1", "低" }, { "2", "中" }, { "3", "高" } });
             SetUIValue(config, "NvidiaSuperSamplingEnable", DDB_DLSS, new Dictionary<string, string> { { "0", "关闭" }, { "1", "开启" } });
             SetUIValue(config, "NvidiaSuperSamplingMode", DDB_SuperResolution, new Dictionary<string, string>
     {
@@ -71,10 +72,29 @@ namespace WaveTools.Views.SGViews
     });
             SetUIValue(config, "NvidiaSuperSamplingSharpness", DDB_Sharpness);
             SetUIValue(config, "BloomEnable", DDB_BloomEnable, new Dictionary<string, string> { { "0", "关闭" }, { "1", "开启" } });
-            SetUIValue(config, "NvidiaReflex", DDB_NvidiaReflex, new Dictionary<string, string> { { "0", "关闭" }, { "1", "开启" } });
+            SetUIValue(config, "NvidiaReflex", DDB_NvidiaReflex, new Dictionary<string, string> { { "0", "关闭" }, { "1", "开启" }, { "3", "开启并加速" } });
             SetUIValue(config, "NpcDensity", DDB_NpcDensity, new Dictionary<string, string> { { "0", "低" }, { "1", "中" }, { "2", "高" } });
             SetUIValue(config, "EnemyHitDisplayMode", DDB_EnemyHitDisplayMode, new Dictionary<string, string> { { "0", "关闭" }, { "1", "开启" } });
+
+            // For Intel
+            SetUIValue(config, "XessEnable", DDB_XessEnable, new Dictionary<string, string> { { "0", "关闭" }, { "1", "开启" } });
+            SetUIValue(config, "XessQuality", DDB_XessQuality, new Dictionary<string, string>
+    {
+        { "0", "超级性能" }, { "1", "性能" }, { "2", "平衡" }, { "3", "质量" },
+        { "4", "超级质量" }
+    });
+            
         }
+
+        private void SharpnessSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+        {
+            // 更新文本显示
+            SharpnessValueText.Text = e.NewValue.ToString("0.0");
+
+            // 模拟触发Click事件，调用原先的ChangeGraphic方法
+            ChangeGraphic(new MenuFlyoutItem { Tag = "NvidiaSuperSamplingSharpness", Text = e.NewValue.ToString("0.0") }, null);
+        }
+
 
 
         private void SetUIValue(JObject config, string key, DropDownButton button, Dictionary<string, string> map = null)
@@ -105,7 +125,7 @@ namespace WaveTools.Views.SGViews
             MenuFlyoutItem item = sender as MenuFlyoutItem;
             string text = item.Text;
             string tag = item.Tag.ToString();
-
+            
             try
             {
                 // 先应用用户选择
@@ -114,21 +134,26 @@ namespace WaveTools.Views.SGViews
                 // 异步更新画质设置
                 var settingsMap = new Dictionary<string, Dictionary<string, string>>
         {
+            { "CustomFrameRate", new Dictionary<string, string> { { "30FPS", "0" }, { "45FPS", "1" }, { "60FPS", "2" }, { "120FPS", "3" } } },
             { "ShadowQuality", new Dictionary<string, string> { { "低", "0" }, { "中", "1" }, { "高", "2" }, { "极高", "3" } } },
             { "NiagaraQuality", new Dictionary<string, string> { { "低", "0" }, { "中", "1" }, { "高", "2" } } },
             { "ImageDetail", new Dictionary<string, string> { { "低", "0" }, { "中", "1" }, { "高", "2" } } },
             { "SceneAo", new Dictionary<string, string> { { "关闭", "0" }, { "开启", "1" } } },
             { "VolumeFog", new Dictionary<string, string> { { "关闭", "0" }, { "开启", "1" } } },
             { "VolumeLight", new Dictionary<string, string> { { "关闭", "0" }, { "开启", "1" } } },
-            { "MotionBlur", new Dictionary<string, string> { { "关闭", "0" }, { "开启", "1" } } },
+            { "MotionBlur", new Dictionary<string, string> { { "关闭", "0" }, { "低", "1" }, { "中", "2" }, { "高", "3" } } },
             { "NvidiaSuperSamplingEnable", new Dictionary<string, string> { { "关闭", "0" }, { "开启", "1" } } },
             { "NvidiaSuperSamplingMode", new Dictionary<string, string> { { "关闭", "0" }, { "自动", "1" }, { "质量", "3" }, { "平衡", "4" }, { "性能", "5" }, { "超级性能", "6" } } },
             { "PcVsync", new Dictionary<string, string> { { "关闭", "0" }, { "开启", "1" } } },
             { "AntiAliasing", new Dictionary<string, string> { { "关闭", "0" }, { "开启", "1" } } },
             { "BloomEnable", new Dictionary<string, string> { { "关闭", "0" }, { "开启", "1" } } },
-            { "NvidiaReflex", new Dictionary<string, string> { { "关闭", "0" }, { "开启", "1" } } },
+            { "NvidiaReflex", new Dictionary<string, string> { { "关闭", "0" }, { "开启", "1" }, { "开启并加速", "3" } } },
             { "NpcDensity", new Dictionary<string, string> { { "低", "0" }, { "中", "1" }, { "高", "2" } } },
-            { "EnemyHitDisplayMode", new Dictionary<string, string> { { "关闭", "0" }, { "开启", "1" } } }
+            { "EnemyHitDisplayMode", new Dictionary<string, string> { { "关闭", "0" }, { "开启", "1" } } },
+
+            // For Intel
+            { "XessEnable", new Dictionary<string, string> { { "关闭", "0" }, { "开启", "1" } } },
+            { "XessQuality", new Dictionary<string, string> { { "超级性能", "0" }, { "性能", "1" }, { "平衡", "2" }, { "质量", "3" }, { "超级质量", "4" } } },
         };
 
                 if (settingsMap.ContainsKey(tag) && settingsMap[tag].ContainsKey(text))
@@ -209,6 +234,12 @@ namespace WaveTools.Views.SGViews
                     break;
                 case "EnemyHitDisplayMode":
                     DDB_EnemyHitDisplayMode.Content = text;
+                    break;
+                case "XessEnable":
+                    DDB_XessEnable.Content = text;
+                    break;
+                case "XessQuality":
+                    DDB_XessQuality.Content = text;
                     break;
             }
         }

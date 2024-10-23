@@ -24,6 +24,7 @@
                     <StackPanel HorizontalAlignment="Stretch" Orientation="Horizontal" Spacing="8">
                         <Button Style="{StaticResource AccentButtonStyle}" x:Name="selectGame" Content="选择游戏本体" Click="SelectGame" />
                         <Button x:Name="rmGame" Content="清除游戏路径" Click="RMGameLocation"/>
+                        <ToggleButton x:Name="dx11Enable" Content="DX11启动" Click="dx11Enable_Toggle"/>
                         <Button x:Name="advancedSettings" Content="高级设置" Click="AdvancedSettings"/>
                         <Button x:Name="reloadFrame" Content="刷新" Click="ReloadFrame"/>
                     </StackPanel>

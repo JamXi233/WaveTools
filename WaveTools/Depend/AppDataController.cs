@@ -109,6 +109,7 @@ namespace WaveTools.Depend
         public static int GetAccountChangeMode() => GetValue("Config_AccountChange", -1);
         public static int GetAdminMode() => GetValue("Config_AdminMode", -1);
         public static string GetGameParameter() => GetValue("Config_GameParameter", "");
+        public static int GetDX11Enable() => GetValue("Config_DX11Enable", -1);
 
         public static void SetAutoCheckUpdate(int autocheckupdate) => SetValue("Config_AutoCheckUpdate", autocheckupdate);
         public static void SetFirstRunStatus(int firstRunStatus) => SetValue("Config_FirstRunStatus", firstRunStatus);
@@ -121,6 +122,7 @@ namespace WaveTools.Depend
         public static void SetAccountChangeMode(int accountChangeMode) => SetValue("Config_AccountChange", accountChangeMode);
         public static void SetAdminMode(int adminMode) => SetValue("Config_AdminMode", adminMode);
         public static void SetGameParameter(string gamePath) => SetValue("Config_GameParameter", gamePath);
+        public static void SetDX11Enable(int dx11Enable) => SetValue("Config_DX11Enable", dx11Enable);
 
         public static void RMAutoCheckUpdate() => RemoveValue("Config_AutoCheckUpdate");
         public static void RMFirstRunStatus() => RemoveValue("Config_FirstRunStatus");

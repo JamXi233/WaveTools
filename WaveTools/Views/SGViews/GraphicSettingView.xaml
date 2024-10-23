@@ -20,7 +20,7 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    <TextBlock Text="帧率" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
+                    <TextBlock Text="帧率(可能不起作用)" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
                     <DropDownButton x:Name="DDB_FPS" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
@@ -219,93 +219,9 @@
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
                                 <MenuFlyoutItem Tag="MotionBlur" Text="关闭" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="MotionBlur" Text="开启" Click="ChangeGraphic"/>
-                            </MenuFlyout>
-                        </DropDownButton.Flyout>
-                    </DropDownButton>
-                </Grid>
-
-                <!-- DLSS Setting -->
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Text="NVIDIA DLSS" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_DLSS" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
-                        <DropDownButton.Flyout>
-                            <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingEnable" Text="关闭" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingEnable" Text="开启" Click="ChangeGraphic"/>
-                            </MenuFlyout>
-                        </DropDownButton.Flyout>
-                    </DropDownButton>
-                </Grid>
-
-                <!-- Super Resolution Setting -->
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Text="超级分辨率" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_SuperResolution" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
-                        <DropDownButton.Flyout>
-                            <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingMode" Text="关闭" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingMode" Text="自动" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingMode" Text="质量" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingMode" Text="平衡" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingMode" Text="性能" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingMode" Text="超级性能" Click="ChangeGraphic"/>
-                            </MenuFlyout>
-                        </DropDownButton.Flyout>
-                    </DropDownButton>
-                </Grid>
-
-                <!-- Sharpness Setting -->
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Text="锐化" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_Sharpness" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
-                        <DropDownButton.Flyout>
-                            <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="1.0" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="0.9" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="0.8" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="0.7" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="0.6" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="0.5" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="0.4" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="0.3" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="0.2" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="0.1" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="0.0" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="-0.1" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="-0.2" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="-0.3" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="-0.4" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="-0.5" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="-0.6" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="-0.7" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="-0.8" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="-0.9" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingSharpness" Text="-1.0" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="MotionBlur" Text="低" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="MotionBlur" Text="中" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="MotionBlur" Text="高" Click="ChangeGraphic"/>
                             </MenuFlyout>
                         </DropDownButton.Flyout>
                     </DropDownButton>
@@ -332,27 +248,6 @@
                     </DropDownButton>
                 </Grid>
 
-                <!-- NVIDIA Reflex Setting -->
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Text="NVIDIA Reflex" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_NvidiaReflex" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
-                        <DropDownButton.Flyout>
-                            <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="NvidiaReflex" Text="关闭" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaReflex" Text="开启" Click="ChangeGraphic"/>
-                            </MenuFlyout>
-                        </DropDownButton.Flyout>
-                    </DropDownButton>
-                </Grid>
-
                 <!-- Npc Density Setting -->
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -363,7 +258,7 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    <TextBlock Text="场景细节" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
+                    <TextBlock Text="人群密度" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
                     <DropDownButton x:Name="DDB_NpcDensity" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
@@ -395,6 +290,149 @@
                         </DropDownButton.Flyout>
                     </DropDownButton>
                 </Grid>
+
+                <StackPanel Height="1" Background="Gray" Width="128" HorizontalAlignment="Left" Margin="0 7 0 0"/>
+                
+                <!-- NVIDIA DLSS Setting -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="(DLSS)" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
+                    <DropDownButton x:Name="DDB_DLSS" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
+                        <DropDownButton.Flyout>
+                            <MenuFlyout Placement="Bottom">
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingEnable" Text="关闭" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingEnable" Text="开启" Click="ChangeGraphic"/>
+                            </MenuFlyout>
+                        </DropDownButton.Flyout>
+                    </DropDownButton>
+                </Grid>
+
+                <!-- NVIDIA Super Resolution Setting -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="(DLSS)超级分辨率" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
+                    <DropDownButton x:Name="DDB_SuperResolution" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
+                        <DropDownButton.Flyout>
+                            <MenuFlyout Placement="Bottom">
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingMode" Text="关闭" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingMode" Text="自动" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingMode" Text="质量" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingMode" Text="平衡" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingMode" Text="性能" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaSuperSamplingMode" Text="超级性能" Click="ChangeGraphic"/>
+                            </MenuFlyout>
+                        </DropDownButton.Flyout>
+                    </DropDownButton>
+                </Grid>
+
+                <!-- NVIDIA Sharpness Setting -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="(DLSS)锐化" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
+                    <DropDownButton x:Name="DDB_Sharpness" Content="Sharpness" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
+                        <DropDownButton.Flyout>
+                            <Flyout Placement="Bottom">
+                                <StackPanel Orientation="Vertical" Padding="10">
+                                    <TextBlock Text="Sharpness" Margin="0 0 0 10"/>
+                                    <Slider x:Name="SharpnessSlider" Minimum="-1.0" Maximum="1.0" StepFrequency="0.1" ValueChanged="SharpnessSlider_ValueChanged"/>
+                                    <TextBlock x:Name="SharpnessValueText" Text="0.0" Margin="0 10 0 0" HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Flyout>
+                        </DropDownButton.Flyout>
+                    </DropDownButton>
+
+                </Grid>
+
+                <!-- NVIDIA Reflex Setting -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="(DLSS)Reflex" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
+                    <DropDownButton x:Name="DDB_NvidiaReflex" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
+                        <DropDownButton.Flyout>
+                            <MenuFlyout Placement="Bottom">
+                                <MenuFlyoutItem Tag="NvidiaReflex" Text="关闭" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaReflex" Text="开启" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="NvidiaReflex" Text="开启并加速" Click="ChangeGraphic"/>
+                            </MenuFlyout>
+                        </DropDownButton.Flyout>
+                    </DropDownButton>
+                </Grid>
+
+                <StackPanel Height="1" Background="Gray" Width="128" HorizontalAlignment="Left" Margin="0 7 0 0"/>
+
+                <!-- Intel XeSS Setting -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="(XeSS)" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
+                    <DropDownButton x:Name="DDB_XessEnable" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
+                        <DropDownButton.Flyout>
+                            <MenuFlyout Placement="Bottom">
+                                <MenuFlyoutItem Tag="XessEnable" Text="关闭" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="XessEnable" Text="开启" Click="ChangeGraphic"/>
+                            </MenuFlyout>
+                        </DropDownButton.Flyout>
+                    </DropDownButton>
+                </Grid>
+
+                <!-- Intel Super Resolution Setting -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="(XeSS)画面质量" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
+                    <DropDownButton x:Name="DDB_XessQuality" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
+                        <DropDownButton.Flyout>
+                            <MenuFlyout Placement="Bottom">
+                                <MenuFlyoutItem Tag="XessQuality" Text="超级质量" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="XessQuality" Text="质量" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="XessQuality" Text="平衡" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="XessQuality" Text="性能" Click="ChangeGraphic"/>
+                                <MenuFlyoutItem Tag="XessQuality" Text="超级性能" Click="ChangeGraphic"/>
+                            </MenuFlyout>
+                        </DropDownButton.Flyout>
+                    </DropDownButton>
+                </Grid>
+
 
             </StackPanel>
         </ScrollViewer>

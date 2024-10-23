@@ -218,9 +218,10 @@ namespace WaveTools.Views.ToolViews
 
         private async void UpdateGacha_Click(object sender, RoutedEventArgs e)
         {
-            bool isShiftPressed = (GetAsyncKeyState(0x10) & 0x8000) != 0;
-            if (isShiftPressed) DialogManager.RaiseDialog(XamlRoot, "抽卡记录遇到了问题?", $"可以尝试完全覆盖当前抽卡记录\n只有在抽卡记录完全混乱时才建议使用", true, "强制覆盖", () => { UpdateGacha_R(selectedUid,true); });
-            else UpdateGacha_R(selectedUid);
+            //bool isShiftPressed = (GetAsyncKeyState(0x10) & 0x8000) != 0;
+            //if (isShiftPressed) DialogManager.RaiseDialog(XamlRoot, "抽卡记录遇到了问题?", $"可以尝试完全覆盖当前抽卡记录\n只有在抽卡记录完全混乱时才建议使用", true, "强制覆盖", () => { UpdateGacha_R(selectedUid,true); });
+            //else UpdateGacha_R(selectedUid);
+            UpdateGacha_R(selectedUid);
         }
 
         private async void SaveGachaLink(string UID)
@@ -261,7 +262,8 @@ namespace WaveTools.Views.ToolViews
                 if (UID is null) { NotificationManager.RaiseNotification($"更新抽卡记录", "更新记录失败:UID为空", InfoBarSeverity.Error); return; }
                 WaitOverlayManager.RaiseWaitOverlay(true, "正在更新抽卡记录", "请稍等片刻", true, 0);
                 var result = await ProcessRun.WaveToolsHelperAsync($"/UpdateGachaRecords {UID}");
-                if (result.Contains("失效")) NotificationManager.RaiseNotification("抽卡链接已经失效\n需要重新获取抽卡记录。", null, InfoBarSeverity.Error, false, 2);
+                if (result.Contains("抽卡链接已经失效")) NotificationManager.RaiseNotification("更新失败\n抽卡链接已经失效\n需要重新获取抽卡记录。", null, InfoBarSeverity.Error, false, 2);
+                else if (result.Contains("未找到保存的UID数据文件")) NotificationManager.RaiseNotification("更新失败\n未找到抽卡记录URL\n该记录可能为外部导入的记录。", null, InfoBarSeverity.Error, false, 2);
                 else
                 {
                     latestUpdatedUID = UID;

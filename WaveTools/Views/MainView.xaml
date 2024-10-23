@@ -12,25 +12,18 @@
 
         <Grid x:Name="MainAPP" HorizontalAlignment="Stretch" Margin="24">
 
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="3*"/>
-                <ColumnDefinition Width="2*"/>
-            </Grid.ColumnDefinitions>
-
-            <!-- 右侧区域 -->
-            <StackPanel Grid.Column="0" HorizontalAlignment="Center" VerticalAlignment="Bottom">
+            <!-- 左侧区域 -->
+            <Grid HorizontalAlignment="Left" VerticalAlignment="Bottom">
                 <Grid x:Name="OpenUrlButton" HorizontalAlignment="Center" VerticalAlignment="Bottom"  Height="144" Width="557" BorderBrush="Transparent">
                     <Grid.Background>
                         <ImageBrush x:Name="IconImageBrush"/>
                     </Grid.Background>
                 </Grid>
-            </StackPanel>
+            </Grid>
 
-            <!-- 左侧区域 -->
-            <StackPanel Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom">
-
+            <!-- 右侧区域 -->
+            <Grid HorizontalAlignment="Right" VerticalAlignment="Bottom">
                 <Grid>
-
                     <Grid.RowDefinitions>
                         <RowDefinition Height="1*"/>
                         <RowDefinition Height="1*"/>
@@ -53,15 +46,12 @@
                                     <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xe789;"/>
                                 </SelectorBarItem.Icon>
                             </SelectorBarItem>
-
                         </SelectorBar>
                         <Frame x:Name="NotifyFrame" Padding="8 48 8 0"/>
-                        
                         <Grid x:Name="NotifyLoad">
                             <ProgressRing/>
                         </Grid>
                     </Grid>
-
 
                     <Grid x:Name="Gallery_Grid" Grid.Row="0" Visibility="Collapsed">
 
@@ -90,8 +80,7 @@
 
                 </Grid>
 
-
-            </StackPanel>
+            </Grid>
 
         </Grid>
 

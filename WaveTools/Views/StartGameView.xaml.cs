@@ -101,6 +101,7 @@ namespace WaveTools.Views
                 {
                     UpdateUIElementsVisibility(1);
                     CheckIsWeGameVersion(false);
+                    if (AppDataController.GetDX11Enable() == 1) dx11Enable.IsChecked = true;
                     if (mode == null)
                     {
                         CheckProcess_Account();
@@ -159,6 +160,11 @@ namespace WaveTools.Views
             gameArgs.Text = AppDataController.GetGameParameter();
             advancedPanel.Children.Add(gameArgs);
             DialogManager.RaiseDialog(XamlRoot, "高级设置", advancedPanel, true, "保存", () => AppDataController.SetGameParameter(gameArgs.Text));
+        }
+
+        public void dx11Enable_Toggle(object sender, RoutedEventArgs e)
+        {
+            AppDataController.SetDX11Enable(dx11Enable.IsChecked == true ? 1 : 0);
         }
 
         public void RMGameLocation(object sender, RoutedEventArgs e)
@@ -294,7 +300,7 @@ namespace WaveTools.Views
                 try
                 {
                     string GSValue = await ProcessRun.WaveToolsHelperAsync($"/GetGS {AppDataController.GetGamePathForHelper()}");
-                    if (!GSValue.Contains("QualityLevel"))
+                    if (!GSValue.Contains("ImageQuality"))
                     {
                         GraphicSelect.IsEnabled = false;
                         GraphicSelect.IsSelected = false;
@@ -393,5 +399,9 @@ namespace WaveTools.Views
             }
         }
 
+        private void dx11Enable_IsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+
+        }
     }
 }

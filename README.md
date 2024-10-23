@@ -1,4 +1,4 @@
-![](https://cdn.jamsg.cn/release/WaveTools/Preview.webp)
+![](https://cdn.jamsg.cn/release/WaveTools/Preview.webp?ver=12)
 # 🔨鸣潮工具箱
 🔨鸣潮工具箱是一个用于修改鸣潮画质帧率和查看抽卡分析的工具箱
 

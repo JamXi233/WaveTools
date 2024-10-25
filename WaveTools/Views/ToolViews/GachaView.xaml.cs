@@ -553,42 +553,31 @@ namespace WaveTools.Views.ToolViews
 
         private async void ExportWWGF_Click(object sender, RoutedEventArgs e)
         {
-            var window = new Window();
             string recordsBasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), @"JSG-LLC\WaveTools\GachaRecords");
+            DateTime now = DateTime.Now;
+            string formattedDate = now.ToString("yyyy_MM_dd_HH_mm_ss");
 
-            // 打开文件选择器
-            var savePicker = new FileSavePicker();
-            var hwnd = WindowNative.GetWindowHandle(window);
-            InitializeWithWindow.Initialize(savePicker, hwnd);
-
-            savePicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
-            savePicker.FileTypeChoices.Add("Wuthering Waves Gacha Format", new List<string>() { ".json" });
-            savePicker.SuggestedFileName = $"{selectedUid}_Export";
-
-            StorageFile exportFile = await savePicker.PickSaveFileAsync();
-            if (exportFile != null)
+            var suggestFileName = $"WaveTools_Gacha_Export_{selectedUid}_{formattedDate}";
+            var fileTypeChoices = new Dictionary<string, List<string>>
             {
-                ExportGacha.Export($"{recordsBasePath}\\{selectedUid}.json", exportFile.Path);
+                { "Wuthering Waves Gacha Format", new List<string> { ".json" } }
+            };
+            var defaultExtension = ".json";
+
+            string filePath = await CommonHelpers.FileHelpers.SaveFile(suggestFileName, fileTypeChoices, defaultExtension);
+            if (filePath != null)
+            {
+                ExportGacha.Export($"{recordsBasePath}\\{selectedUid}.json", filePath);
             }
         }
 
         private async void ImportWWGF_Click(object sender, RoutedEventArgs e)
         {
-            var window = new Window();
-            // 打开文件选择器
-            var openPicker = new FileOpenPicker();
-            var hwnd = WindowNative.GetWindowHandle(window);
-            InitializeWithWindow.Initialize(openPicker, hwnd);
-
-            openPicker.ViewMode = PickerViewMode.Thumbnail;
-            openPicker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
-            openPicker.FileTypeFilter.Add(".json");
-
-            StorageFile importFile = await openPicker.PickSingleFileAsync();
-            if (importFile != null)
+            string filePath = await CommonHelpers.FileHelpers.OpenFile(".json");
+            if (filePath != null)
             {
                 string recordsBasePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), @"JSG-LLC\WaveTools\GachaRecords");
-                await ImportGacha.Import(importFile.Path);
+                await ImportGacha.Import(filePath);
             }
             ReloadGachaView();
         }

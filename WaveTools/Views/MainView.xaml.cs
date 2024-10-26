@@ -16,13 +16,17 @@ using static WaveTools.App;
 using Newtonsoft.Json.Linq;
 using System.IO.Compression;
 using Newtonsoft.Json;
-using Windows.Services.Maps.Guidance;
-using WaveTools.Depend;
+using Microsoft.UI.Dispatching;
+using Windows.Foundation;
 
 namespace WaveTools.Views
 {
     public sealed partial class MainView : Page
     {
+        private DispatcherQueue dispatcherQueue;
+        private DispatcherQueueTimer dispatcherTimer_Game;
+        private DispatcherQueueTimer dispatcherTimer_Launcher;
+
         private static readonly HttpClient httpClient = new HttpClient();
         public ObservableCollection<string> Pictures { get; } = new ObservableCollection<string>();
         public ObservableCollection<string> PicturesClick { get; } = new ObservableCollection<string>();
@@ -37,11 +41,17 @@ namespace WaveTools.Views
             this.InitializeComponent();
             Logging.Write("Switch to MainView", 0);
             Loaded += MainView_Loaded;
+            this.Unloaded += OnUnloaded;
+            // 获取UI线程的DispatcherQueue
+            InitializeDispatcherQueue();
+            // 初始化并启动定时器
+            InitializeTimers();
         }
 
         private async void MainView_Loaded(object sender, RoutedEventArgs e)
         {
             Logging.Write("MainView loaded", 0);
+            LoadStartGameGrid();
             LoadBackgroundAsync();
             LoadPicturesAsync();
             LoadPostAsync();
@@ -57,6 +67,71 @@ namespace WaveTools.Views
                 Logging.Write("Failed to load notifications: " + ex.Message, 1);
                 loadRing.Visibility = Visibility.Collapsed;
                 loadErr.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void InitializeDispatcherQueue()
+        {
+            dispatcherQueue = DispatcherQueue.GetForCurrentThread();
+        }
+
+        private void InitializeTimers()
+        {
+            dispatcherTimer_Game = CreateTimer(TimeSpan.FromSeconds(0.2), CheckProcess_Game);
+            dispatcherTimer_Game.Start();
+            dispatcherTimer_Launcher = CreateTimer(TimeSpan.FromSeconds(0.2), CheckProcess_Launcher);
+            dispatcherTimer_Launcher.Start();
+        }
+
+        private DispatcherQueueTimer CreateTimer(TimeSpan interval, TypedEventHandler<DispatcherQueueTimer, object> tickHandler)
+        {
+            var timer = dispatcherQueue.CreateTimer();
+            timer.Interval = interval;
+            timer.Tick += tickHandler;
+            timer.Start();
+            return timer;
+        }
+
+        private void LoadStartGameGrid() 
+        {
+            if (AppDataController.GetGamePath() != null)
+            {
+                string GamePath = AppDataController.GetGamePath();
+                Logging.Write("GamePath: " + GamePath, 0);
+                if (!string.IsNullOrEmpty(GamePath) && GamePath.Contains("Null"))
+                {
+                    UpdateUIElementsVisibility(0);
+                }
+                else
+                {
+                    UpdateUIElementsVisibility(1);
+                }
+            }
+            else
+            {
+                UpdateUIElementsVisibility(0);
+            }
+        }
+
+        private void UpdateUIElementsVisibility(int status)
+        {
+            if (status == 0)
+            {
+                startGame.IsEnabled = false;
+                startLauncher.IsEnabled = false;
+                StartGame_Grid.Visibility = Visibility.Collapsed;
+                
+                selectGame.IsEnabled = true;
+                SelectGame_Grid.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                startGame.IsEnabled = true;
+                startLauncher.IsEnabled = true;
+                StartGame_Grid.Visibility = Visibility.Visible;
+
+                selectGame.IsEnabled = false;
+                SelectGame_Grid.Visibility = Visibility.Collapsed;
             }
         }
 
@@ -300,6 +375,94 @@ namespace WaveTools.Views
                 }
             }
             Logging.Write("Zip file extracted successfully", 0);
+        }
+
+        private async void SelectGame_Click(object sender, RoutedEventArgs e)
+        {
+            string filePath = await CommonHelpers.FileHelpers.OpenFile(".exe");
+            if (filePath != null && filePath.Contains("Wuthering Waves.exe"))
+            {
+                // 更新为新的存储管理机制
+                AppDataController.SetGamePath(filePath);
+                LoadStartGameGrid();
+            }
+            else
+            {
+                NotificationManager.RaiseNotification("游戏选择无效", "选择正确的Wuthering Waves.exe\n通常位于[游戏根目录\\Wuthering Waves Game\\Wuthering Waves.exe]", InfoBarSeverity.Error);
+            }
+        }
+
+        // 启动游戏
+        private void StartGame_Click(object sender, RoutedEventArgs e)
+        {
+            StartGame(null, null);
+        }
+        private void StartLauncher_Click(object sender, RoutedEventArgs e)
+        {
+            StartLauncher(null, null);
+        }
+
+        public async void StartGame(TeachingTip sender, object args)
+        {
+            GameStartUtil gameStartUtil = new GameStartUtil();
+            gameStartUtil.StartGame();
+        }
+
+        public void StartLauncher(TeachingTip sender, object args)
+        {
+            GameStartUtil gameStartUtil = new GameStartUtil();
+            gameStartUtil.StartLauncher();
+        }
+
+        // 定时器回调函数，检查进程是否正在运行
+        private void CheckProcess_Game(DispatcherQueueTimer timer, object e)
+        {
+            if (Process.GetProcessesByName("Wuthering Waves").Length > 0)
+            {
+                // 进程正在运行
+                startGame.Visibility = Visibility.Collapsed;
+                gameRunning.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                // 进程未运行
+                startGame.Visibility = Visibility.Visible;
+                gameRunning.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void CheckProcess_Launcher(DispatcherQueueTimer timer, object e)
+        {
+            if (Process.GetProcessesByName("launcher").Length > 0)
+            {
+                // 进程正在运行
+                startLauncher.Visibility = Visibility.Collapsed;
+                launcherRunning.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                // 进程未运行
+                startLauncher.Visibility = Visibility.Visible;
+                launcherRunning.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private void OnUnloaded(object sender, RoutedEventArgs e)
+        {
+            if (dispatcherTimer_Game != null)
+            {
+                dispatcherTimer_Game.Stop();
+                dispatcherTimer_Game.Tick -= CheckProcess_Game;
+                dispatcherTimer_Game = null;
+                Logging.Write("Game Timer Stopped", 0);
+            }
+            if (dispatcherTimer_Launcher != null)
+            {
+                dispatcherTimer_Launcher.Stop();
+                dispatcherTimer_Launcher.Tick -= CheckProcess_Launcher;
+                dispatcherTimer_Launcher = null;
+                Logging.Write("Launcher Timer Stopped", 0);
+            }
         }
 
         public class GuidanceRoot

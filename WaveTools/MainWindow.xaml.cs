@@ -37,7 +37,6 @@ using WaveTools.Views.FirstRunViews;
 using static WaveTools.App;
 using Newtonsoft.Json.Linq;
 using System.IO.Compression;
-using WaveTools.Depend;
 using System.Diagnostics;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Animation;

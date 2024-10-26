@@ -398,10 +398,5 @@ namespace WaveTools.Views
                 Logging.Write("Launcher Timer Stopped", 0);
             }
         }
-
-        private void dx11Enable_IsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-
-        }
     }
 }

@@ -25,11 +25,58 @@
             <Grid HorizontalAlignment="Right" VerticalAlignment="Bottom">
                 <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="1*"/>
-                        <RowDefinition Height="1*"/>
+                        <RowDefinition Height="12*"/>
+                        <RowDefinition Height="10*"/>
+                        <RowDefinition Height="6*"/>
                     </Grid.RowDefinitions>
 
-                    <Grid x:Name="Notify_Grid" Grid.Row="1" Margin="0 18 0 0" CornerRadius="12" Height="160" Width="345" Background="{ThemeResource SystemControlAcrylicElementBrush}">
+                    <Grid x:Name="Start_Grid" Grid.Row="2" Margin="0 12 0 0" CornerRadius="12">
+                        <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom" Orientation="Horizontal" Margin="0 0 0 0" Background="{ThemeResource SystemControlAcrylicElementBrush}">
+
+                            <Grid x:Name="StartLauncher_Grid">
+                                <Button x:Name="startLauncher" Width="96" Height="92" VerticalAlignment="Bottom" HorizontalAlignment="Right" Background="Transparent" BorderBrush="Transparent" Click="StartLauncher_Click">
+                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                        <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xe80f;" Width="32" Height="32"/>
+                                        <TextBlock Text="打开启动器" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+
+                                <Button x:Name="launcherRunning" Width="96" Height="92" VerticalAlignment="Bottom" HorizontalAlignment="Right" Background="Transparent" BorderBrush="Transparent" IsEnabled="False" Visibility="Collapsed">
+                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                        <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xe80f;" Width="32" Height="32"/>
+                                        <TextBlock Text="启动器运行中" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+
+                            <Grid Width="1" Background="DimGray"/>
+
+                            <Grid x:Name="StartGame_Grid">
+                                <Button x:Name="startGame" Width="248" Height="92" VerticalAlignment="Bottom" HorizontalAlignment="Right" Background="Transparent" BorderBrush="Transparent" Click="StartGame_Click">
+                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                        <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xe768;" Width="32" Height="32"/>
+                                        <TextBlock Text="开始游戏" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                                <Button x:Name="gameRunning" Width="248" Height="92" VerticalAlignment="Bottom" HorizontalAlignment="Right" Background="Transparent" BorderBrush="Transparent" IsEnabled="False" Visibility="Collapsed">
+                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                        <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xe768;" Width="32" Height="32"/>
+                                        <TextBlock Text="游戏运行中" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+                            <Grid x:Name="SelectGame_Grid" Visibility="Collapsed">
+                                <Button x:Name="selectGame" Width="248" Height="92" VerticalAlignment="Bottom" HorizontalAlignment="Right" Background="Transparent" BorderBrush="Transparent" Click="SelectGame_Click">
+                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                        <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xe8b7;" Width="32" Height="32"/>
+                                        <TextBlock Text="选择游戏路径" FontSize="12"/>
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid x:Name="Notify_Grid" Grid.Row="1" Margin="0 18 0 0" CornerRadius="12" Height="153" Width="345" Background="{ThemeResource SystemControlAcrylicElementBrush}">
                         <SelectorBar x:Name="NotifyNav" SelectionChanged="Notify_NavView_SelectionChanged" Visibility="Collapsed" Margin="12 0 0 0">
                             <SelectorBarItem Text="活动" Tag="Notify_Notification" >
                                 <SelectorBarItem.Icon>
@@ -47,7 +94,7 @@
                                 </SelectorBarItem.Icon>
                             </SelectorBarItem>
                         </SelectorBar>
-                        <Frame x:Name="NotifyFrame" Padding="8 48 8 0"/>
+                        <Frame x:Name="NotifyFrame" Padding="8 44 8 0"/>
                         <Grid x:Name="NotifyLoad">
                             <ProgressRing/>
                         </Grid>

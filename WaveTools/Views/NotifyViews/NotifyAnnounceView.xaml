@@ -9,7 +9,7 @@
 
     <Grid>
         <StackPanel>
-            <ListView x:Name="NotifyAnnounceView_List" Height="96" IsItemClickEnabled="True" ItemClick="List_PointerPressed">
+            <ListView x:Name="NotifyAnnounceView_List" Height="98" IsItemClickEnabled="True" ItemClick="List_PointerPressed">
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <Grid>

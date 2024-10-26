@@ -94,6 +94,7 @@ namespace WaveTools.Views.ToolViews
                     Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
                     Title = "选择UID",
                     PrimaryButtonText = "确认",
+                    SecondaryButtonText = "复制URL",
                     CloseButtonText = "取消",
                     XamlRoot = XamlRoot,
                     Width = 300
@@ -166,6 +167,23 @@ namespace WaveTools.Views.ToolViews
                     }
 
                     SaveGachaLink(selectedUid);
+                }
+                else if (result == ContentDialogResult.Secondary && comboBox.SelectedItem != null && comboBox.IsEnabled)
+                {
+                    string selectedUid = comboBox.SelectedItem as string;
+
+                    if (selectedUid.Contains("[已存在]"))
+                    {
+                        selectedUid = selectedUid.Replace("[已存在]", "").Trim();
+                    }
+
+                    var selectedGachaUrl = gachaUrls.FirstOrDefault(url => url.PlayerId == selectedUid)?.GachaLink;
+
+                    if (!string.IsNullOrEmpty(selectedGachaUrl))
+                    {
+                        System.Windows.Clipboard.SetText(selectedGachaUrl);
+                        NotificationManager.RaiseNotification("复制成功", "抽卡记录URL已复制完成", InfoBarSeverity.Success, true, 2);
+                    }
                 }
             }
             catch { NotificationManager.RaiseNotification("获取抽卡记录失败", "可能是未打开过游戏\n或未打开抽卡记录", InfoBarSeverity.Warning, true, 2); }

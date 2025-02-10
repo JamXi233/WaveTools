@@ -87,7 +87,7 @@
                         <Grid BorderBrush="Gray" BorderThickness="1" CornerRadius="8">
                             <StackPanel Orientation="Vertical" Padding="4">
                                 <Grid >
-                                    <Grid x:Name="Frame_AccountView_Loading" CornerRadius="8" >
+                                    <Grid x:Name="Frame_AccountView_Loading" CornerRadius="8" Visibility="Collapsed">
                                         <StackPanel/>
                                         <Grid VerticalAlignment="Center" HorizontalAlignment="Center" >
                                             <StackPanel>

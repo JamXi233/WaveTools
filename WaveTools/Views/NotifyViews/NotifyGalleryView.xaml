@@ -1,0 +1,30 @@
+<Page
+    x:Class="WaveTools.Views.NotifyViews.NotifyGalleryView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid>
+        <FlipView x:Name="Gallery" ItemsSource="{x:Bind Pictures, Mode=OneWay}" PointerPressed="Gallery_PointerPressed" Height="176" Width="328" CornerRadius="8" >
+            <FlipView.ItemTemplate>
+                <DataTemplate x:DataType="x:String">
+                    <Image Stretch="UniformToFill">
+                        <Image.Source>
+                            <BitmapImage UriSource="{x:Bind Mode=OneTime}" DecodePixelWidth="329" />
+                        </Image.Source>
+                    </Image>
+                </DataTemplate>
+            </FlipView.ItemTemplate>
+        </FlipView>
+
+        <Grid Background="{ThemeResource SystemControlAcrylicElementMediumHighBrush}" Height="24" Width="64" CornerRadius="12" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0 0 4 12">
+            <PipsPager
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"
+                NumberOfPages="{x:Bind Pictures.Count, Mode=OneWay}"
+                SelectedPageIndex="{x:Bind Path=Gallery.SelectedIndex, Mode=TwoWay}" />
+        </Grid>
+    </Grid>
+</Page>

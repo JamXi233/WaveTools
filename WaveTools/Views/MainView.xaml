@@ -8,30 +8,32 @@
     mc:Ignorable="d">
 
     <Grid>
-        <Image x:Name="BackgroundImage" Stretch="UniformToFill" Opacity="1" ImageOpened="BackgroundImage_ImageOpened" Margin="0 -8 0 0 "/>
+        <MediaPlayerElement x:Name="BackgroundMediaPlayer"
+                              Stretch="UniformToFill"
+                              Opacity="0"
+                              AreTransportControlsEnabled="False"
+                              AutoPlay="True"
+                              Margin="0 -8 0 0"/>
 
         <Grid x:Name="MainAPP" HorizontalAlignment="Stretch" Margin="24">
 
-            <!-- 左侧区域 -->
-            <Grid HorizontalAlignment="Left" VerticalAlignment="Bottom">
-                <Grid x:Name="OpenUrlButton" HorizontalAlignment="Center" VerticalAlignment="Bottom"  Height="144" Width="557" BorderBrush="Transparent">
-                    <Grid.Background>
-                        <ImageBrush x:Name="IconImageBrush"/>
-                    </Grid.Background>
-                </Grid>
-            </Grid>
-
-            <!-- 右侧区域 -->
             <Grid HorizontalAlignment="Right" VerticalAlignment="Bottom">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="12*"/>
-                        <RowDefinition Height="10*"/>
-                        <RowDefinition Height="6*"/>
+                        <RowDefinition Height="12*"/>
                     </Grid.RowDefinitions>
 
-                    <Grid x:Name="Start_Grid" Grid.Row="2" Margin="0 12 0 0" CornerRadius="12">
-                        <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom" Orientation="Horizontal" Margin="0 0 0 0" Background="{ThemeResource SystemControlAcrylicElementBrush}">
+                    <Grid x:Name="Slogan_Grid" Grid.Row="0" Margin="0 12 0 0" CornerRadius="12">
+                        <Grid x:Name="OpenUrlButton" Opacity="0" HorizontalAlignment="Center" VerticalAlignment="Bottom" Height="644" Width="1037" Margin="-100 0 0 -146" BorderBrush="Transparent">
+                            <Grid.Background>
+                                <ImageBrush x:Name="IconImageBrush"/>
+                            </Grid.Background>
+                        </Grid>
+                    </Grid>
+
+                    <Grid x:Name="Start_Grid" Grid.Row="1" Margin="0 12 0 0" CornerRadius="12">
+                        <StackPanel HorizontalAlignment="Right" VerticalAlignment="Bottom" Orientation="Horizontal" Margin="0 0 0 0" Background="{ThemeResource SystemControlAcrylicElementBrush}" CornerRadius="12 12 12 12">
 
                             <Grid x:Name="StartLauncher_Grid">
                                 <Button x:Name="startLauncher" Width="96" Height="92" VerticalAlignment="Bottom" HorizontalAlignment="Right" Background="Transparent" BorderBrush="Transparent" Click="StartLauncher_Click">
@@ -76,53 +78,48 @@
                         </StackPanel>
                     </Grid>
 
-                    <Grid x:Name="Notify_Grid" Grid.Row="1" Margin="0 18 0 0" CornerRadius="12" Height="153" Width="345" Background="{ThemeResource SystemControlAcrylicElementBrush}">
+                </Grid>
+
+            </Grid>
+
+            <Grid HorizontalAlignment="Left" VerticalAlignment="Bottom">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="12*"/>
+                        <RowDefinition Height="10*"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid x:Name="Notify_Grid" Grid.RowSpan="2" Margin="0 18 0 0" CornerRadius="12" Height="235" Width="345" Background="{ThemeResource SystemControlAcrylicElementBrush}">
                         <SelectorBar x:Name="NotifyNav" SelectionChanged="Notify_NavView_SelectionChanged" Visibility="Collapsed" Margin="12 0 0 0">
-                            <SelectorBarItem Text="活动" Tag="Notify_Notification" >
+                            <SelectorBarItem Tag="Notify_Gallery">
                                 <SelectorBarItem.Icon>
-                                    <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xf580;"/>
+                                    <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xf580;" />
                                 </SelectorBarItem.Icon>
                             </SelectorBarItem>
-                            <SelectorBarItem Text="公告" Tag="Notify_Message" >
+
+                            <SelectorBarItem Text="活动" Tag="Notify_Notification">
                                 <SelectorBarItem.Icon>
-                                    <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xe8bd;"/>
+                                    <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xe787;" />
                                 </SelectorBarItem.Icon>
                             </SelectorBarItem>
+
+                            <SelectorBarItem Text="公告" Tag="Notify_Message">
+                                <SelectorBarItem.Icon>
+                                    <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xe8bd;" />
+                                </SelectorBarItem.Icon>
+                            </SelectorBarItem>
+
                             <SelectorBarItem Text="新闻" Tag="Notify_Announce">
                                 <SelectorBarItem.Icon>
-                                    <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xe789;"/>
+                                    <FontIcon FontFamily="Segoe Fluent Icons" Glyph="&#xe789;" />
                                 </SelectorBarItem.Icon>
                             </SelectorBarItem>
+
                         </SelectorBar>
                         <Frame x:Name="NotifyFrame" Padding="8 44 8 0"/>
                         <Grid x:Name="NotifyLoad">
-                            <ProgressRing/>
+                            <ProgressRing IsIndeterminate="True"/>
                         </Grid>
-                    </Grid>
-
-                    <Grid x:Name="Gallery_Grid" Grid.Row="0" Visibility="Collapsed">
-
-                        <FlipView x:Name="Gallery" ItemsSource="{x:Bind Pictures}" PointerPressed="Gallery_PointerPressed" Height="194" Width="345" CornerRadius="12" >
-                            <FlipView.ItemTemplate>
-                                <DataTemplate x:DataType="x:String">
-                                    <Image>
-                                        <Image.Source>
-                                            <BitmapImage UriSource="{x:Bind Mode=OneTime}" DecodePixelWidth="345" />
-                                        </Image.Source>
-                                    </Image>
-                                </DataTemplate>
-                            </FlipView.ItemTemplate>
-                        </FlipView>
-
-                        <Grid Background="{ThemeResource SystemControlAcrylicElementMediumHighBrush}" Height="24" Width="64" CornerRadius="12" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0 0 12 -12">
-
-                            <PipsPager x:Name="FlipViewPipsPager"
-                                VerticalAlignment="Center"
-                                HorizontalAlignment="Center"
-                                SelectedPageIndex="{x:Bind Path=Gallery.SelectedIndex, Mode=TwoWay}" />
-
-                        </Grid>
-
                     </Grid>
 
                 </Grid>
@@ -135,7 +132,7 @@
 
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
 
-                <ProgressRing/>
+                <ProgressRing IsIndeterminate="True"/>
 
             </StackPanel>
 
@@ -154,7 +151,5 @@
 
         <InfoBar x:Name="infoBar" IsOpen="False" Severity="Error" Title="" Message="" />
 
-
     </Grid>
-
 </Page>

@@ -55,6 +55,9 @@ namespace WaveTools
 
         public static bool isWindowOpen = true;
 
+        private const int Width = 1024;
+        private const int Height = 584;
+
         private const int GWL_STYLE = -16;
         private const int WS_MAXIMIZEBOX = 0x00010000;
         private const int WM_NCLBUTTONDBLCLK = 0x00A3;
@@ -93,7 +96,6 @@ namespace WaveTools
         {
             if (msg == WM_NCLBUTTONDBLCLK)
             {
-                // 阻止双击标题栏最大化
                 return IntPtr.Zero;
             }
             return CallWindowProc(oldWndProc, hWnd, msg, wParam, lParam);
@@ -127,7 +129,6 @@ namespace WaveTools
         {
             this.Activated -= MainWindow_Activated;
             await InitializeAppDataAsync();
-            await LoadBackgroundAsync();
             InitStatus();
             CleanUpdate();
             if (AppDataController.GetAutoCheckUpdate() == 1)
@@ -311,8 +312,8 @@ namespace WaveTools
 
             float scale = (float)User32.GetDpiForWindow(hwnd) / 96;
 
-            int windowWidth = (int)(1024 * scale);
-            int windowHeight = (int)(584 * scale);
+            int windowWidth = (int)(Width * scale);
+            int windowHeight = (int)(Height * scale);
 
             Logging.Write("MoveAndResize to " + windowWidth + "*" + windowHeight, 0);
             appWindow.Resize(new SizeInt32(windowWidth, windowHeight));
@@ -387,95 +388,6 @@ namespace WaveTools
             NativeMethods.SetWindowLong(hwnd, NativeMethods.GWL_STYLE, style);
         }
 
-        private async Task LoadBackgroundAsync()
-        {
-            string apiUrl = "https://prod-cn-alicdn-gamestarter.kurogame.com/pcstarter/prod/starter/10003_Y8xXrXk65DqFHEDgApn3cpK5lfczpFx5/G152/index.json";
-            JObject response = await FetchBData(apiUrl);
-
-            string baseDownloadUrl = "https://pcdownload-wangsu.aki-game.com/";
-            string zipUrl = baseDownloadUrl + response["animateBackground"]["url"].ToString();
-            string newMd5 = response["animateBackground"]["md5"].ToString();
-
-            string targetPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), @"JSG-LLC\WaveTools\Background\");
-            Directory.CreateDirectory(targetPath);
-            string zipFilePath = Path.Combine(targetPath, "background.zip");
-
-            string backgroundPath = Path.Combine(targetPath, "home_1.jpg");
-            string iconPath = Path.Combine(targetPath, "slogan.png");
-            string md5FilePath = Path.Combine(targetPath, "md5.txt");
-            if (File.Exists(backgroundPath) && File.Exists(iconPath) && File.Exists(md5FilePath))
-            {
-                string cachedMd5 = await File.ReadAllTextAsync(md5FilePath);
-                if (cachedMd5 == newMd5)
-                {
-                    await LoadAdvertisementDataAsync(backgroundPath, iconPath);
-                    return;
-                }
-            }
-            await DownloadFileAsync(zipUrl, zipFilePath);
-            ExtractZipFile(zipFilePath, targetPath);
-            await File.WriteAllTextAsync(md5FilePath, newMd5);
-
-            await LoadAdvertisementDataAsync(backgroundPath, iconPath);
-        }
-
-        private async Task LoadAdvertisementDataAsync(string backgroundPath, string iconPath)
-        {
-            Logging.Write("LoadAdvertisementData...", 0);
-            Logging.Write("Getting Background: " + backgroundPath, 0);
-            BitmapImage backgroundImage = new BitmapImage(new Uri(backgroundPath));
-            Background.ImageSource = backgroundImage;
-        }
-
-        private async Task<JObject> FetchBData(string apiUrl)
-        {
-            Logging.Write("FetchData:" + apiUrl, 0);
-            using (HttpClient client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.AcceptEncoding.Add(new System.Net.Http.Headers.StringWithQualityHeaderValue("gzip"));
-                HttpResponseMessage response = await client.GetAsync(apiUrl);
-                response.EnsureSuccessStatusCode();
-
-                using (var stream = await response.Content.ReadAsStreamAsync())
-                {
-                    using (var decompressedStream = new GZipStream(stream, CompressionMode.Decompress))
-                    {
-                        using (var reader = new StreamReader(decompressedStream))
-                        {
-                            string responseBody = await reader.ReadToEndAsync();
-                            return JObject.Parse(responseBody);
-                        }
-                    }
-                }
-            }
-        }
-
-        private async Task DownloadFileAsync(string url, string destinationPath)
-        {
-            using (HttpClient client = new HttpClient())
-            {
-                using (HttpResponseMessage response = await client.GetAsync(url))
-                {
-                    response.EnsureSuccessStatusCode();
-                    using (FileStream fs = new FileStream(destinationPath, FileMode.Create))
-                    {
-                        await response.Content.CopyToAsync(fs);
-                    }
-                }
-            }
-        }
-
-        private void ExtractZipFile(string zipFilePath, string extractPath)
-        {
-            using (ZipArchive archive = ZipFile.OpenRead(zipFilePath))
-            {
-                foreach (ZipArchiveEntry entry in archive.Entries)
-                {
-                    string destinationPath = Path.Combine(extractPath, entry.FullName);
-                    entry.ExtractToFile(destinationPath, true);
-                }
-            }
-        }
 
         public static async Task<ApiResponse> FetchData(string url)
         {

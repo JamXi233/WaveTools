@@ -19,7 +19,7 @@
 
                 </StackPanel>
                 <TextBlock Text="账号列表" Margin="0 8 0 8"/>
-                <ListView x:Name="AccountListView" SelectionChanged="AccountListView_SelectionChanged">
+                <ListView x:Name="AccountListView" SelectionChanged="AccountListView_SelectionChanged" Height="240">
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">

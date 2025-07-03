@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.IO.Compression;
 
 namespace WaveTools.Depend
 {
@@ -18,51 +19,82 @@ namespace WaveTools.Depend
 
         public async Task Get()
         {
-            string apiAddress = "https://pcdownload-wangsu.aki-game.com/pcstarter/prod/starter/10003_Y8xXrXk65DqFHEDgApn3cpK5lfczpFx5/G152/guidance/zh-Hans.json";
+            string apiAddress = "https://prod-cn-alicdn-gamestarter.kurogame.com/launcher/10003_Y8xXrXk65DqFHEDgApn3cpK5lfczpFx5/G152/information/zh-Hans.json";
 
             using (HttpClient client = new HttpClient())
             {
                 try
                 {
-                    // 使用 HttpClient 发送请求并获取响应
-                    string jsonResponse = await client.GetStringAsync(apiAddress);
+                    client.DefaultRequestHeaders.AcceptEncoding.Add(new System.Net.Http.Headers.StringWithQualityHeaderValue("gzip"));
 
-                    // 将API响应转换为JSON对象并筛选特定类型的帖子
+                    var response = await client.GetAsync(apiAddress);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        Console.WriteLine("获取失败，状态码：" + response.StatusCode);
+                        return;
+                    }
+
+                    string jsonResponse;
+
+                    if (response.Content.Headers.ContentEncoding.Contains("gzip"))
+                    {
+                        using var stream = await response.Content.ReadAsStreamAsync();
+                        using var gzip = new GZipStream(stream, CompressionMode.Decompress);
+                        using var reader = new StreamReader(gzip);
+                        jsonResponse = await reader.ReadToEndAsync();
+                    }
+                    else
+                    {
+                        jsonResponse = await response.Content.ReadAsStringAsync();
+                    }
+
+                    Console.WriteLine("内容预览：" + jsonResponse.Substring(0, Math.Min(100, jsonResponse.Length)));
+
                     var jsonObject = JObject.Parse(jsonResponse);
 
-                    var activityPosts = jsonObject["guidance"]["activity"]["contents"].Children().ToList();
-                    var newsPosts = jsonObject["guidance"]["news"]["contents"].Children().ToList();
-                    var noticePosts = jsonObject["guidance"]["notice"]["contents"].Children().ToList();
+                    var activityPosts = jsonObject["guidance"]?["activity"]?["contents"] is JToken activityToken
+                        ? activityToken.Children().ToList()
+                        : new List<JToken>();
 
-                    // 获取用户文档目录下的JSG-LLC\WaveTools\Posts目录
+                    var newsPosts = jsonObject["guidance"]?["news"]?["contents"] is JToken newsToken
+                        ? newsToken.Children().ToList()
+                        : new List<JToken>();
+
+                    var noticePosts = jsonObject["guidance"]?["notice"]?["contents"] is JToken noticeToken
+                        ? noticeToken.Children().ToList()
+                        : new List<JToken>();
+
                     string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
                     string waveToolsFolderPath = Path.Combine(documentsPath, "JSG-LLC", "WaveTools", "Posts");
 
-                    // 确保目录存在
                     Directory.CreateDirectory(waveToolsFolderPath);
 
-                    // 文件路径
                     string activityFilePath = Path.Combine(waveToolsFolderPath, "activity.json");
                     string newsFilePath = Path.Combine(waveToolsFolderPath, "news.json");
                     string noticeFilePath = Path.Combine(waveToolsFolderPath, "notice.json");
 
-                    // 将结果保存到文件中
                     await File.WriteAllTextAsync(activityFilePath, JArray.FromObject(activityPosts).ToString());
                     await File.WriteAllTextAsync(newsFilePath, JArray.FromObject(newsPosts).ToString());
                     await File.WriteAllTextAsync(noticeFilePath, JArray.FromObject(noticePosts).ToString());
                 }
                 catch (Exception ex)
                 {
-                    // 打印错误信息
                     Console.WriteLine("Error: " + ex.Message);
                 }
             }
         }
 
+
         public List<GetNotify> GetData(string localData)
         {
-            var records = JsonConvert.DeserializeObject<List<GetNotify>>(localData);
-            return records;
+            try
+            {
+                return JsonConvert.DeserializeObject<List<GetNotify>>(localData) ?? new List<GetNotify>();
+            }
+            catch
+            {
+                return new List<GetNotify>();
+            }
         }
     }
 }

@@ -14,10 +14,6 @@
     </Window.SystemBackdrop>
 
     <Grid>
-        
-        <Grid.Background>
-            <ImageBrush x:Name="Background"/>
-        </Grid.Background>
         <!-- 主界面 -->
         <Grid x:Name="MainAPP" Visibility="Collapsed">
 

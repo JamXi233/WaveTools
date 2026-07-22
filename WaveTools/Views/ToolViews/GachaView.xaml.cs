@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2021-2024, JamXi JSG-LLC.
+// Copyright (c) 2021-2024, JamXi JSG-LLC.
 // All rights reserved.
 
 // This file is part of WaveTools.
@@ -389,6 +389,114 @@ namespace WaveTools.Views.ToolViews
                 GachaRecordsUID.IsEnabled = true;
                 GachaPoolComboBox.IsEnabled = GachaPoolComboBox.Items.Count > 0;
             }
+        }
+
+        private async void InputUrlUpdate_Click(object sender, RoutedEventArgs e)
+        {
+            var dialog = new ContentDialog
+            {
+                Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+                Title = "输入抽卡记录URL",
+                PrimaryButtonText = "确认",
+                CloseButtonText = "取消",
+                XamlRoot = XamlRoot,
+                DefaultButton = ContentDialogButton.Primary
+            };
+
+            var stackPanel = new StackPanel { Spacing = 8 };
+            stackPanel.Children.Add(new TextBlock { Text = "请在此粘贴完整的抽卡记录URL：" });
+            var textBox = new TextBox { AcceptsReturn = true, Height = 100, TextWrapping = TextWrapping.Wrap };
+            stackPanel.Children.Add(textBox);
+
+            dialog.Content = stackPanel;
+
+            var result = await dialog.ShowAsync();
+            if (result == ContentDialogResult.Primary)
+            {
+                string url = textBox.Text.Trim();
+                if (string.IsNullOrWhiteSpace(url))
+                {
+                    NotificationManager.RaiseNotification("无效的URL", "URL不能为空", InfoBarSeverity.Warning);
+                    return;
+                }
+
+                if (!url.StartsWith("http") || (!url.Contains("resources_id") && !url.Contains("player_id")))
+                {
+                    NotificationManager.RaiseNotification("无效的URL", "请检查输入的URL是否正确", InfoBarSeverity.Warning);
+                    return;
+                }
+
+                try
+                {
+                    string playerId = ExtractQueryParameter(url, "player_id");
+                    if (string.IsNullOrEmpty(playerId))
+                    {
+                        NotificationManager.RaiseNotification("无效的URL", "未在URL中找到player_id", InfoBarSeverity.Warning);
+                        return;
+                    }
+
+                    var gachaUrl = new GachaModel.GachaUrl
+                    {
+                        GachaLink = url,
+                        PlayerId = playerId,
+                        CardPoolType = ExtractQueryParameter(url, "gacha_type"),
+                        RecordId = ExtractQueryParameter(url, "record_id"),
+                        ServerId = ExtractQueryParameter(url, "svr_id"),
+                        LanguageCode = ExtractQueryParameter(url, "lang")
+                    };
+
+                    string linkDirectory = AppDataController.GetDataPath("GachaLinks");
+                    if (!Directory.Exists(linkDirectory))
+                    {
+                        Directory.CreateDirectory(linkDirectory);
+                    }
+
+                    string filePath = Path.Combine(linkDirectory, $"{playerId}.json");
+                    // Wrap in a list to match Helper's expected format: List<Dictionary<string, string>>
+                    string json = JsonConvert.SerializeObject(new List<GachaModel.GachaUrl> { gachaUrl });
+                    File.WriteAllText(filePath, json);
+
+                    NotificationManager.RaiseNotification("保存成功", $"UID:{playerId} 的URL已保存，正在获取记录...", InfoBarSeverity.Success);
+
+                    latestUpdatedUID = playerId;
+
+                    await GetGachaRecords(playerId);
+                }
+                catch (Exception ex)
+                {
+                    NotificationManager.RaiseNotification("解析URL失败", ex.Message, InfoBarSeverity.Error);
+                }
+            }
+        }
+
+        private string ExtractQueryParameter(string url, string paramName)
+        {
+            try
+            {
+                var uri = new Uri(url);
+                string query = uri.Query;
+                if (string.IsNullOrEmpty(query) && uri.AbsoluteUri.Contains("?"))
+                {
+                    query = uri.AbsoluteUri.Substring(uri.AbsoluteUri.IndexOf('?'));
+                }
+                
+                if (string.IsNullOrEmpty(query)) return null;
+                
+                var args = query.TrimStart('?').Split('&');
+                foreach (var arg in args)
+                {
+                    var parts = arg.Split('=', 2);
+                    if (parts.Length == 2 && parts[0] == paramName)
+                    {
+                        return Uri.UnescapeDataString(parts[1]);
+                    }
+                }
+            }
+            catch
+            {
+                // Ignore parsing errors
+            }
+            return null;
         }
 
         private string GetSelectedUidFromComboBox()

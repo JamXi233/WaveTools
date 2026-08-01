@@ -415,6 +415,16 @@ namespace WaveTools.Views.GachaViews
             }
         }
 
+        private static readonly HashSet<string> PermanentFiveStarNames = new HashSet<string>
+        {
+            "维里奈", "安可", "卡卡罗", "凌阳", "鉴心"
+        };
+
+        private static bool IsPermanentFiveStar(string name)
+        {
+            return !string.IsNullOrWhiteSpace(name) && PermanentFiveStarNames.Contains(name);
+        }
+
         private string CalculateCount(List<GachaModel.GachaRecord> records, string id, int qualityLevel)
         {
             int countSinceLastTargetStar = 1;
@@ -448,20 +458,15 @@ namespace WaveTools.Views.GachaViews
 
         private string CalculatePity(List<GachaModel.GachaRecord> records, string name, int qualityLevel, int selectedCardPoolId, GachaModel.CardPoolInfo cardPoolInfo)
         {
-            var selectedCardPool = cardPoolInfo.CardPools.FirstOrDefault(cp => cp.CardPoolId == selectedCardPoolId);
-            var specialNames = new List<string> { "维里奈", "安可", "卡卡罗", "凌阳", "鉴心" };
+            var selectedCardPool = cardPoolInfo?.CardPools?.FirstOrDefault(cp => cp.CardPoolId == selectedCardPoolId);
 
-            if (specialNames.Contains(name))
+            if (selectedCardPool?.isPityEnable != true || !IsPermanentFiveStar(name))
             {
-                if ((bool)!selectedCardPool.isPityEnable) return "";
-                // Logging.Write("Pity result: 歪了", 0);
-                return "歪了";
-            }
-            else
-            {
-                // Logging.Write("Pity result: 没歪", 0);
                 return "";
             }
+
+            // Logging.Write("Pity result: 歪了", 0);
+            return "歪了";
         }
 
         private List<int> CalculateIntervals(List<GachaModel.GachaRecord> records, int qualityLevel)
@@ -478,6 +483,27 @@ namespace WaveTools.Views.GachaViews
                 {
                     intervals.Add(countSinceLastStar); // 将计数器的值添加到间隔列表中
                     countSinceLastStar = 0; // 重置计数器
+                }
+            }
+
+            return intervals;
+        }
+
+        private List<int> CalculateUpIntervals(List<GachaModel.GachaRecord> records)
+        {
+            var intervals = new List<int>();
+            int countSinceLastUpFiveStar = 0;
+
+            // 倒序遍历记录，统计相邻两次Up五星之间的抽数（含本次Up、不含上一次Up）；
+            // 第一个Up五星没有上一次Up，按从记录起点到该Up的抽数计
+            foreach (var record in records.AsEnumerable().Reverse())
+            {
+                countSinceLastUpFiveStar++;
+
+                if (record.QualityLevel == 5 && !IsPermanentFiveStar(record.Name))
+                {
+                    intervals.Add(countSinceLastUpFiveStar);
+                    countSinceLastUpFiveStar = 0;
                 }
             }
 
@@ -545,6 +571,34 @@ namespace WaveTools.Views.GachaViews
             string averageDraws4Star = fourStarIntervals.Count > 0 ? (fourStarIntervals.Average()).ToString("F2") : "∞";
             string averageDraws5Star = fiveStarIntervals.Count > 0 ? (fiveStarIntervals.Average()).ToString("F2") : "∞";
 
+            // 计算Up五星统计（非常驻五星名单的五星记录视为Up）
+            var upFiveStarRecords = selectedRecords
+                .Where(r => r.QualityLevel == 5 && !IsPermanentFiveStar(r.Name))
+                .ToList();
+
+            // 5星Up平均抽数：相邻两次Up五星之间的抽数；第一个Up以记录起点到该Up计
+            var upFiveStarIntervals = CalculateUpIntervals(selectedRecords);
+
+            string averageDraws5StarUp = upFiveStarRecords.Count > 0
+                ? upFiveStarIntervals.Average().ToString("F2")
+                : "∞";
+
+            // 常驻五星记录（与Up记录共同构成全部五星记录）
+            var permanentFiveStarRecords = selectedRecords
+                .Where(r => r.QualityLevel == 5 && IsPermanentFiveStar(r.Name))
+                .ToList();
+
+            // 五星Up歪率：歪的次数 / 已产生结果的Up尝试次数。
+            // 若最新的一个五星是常驻（歪了），该次尝试的结果已经发生但还没有对应的Up结算，
+            // 分母需要加 1；否则分母就是Up五星数。
+            var latestFiveStar = selectedRecords.FirstOrDefault(r => r.QualityLevel == 5);
+            bool isLatestFiveStarPermanent = latestFiveStar != null && IsPermanentFiveStar(latestFiveStar.Name);
+            int upAttemptCount = upFiveStarRecords.Count + (isLatestFiveStarPermanent ? 1 : 0);
+
+            string upLossRate = upAttemptCount > 0
+                ? (permanentFiveStarRecords.Count / (double)upAttemptCount * 100).ToString("F2") + "%"
+                : "∞";
+
             Gacha_UID.Text = gachaData.Info.Uid;
             GachaRecords_Count.Text = "共" + selectedRecords.Count() + "抽";
             GachaInfo_SinceLast5Star.Text = $"垫了{countSinceLast5Star}发";
@@ -594,14 +648,25 @@ namespace WaveTools.Views.GachaViews
                 ));
             }
 
-            var statGrid = CreateStatGrid(
+            var statCards = new List<Border>
+            {
                 CreateStatCard("五星数量", $"{rank5Records.Count}"),
                 CreateStatCard("四星数量", $"{rank4Records.Count}"),
                 CreateStatCard("五星获取率", rate5Star),
                 CreateStatCard("四星获取率", rate4Star),
                 CreateStatCard("五星平均", $"{averageDraws5Star} 抽"),
                 CreateStatCard("四星平均", $"{averageDraws4Star} 抽")
-            );
+            };
+
+            if (selectedCardPool?.isPityEnable == true)
+            {
+                statCards.Add(CreateStatCard("五星Up数量", $"{upFiveStarRecords.Count}"));
+                statCards.Add(CreateStatCard("五星常驻数量", $"{permanentFiveStarRecords.Count}"));
+                statCards.Add(CreateStatCard("五星Up平均", $"{averageDraws5StarUp} 抽"));
+                statCards.Add(CreateStatCard("五星Up歪率", upLossRate));
+            }
+
+            var statGrid = CreateStatGrid(statCards.ToArray());
 
             contentPanel.Children.Add(statGrid);
 
@@ -783,8 +848,10 @@ namespace WaveTools.Views.GachaViews
             grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
             grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
-            for (int i = 0; i < cards.Length && i < 6; i++)
+            for (int i = 0; i < cards.Length && i < 10; i++)
             {
                 Grid.SetColumn(cards[i], i % 2);
                 Grid.SetRow(cards[i], i / 2);

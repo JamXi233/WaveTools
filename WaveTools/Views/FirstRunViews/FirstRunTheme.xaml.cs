@@ -25,7 +25,6 @@ using System.Threading.Tasks;
 using WaveTools.Depend;
 using System.Diagnostics;
 using Microsoft.UI.Xaml.Media;
-using WaveTools.Depend;
 
 namespace WaveTools.Views.FirstRunViews
 {
@@ -36,6 +35,7 @@ namespace WaveTools.Views.FirstRunViews
             this.InitializeComponent();
             Logging.Write("Switch to FirstRunTheme", 0);
             AppDataController.SetFirstRunStatus(3);
+            Loaded += FirstRunTheme_Loaded;
             int dayNight = AppDataController.GetDayNight();
             if (dayNight == 0)
             {
@@ -48,6 +48,15 @@ namespace WaveTools.Views.FirstRunViews
             if (dayNight == 2)
             {
                 NightModeButton.IsChecked = true;
+            }
+        }
+
+        private void FirstRunTheme_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (AppDataController.HasThemeSetting())
+            {
+                Frame parentFrame = GetParentFrame(this);
+                FirstRunNavigation.NavigateToNextRequiredPage(parentFrame);
             }
         }
 
@@ -71,12 +80,10 @@ namespace WaveTools.Views.FirstRunViews
 
         private void ThemeFinish_Click(object sender, RoutedEventArgs e)
         {
+            SaveSelectedTheme();
+
             Frame parentFrame = GetParentFrame(this);
-            if (parentFrame != null)
-            {
-                // 前往下载依赖页面
-                parentFrame.Navigate(typeof(FirstRunSourceSelect));
-            }
+            FirstRunNavigation.NavigateToNextRequiredPage(parentFrame);
         }
 
         private Frame GetParentFrame(FrameworkElement child)
@@ -95,6 +102,23 @@ namespace WaveTools.Views.FirstRunViews
         private void SetTheme(ThemeMode mode)
         {
             AppDataController.SetDayNight((int)mode);
+        }
+
+        private void SaveSelectedTheme()
+        {
+            if (FollowSystemButton.IsChecked == true)
+            {
+                SetTheme(ThemeMode.System);
+                return;
+            }
+
+            if (DayModeButton.IsChecked == true)
+            {
+                SetTheme(ThemeMode.Light);
+                return;
+            }
+
+            SetTheme(ThemeMode.Dark);
         }
 
         private async void ChangeThemeRestartApp()

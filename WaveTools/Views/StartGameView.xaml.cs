@@ -24,6 +24,7 @@ using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -132,6 +133,7 @@ namespace WaveTools.Views
         private void ApplyGameProcessState(bool isRunning)
         {
             lastGameRunning = isRunning;
+            resourceQualitySelector.IsEnabled = !isRunning;
 
             if (isRunning)
             {
@@ -279,7 +281,24 @@ namespace WaveTools.Views
             TextBox gameArgs = new TextBox();
             gameArgs.Text = AppDataController.GetGameParameter();
             advancedPanel.Children.Add(gameArgs);
-            DialogManager.RaiseDialog(XamlRoot, "高级设置", advancedPanel, true, "保存", () => AppDataController.SetGameParameter(gameArgs.Text));
+            DialogManager.RaiseDialog(XamlRoot, "高级设置", advancedPanel, true, "保存", () =>
+            {
+                string requested = GameResourceQuality.GetArgumentQuality(gameArgs.Text);
+                if (requested != null)
+                {
+                    string gamePath = AppDataController.GetGamePath();
+                    var installation = GameResourceQuality.Detect(gamePath);
+                    if (installation.RequiresArgument && !System.Linq.Enumerable.Any(installation.Options, option => option.Code == requested))
+                    {
+                        NotificationManager.RaiseNotification("未安装该画质", "请先在官方启动器下载对应画质资源。", InfoBarSeverity.Warning, false, 5);
+                        return;
+                    }
+                    if (System.Linq.Enumerable.Any(installation.Options, option => option.Code == requested))
+                        AppDataController.SetGameResourceQuality(gamePath, requested);
+                }
+                AppDataController.SetGameParameter(gameArgs.Text);
+                _ = resourceQualitySelector.RefreshAsync();
+            });
         }
 
         public void dx11Enable_Toggle(object sender, RoutedEventArgs e)
@@ -309,6 +328,7 @@ namespace WaveTools.Views
 
         private void UpdateUIElementsVisibility(int status)
         {
+            resourceQualitySelector.SetGamePath(status == 0 ? null : AppDataController.GetGamePath());
             if (status == 0)
             {
                 gamePathAction.IsEnabled = true;
@@ -474,7 +494,7 @@ namespace WaveTools.Views
             {
                 try
                 {
-                    string GSValue = await ProcessRun.WaveToolsHelperAsync($"/GetGS {AppDataController.GetGamePathForHelper()}");
+                    string GSValue = await ProcessRun.WaveToolsHelperAsync($"/GetGS {AppDataController.GetGamePathForHelper()}", true);
 
                     if (!IsCurrentViewActive(currentLoadVersion)) return;
 
@@ -485,8 +505,10 @@ namespace WaveTools.Views
                         return;
                     }
 
-                    if (!GSValue.Contains("ImageQuality"))
+                    JObject graphics = JObject.Parse(GSValue);
+                    if (graphics["ImageQuality"] == null)
                     {
+                        GS = null;
                         GraphicSelect.IsEnabled = false;
                         GraphicSelect.IsSelected = false;
                         Frame_GraphicSettingView_Loading.Visibility = Visibility.Collapsed;
@@ -504,9 +526,14 @@ namespace WaveTools.Views
                 }
                 catch (Exception ex)
                 {
-                    if (!isViewUnloaded)
+                    if (IsCurrentViewActive(currentLoadVersion))
                     {
                         Logging.Write($"Exception in CheckProcess_Graphics: {ex.Message}", 3, "CheckProcess_Graphics");
+                        GS = null;
+                        Frame_GraphicSettingView_Loading.Visibility = Visibility.Collapsed;
+                        Frame_GraphicSettingView_Disable.Visibility = Visibility.Visible;
+                        Frame_GraphicSettingView_Disable_Title.Text = "读取画质设置失败";
+                        Frame_GraphicSettingView_Disable_Subtitle.Text = "请更新 Helper 后重试";
                     }
                 }
             }

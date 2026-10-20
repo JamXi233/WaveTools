@@ -229,8 +229,7 @@ namespace WaveTools.Depend
             // 读取源文件
             var sourceJson = File.ReadAllText(sourceFilePath);
             var sourceData = JsonConvert.DeserializeObject<GachaCommon.SourceData>(sourceJson);
-            PackageVersion packageVersion = Package.Current.Id.Version;
-            string currentVersion = $"{packageVersion.Major}.{packageVersion.Minor}.{packageVersion.Build}.{packageVersion.Revision}";
+            string currentVersion = CommonHelpers.AppVersionHelper.GetAppVersion();
 
             // 准备导出数据
             var exportData = new ExportData

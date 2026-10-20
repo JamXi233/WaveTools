@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2021-2024, JamXi JSG-LLC.
+﻿// Copyright (c) 2021-2026, JamXi JSG-LLC.
 // All rights reserved.
 
 // This file is part of WaveTools.
@@ -19,11 +19,11 @@
 // For more information, please refer to <https://www.gnu.org/licenses/gpl-3.0.html>
 
 using Newtonsoft.Json;
-using WaveTools.Depend;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace WaveTools.Depend
@@ -31,8 +31,8 @@ namespace WaveTools.Depend
     public class InstallerHelper
     {
         private static readonly string BaseInstallerPath = AppDataController.GetDataPath("Installer");
-        private static string InstallerFileName = "WaveToolsInstaller.exe";
-        private static string InstallerFullPath = Path.Combine(BaseInstallerPath, InstallerFileName);
+        private static readonly string InstallerFileName = "WaveToolsInstaller.exe";
+        private static readonly string InstallerFullPath = Path.Combine(BaseInstallerPath, InstallerFileName);
         private static readonly string InstallerInfoUrl = "https://api.jamsg.cn/release/getversion?package=cn.jamsg.WaveToolsinstaller";
 
         public static bool CheckInstaller()
@@ -40,25 +40,21 @@ namespace WaveTools.Depend
             return File.Exists(InstallerFullPath);
         }
 
-        // 检查 Installer 是否存在
         public static async Task GetInstaller()
         {
             using (var httpClient = new HttpClient())
             {
                 try
                 {
-                    // 从 API 获取安装程序信息
                     string json = await httpClient.GetStringAsync(InstallerInfoUrl);
                     dynamic installerInfo = JsonConvert.DeserializeObject(json);
                     string downloadLink = installerInfo.link;
 
-                    // 确保安装程序目录存在
                     if (!Directory.Exists(BaseInstallerPath))
                     {
                         Directory.CreateDirectory(BaseInstallerPath);
                     }
 
-                    // 下载安装程序
                     using (var response = await httpClient.GetAsync(downloadLink))
                     {
                         if (response.IsSuccessStatusCode)
@@ -92,18 +88,23 @@ namespace WaveTools.Depend
             ProcessStartInfo startInfo = new ProcessStartInfo
             {
                 FileName = InstallerFullPath,
-                Arguments = args,
-                UseShellExecute = true, // 使用Shell以提升权限
-                Verb = "runas" // 请求提升权限
+                Arguments = AppendDataRootArgument(args),
+                UseShellExecute = true,
+                Verb = "runas"
             };
 
             try
             {
                 using (Process process = Process.Start(startInfo))
                 {
+                    if (process == null)
+                    {
+                        Logging.Write("安装程序启动失败。", 2);
+                        return -2;
+                    }
+
                     process.WaitForExit();
 
-                    // 检查退出代码
                     if (process.ExitCode != 0)
                     {
                         Logging.Write($"安装程序退出代码: {process.ExitCode}", 2);
@@ -119,5 +120,47 @@ namespace WaveTools.Depend
             }
         }
 
+        private static string AppendDataRootArgument(string args)
+        {
+            string dataRootPath = AppDataController.DataRootPath;
+
+            if (string.IsNullOrWhiteSpace(dataRootPath))
+            {
+                return args ?? string.Empty;
+            }
+
+            string result = args ?? string.Empty;
+
+            if (!string.IsNullOrWhiteSpace(result))
+            {
+                result += " ";
+            }
+
+            return result + "/DataRoot " + QuoteArgument(dataRootPath);
+        }
+
+        private static string QuoteArgument(string value)
+        {
+            if (value == null)
+            {
+                return "\"\"";
+            }
+
+            StringBuilder builder = new StringBuilder();
+            builder.Append('"');
+
+            foreach (char c in value)
+            {
+                if (c == '"' || c == '\\')
+                {
+                    builder.Append('\\');
+                }
+
+                builder.Append(c);
+            }
+
+            builder.Append('"');
+            return builder.ToString();
+        }
     }
 }

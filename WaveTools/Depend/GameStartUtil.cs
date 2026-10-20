@@ -21,21 +21,35 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using static WaveTools.App;
 
 namespace WaveTools.Depend
 {
     internal class GameStartUtil
     {
-        public async void StartGame()
+        public void StartGame()
         {
-            string Parameter = "";
-            Parameter = AppDataController.GetGameParameter();
-            // For WW
-            if (AppDataController.GetDX11Enable() == 1) Parameter += " -dx11";
-
             string gamePath = AppDataController.GetGamePath();
+            if (!File.Exists(gamePath))
+            {
+                NotificationManager.RaiseNotification("无法启动游戏", "游戏本体不存在，请重新选择路径。",
+                    Microsoft.UI.Xaml.Controls.InfoBarSeverity.Warning, false, 5);
+                return;
+            }
+            var installation = GameResourceQuality.Detect(gamePath);
+            if (installation.RequiresArgument && installation.Options.Count == 0)
+            {
+                Logging.Write(installation.Error, 1);
+                NotificationManager.RaiseNotification("无法启动游戏", installation.Error,
+                    Microsoft.UI.Xaml.Controls.InfoBarSeverity.Warning, false, 8);
+                return;
+            }
+            string arguments = AppDataController.GetGameParameter();
+            string quality = GameResourceQuality.Select(installation,
+                AppDataController.GetGameResourceQuality(gamePath), arguments);
+            string Parameter = GameResourceQuality.BuildArguments(arguments, quality, AppDataController.GetDX11Enable() == 1);
+            if (quality != null) AppDataController.SetGameResourceQuality(gamePath, quality);
 
-            // 获取游戏的执行路径（目录）
             string gameDirectory = Path.GetDirectoryName(gamePath);
 
             var processInfo = new ProcessStartInfo(gamePath)
@@ -43,10 +57,9 @@ namespace WaveTools.Depend
                 Arguments = Parameter,
                 UseShellExecute = true,
                 Verb = "runas",
-                WorkingDirectory = gameDirectory // 设置当前路径为执行路径
+                WorkingDirectory = gameDirectory
             };
 
-            // 启动程序
             Process.Start(processInfo);
         }
 
@@ -55,7 +68,6 @@ namespace WaveTools.Depend
             string gamePath = AppDataController.GetGamePath();
             var processInfo = new ProcessStartInfo(gamePath.Replace("Wuthering Waves.exe", "..\\launcher.exe"));
 
-            // 启动程序
             processInfo.UseShellExecute = true;
             processInfo.Verb = "runas";
             Process.Start(processInfo);

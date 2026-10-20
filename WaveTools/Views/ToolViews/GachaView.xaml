@@ -1,4 +1,4 @@
-﻿<Page
+<Page
     x:Class="WaveTools.Views.ToolViews.GachaView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -41,23 +41,34 @@
                         Margin="8 0 0 8"
                         Visibility="Collapsed"/>
 
-                <Button x:Name="ImportWWGF"
-                        Click="ImportWWGF_Click"
+                <Button x:Name="JSGWWCloudSync"
+                    Margin="8 0 0 8"
+                    IsEnabled="False"
+                    Visibility="Collapsed">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="云同步"/>
+                        <TextBlock Text="[暂未开放]" FontWeight="Bold"/>
+                    </StackPanel>
+                </Button>
+
+                <Button x:Name="ImportExportWWGF"
+                        Click="ImportExportWWGF_Click"
                         Margin="8 0 0 8">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="导入记录"/>
+                        <TextBlock Text="导入/导出"/>
                         <TextBlock Text="[CN]" FontWeight="Bold"/>
                     </StackPanel>
                 </Button>
 
+                <Button x:Name="ImportWWGF"
+                        Click="ImportWWGF_Click"
+                        Margin="8 0 0 8"
+                        Visibility="Collapsed"/>
+
                 <Button x:Name="ExportWWGF"
                         Click="ExportWWGF_Click"
-                        Margin="8 0 0 8">
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="导出记录"/>
-                        <TextBlock Text="[CN]" FontWeight="Bold"/>
-                    </StackPanel>
-                </Button>
+                        Margin="8 0 0 8"
+                        Visibility="Collapsed"/>
 
                 <Button x:Name="ClearGacha"
                         Content="清空记录"
@@ -82,9 +93,10 @@
                           Margin="8,0,0,8"
                           IsEnabled="False"
                           SelectionChanged="GachaPoolComboBox_SelectionChanged"/>
-                
-                <Button x:Name="CreateCapture" Content="创建截图" Click="CreateCapture_Click" Margin="8 0 0 8" Visibility="Collapsed"/>
-                
+
+                <Button x:Name="CreateCapture" Content="截图" Click="CreateCapture_Click"
+                        Margin="8 0 0 8" IsEnabled="False" ToolTipService.ToolTip="生成抽卡统计截图"/>
+
             </StackPanel>
 
             <StackPanel HorizontalAlignment="Stretch"

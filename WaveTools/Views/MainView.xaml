@@ -32,15 +32,7 @@
         </Style>
     </Page.Resources>
 
-
     <Grid>
-        <MediaPlayerElement x:Name="BackgroundMediaPlayer"
-                              Stretch="UniformToFill"
-                              Opacity="0"
-                              AreTransportControlsEnabled="False"
-                              AutoPlay="True"
-                              Margin="0 -8 0 0"/>
-
         <Grid x:Name="MainAPP" HorizontalAlignment="Stretch" Margin="24">
 
             <Grid HorizontalAlignment="Right" VerticalAlignment="Bottom">
@@ -51,7 +43,7 @@
                     </Grid.RowDefinitions>
 
                     <Grid x:Name="Slogan_Grid" Grid.Row="0" Margin="0 12 0 0" CornerRadius="12">
-                        <Grid x:Name="OpenUrlButton" Opacity="0" HorizontalAlignment="Center" VerticalAlignment="Bottom" Height="644" Width="1037" Margin="-100 0 0 -146" BorderBrush="Transparent">
+                        <Grid x:Name="OpenUrlButton" Opacity="1" HorizontalAlignment="Center" VerticalAlignment="Bottom" Height="644" Width="1037" Margin="-100 0 0 -146" BorderBrush="Transparent">
                             <Grid.Background>
                                 <ImageBrush x:Name="IconImageBrush"/>
                             </Grid.Background>

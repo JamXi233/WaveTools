@@ -25,7 +25,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
+using Windows.ApplicationModel;
 using Windows.Storage;
+using static WaveTools.Depend.CommonHelpers;
 
 namespace WaveTools.Depend
 {
@@ -35,17 +37,59 @@ namespace WaveTools.Depend
         private const string FirstRun = "Config_FirstRun";
         private const string ConfigFileName = "settings.json";
         private const string BootstrapFileName = "bootstrap.json";
+        private const string PortableFileName = "portable.ini";
+        private const string PortableDataRootKey = "DataRootPath";
+        private const string LastRunAppVersion = "Config_LastRunAppVersion";
 
         private static readonly object Locker = new object();
         private static Dictionary<string, JToken> settingsCache;
         private static bool isLoaded;
         private static string cachedDataRootPath;
 
-        public static string DefaultDataRootPath => Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-            "JSG-LLC",
-            "WaveTools"
-        );
+        private static readonly string[] KnownDataDirectoryNames =
+        {
+            "Cache",
+            "Depends",
+            "Fonts",
+            "GachaLinks",
+            "GachaRecords",
+            "GachaScreenshots",
+            "Installer",
+            "Panic",
+            "Posts"
+        };
+
+        private static readonly HashSet<string> FirstRunDefaultKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "Config_AutoCheckUpdate",
+            "Config_DayNight",
+            "Config_GamePath",
+            "Config_UpdateService",
+            "Config_FirstRun",
+            "Config_FirstRunStatus",
+            "Config_ConsoleMode",
+            "Config_TerminalMode",
+            "Config_AdminMode"
+        };
+
+        private static readonly HashSet<string> LegacyMigrationIgnoredKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "Config_FirstRunStatus"
+        };
+
+        public static string DefaultDataRootPath => AppVersionHelper.IsPortable()
+            ? PortableDefaultDataRootPath
+            : Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                "JSG-LLC",
+                "WaveTools"
+            );
+
+        private static string PortableRootPath => AppVersionHelper.GetPortableRootPath() ?? AppVersionHelper.GetPortableCurrentPath();
+
+        private static string PortableDefaultDataRootPath => Path.Combine(PortableRootPath, "UserData");
+
+        private static string PortableFilePath => Path.Combine(PortableRootPath, PortableFileName);
 
         public static string BootstrapRootPath => Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -58,6 +102,39 @@ namespace WaveTools.Depend
         public static string DataRootPath => GetDataRootPath();
 
         public static string SettingsFilePath => Path.Combine(DataRootPath, ConfigFileName);
+
+        public static bool IsDataRootReadyForLogging()
+        {
+            lock (Locker)
+            {
+                if (isLoaded)
+                {
+                    return true;
+                }
+            }
+
+            return HasPersistedSettingsWithoutCreating();
+        }
+
+        private static bool HasPersistedSettingsWithoutCreating()
+        {
+            try
+            {
+                return File.Exists(SettingsFilePath);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public static string CurrentAppVersion
+        {
+            get
+            {
+                return AppVersionHelper.GetAppVersion();
+            }
+        }
 
         public static string GetDataPath(params string[] paths)
         {
@@ -80,12 +157,23 @@ namespace WaveTools.Depend
 
         public static bool IsUsingCustomDataRoot()
         {
+            if (AppVersionHelper.IsPortable())
+            {
+                return HasPortableDataRootOverride();
+            }
+
             BootstrapInfo bootstrapInfo = LoadBootstrapInfo();
             return bootstrapInfo.UseCustomDataRoot && !string.IsNullOrWhiteSpace(bootstrapInfo.DataRootPath);
         }
 
         public static string GetBootstrapDataRootPath()
         {
+            if (AppVersionHelper.IsPortable())
+            {
+                string portableDataRootPath = LoadPortableDataRootPath();
+                return string.IsNullOrWhiteSpace(portableDataRootPath) ? DefaultDataRootPath : portableDataRootPath;
+            }
+
             BootstrapInfo bootstrapInfo = LoadBootstrapInfo();
             return bootstrapInfo.DataRootPath;
         }
@@ -129,12 +217,101 @@ namespace WaveTools.Depend
             }
         }
 
+        public static bool HasExistingWaveToolsData(string dataRootPath, bool acceptAnySettingsFile)
+        {
+            if (string.IsNullOrWhiteSpace(dataRootPath))
+            {
+                return false;
+            }
+
+            try
+            {
+                string normalizedDataRootPath = Path.GetFullPath(dataRootPath.Trim());
+                string settingsFilePath = Path.Combine(normalizedDataRootPath, ConfigFileName);
+
+                if (File.Exists(settingsFilePath) && (acceptAnySettingsFile || IsExistingSettingsFile(settingsFilePath)))
+                {
+                    return true;
+                }
+
+                foreach (string directoryName in KnownDataDirectoryNames)
+                {
+                    if (Directory.Exists(Path.Combine(normalizedDataRootPath, directoryName)))
+                    {
+                        return true;
+                    }
+                }
+            }
+            catch
+            {
+                return false;
+            }
+
+            return false;
+        }
+
+        private static bool IsExistingSettingsFile(string settingsFilePath)
+        {
+            try
+            {
+                string json = File.ReadAllText(settingsFilePath);
+                Dictionary<string, JToken> data = JsonConvert.DeserializeObject<Dictionary<string, JToken>>(json);
+
+                if (data == null || data.Count == 0)
+                {
+                    return false;
+                }
+
+                if (data.TryGetValue(LastRunAppVersion, out JToken lastRunVersion) && !string.IsNullOrWhiteSpace(lastRunVersion?.ToString()))
+                {
+                    return true;
+                }
+
+                if (data.TryGetValue(FirstRun, out JToken firstRun) && TryReadInt(firstRun, out int firstRunValue) && firstRunValue == 0)
+                {
+                    return true;
+                }
+
+                foreach (string key in data.Keys)
+                {
+                    if (!FirstRunDefaultKeys.Contains(key))
+                    {
+                        return true;
+                    }
+                }
+            }
+            catch
+            {
+                return false;
+            }
+
+            return false;
+        }
+
+        private static bool TryReadInt(JToken token, out int value)
+        {
+            value = 0;
+
+            if (token == null || token.Type == JTokenType.Null)
+            {
+                return false;
+            }
+
+            try
+            {
+                value = token.ToObject<int>();
+                return true;
+            }
+            catch
+            {
+                return int.TryParse(token.ToString(), out value);
+            }
+        }
+
         public void FirstRunInit()
         {
             SetDefaultIfNull("Config_AutoCheckUpdate", 0);
-            SetDefaultIfNull("Config_DayNight", 2);
             SetDefaultIfNull("Config_GamePath", "Null");
-            SetDefaultIfNull("Config_UpdateService", 2);
             SetDefaultIfNull("Config_FirstRun", 1);
             SetDefaultIfNull("Config_FirstRunStatus", 0);
             SetDefaultIfNull("Config_ConsoleMode", 0);
@@ -146,15 +323,19 @@ namespace WaveTools.Depend
         {
             try
             {
-                ApplicationDataContainer keyContainer = GetOrCreateContainer(KeyPath);
-                if (keyContainer.Values.ContainsKey(FirstRun) && keyContainer.Values[FirstRun]?.ToString() == "0")
+                if (GetFirstRun() == 0)
+                {
+                    return 1;
+                }
+
+                Dictionary<string, object> legacyValues = LoadLegacyApplicationDataValues();
+                if (IsLegacyApplicationDataCompleted(legacyValues))
                 {
                     return 1;
                 }
             }
             catch
             {
-                // ignored
             }
 
             return 0;
@@ -187,10 +368,9 @@ namespace WaveTools.Depend
                     Directory.Delete(dataRootPath, true);
                 }
 
-                settingsCache = new Dictionary<string, JToken>(StringComparer.OrdinalIgnoreCase);
-                isLoaded = true;
-                Directory.CreateDirectory(dataRootPath);
-                SaveLocked();
+                settingsCache = null;
+                isLoaded = false;
+                cachedDataRootPath = null;
             }
         }
 
@@ -217,7 +397,7 @@ namespace WaveTools.Depend
                     CopyDirectory(oldDataRootPath, normalizedNewDataRootPath, true);
                 }
 
-                WriteBootstrapInfo(useCustomDataRoot, normalizedNewDataRootPath);
+                WriteDataRootLocation(useCustomDataRoot, normalizedNewDataRootPath);
 
                 ResetCache();
                 Directory.CreateDirectory(DataRootPath);
@@ -249,6 +429,10 @@ namespace WaveTools.Depend
 
                 if (string.Equals(normalizedOldDataRootPath, normalizedTargetDataRootPath, StringComparison.OrdinalIgnoreCase))
                 {
+                    WriteDataRootLocation(useCustomDataRoot, normalizedNewDataRootPath);
+                    ResetCache();
+                    Directory.CreateDirectory(DataRootPath);
+                    EnsureLoaded();
                     return true;
                 }
 
@@ -279,7 +463,7 @@ namespace WaveTools.Depend
                     Directory.CreateDirectory(normalizedNewDataRootPath);
                 }
 
-                WriteBootstrapInfo(useCustomDataRoot, normalizedNewDataRootPath);
+                WriteDataRootLocation(useCustomDataRoot, normalizedNewDataRootPath);
 
                 ResetCache();
                 Directory.CreateDirectory(DataRootPath);
@@ -346,10 +530,138 @@ namespace WaveTools.Depend
             );
         }
 
+        private static void WriteDataRootLocation(bool useCustomDataRoot, string dataRootPath)
+        {
+            if (AppVersionHelper.IsPortable())
+            {
+                if (useCustomDataRoot)
+                {
+                    WritePortableDataRootPath(dataRootPath);
+                }
+                else
+                {
+                    DeletePortableFile();
+                }
+
+                return;
+            }
+
+            WriteBootstrapInfo(useCustomDataRoot, dataRootPath);
+        }
+
+        private static bool HasPortableDataRootOverride()
+        {
+            try
+            {
+                return File.Exists(PortableFilePath) && !string.IsNullOrWhiteSpace(LoadPortableDataRootPath());
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static string LoadPortableDataRootPath()
+        {
+            try
+            {
+                if (!File.Exists(PortableFilePath))
+                {
+                    return null;
+                }
+
+                foreach (string rawLine in File.ReadAllLines(PortableFilePath))
+                {
+                    string line = rawLine?.Trim();
+
+                    if (string.IsNullOrWhiteSpace(line) || line.StartsWith("[") || line.StartsWith(";") || line.StartsWith("#"))
+                    {
+                        continue;
+                    }
+
+                    int separatorIndex = line.IndexOf('=');
+                    string value = separatorIndex >= 0 ? line.Substring(separatorIndex + 1).Trim() : line;
+
+                    if (separatorIndex >= 0)
+                    {
+                        string key = line.Substring(0, separatorIndex).Trim();
+                        if (!string.Equals(key, PortableDataRootKey, StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
+                    }
+
+                    if (value.Length >= 2 &&
+                        ((value[0] == '"' && value[value.Length - 1] == '"') ||
+                         (value[0] == '\'' && value[value.Length - 1] == '\'')))
+                    {
+                        value = value.Substring(1, value.Length - 2);
+                    }
+
+                    if (string.IsNullOrWhiteSpace(value))
+                    {
+                        continue;
+                    }
+
+                    return Path.IsPathRooted(value)
+                        ? Path.GetFullPath(value)
+                        : Path.GetFullPath(Path.Combine(PortableRootPath, value));
+                }
+            }
+            catch
+            {
+            }
+
+            return null;
+        }
+
+        private static void WritePortableDataRootPath(string dataRootPath)
+        {
+            Directory.CreateDirectory(PortableRootPath);
+
+            File.WriteAllLines(
+                PortableFilePath,
+                new[]
+                {
+                    "[Portable]",
+                    PortableDataRootKey + "=" + Path.GetFullPath(dataRootPath)
+                },
+                System.Text.Encoding.UTF8
+            );
+        }
+
+        private static void DeletePortableFile()
+        {
+            try
+            {
+                if (File.Exists(PortableFilePath))
+                {
+                    File.Delete(PortableFilePath);
+                }
+            }
+            catch
+            {
+            }
+        }
+
         private static string GetDataRootPath()
         {
             if (!string.IsNullOrWhiteSpace(cachedDataRootPath))
             {
+                return cachedDataRootPath;
+            }
+
+            if (AppVersionHelper.IsPortable())
+            {
+                string portableDataRootPath = LoadPortableDataRootPath();
+
+                if (!string.IsNullOrWhiteSpace(portableDataRootPath) && IsDirectoryWritable(portableDataRootPath, out _))
+                {
+                    cachedDataRootPath = Path.GetFullPath(portableDataRootPath);
+                    return cachedDataRootPath;
+                }
+
+                cachedDataRootPath = DefaultDataRootPath;
                 return cachedDataRootPath;
             }
 
@@ -576,17 +888,6 @@ namespace WaveTools.Depend
             }
         }
 
-        private ApplicationDataContainer GetOrCreateContainer(string keyPath)
-        {
-            ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
-            if (!localSettings.Containers.ContainsKey(keyPath))
-            {
-                return localSettings.CreateContainer(keyPath, ApplicationDataCreateDisposition.Always);
-            }
-
-            return localSettings.Containers[keyPath];
-        }
-
         private static void SetDefaultIfNull(string key, object defaultValue)
         {
             EnsureLoaded();
@@ -596,7 +897,6 @@ namespace WaveTools.Depend
                 if (!settingsCache.ContainsKey(key) || settingsCache[key] == null || settingsCache[key].Type == JTokenType.Null)
                 {
                     settingsCache[key] = JToken.FromObject(defaultValue);
-                    MirrorToLocalSettings(key, defaultValue);
                     SaveLocked();
                 }
             }
@@ -604,6 +904,14 @@ namespace WaveTools.Depend
 
         private static T GetValue<T>(string key, T defaultValue = default)
         {
+            lock (Locker)
+            {
+                if (!isLoaded && !HasPersistedSettingsWithoutCreating() && !HasCompletedLegacyApplicationData())
+                {
+                    return defaultValue;
+                }
+            }
+
             EnsureLoaded();
 
             lock (Locker)
@@ -631,7 +939,6 @@ namespace WaveTools.Depend
             lock (Locker)
             {
                 settingsCache[key] = value == null ? JValue.CreateNull() : JToken.FromObject(value);
-                MirrorToLocalSettings(key, value);
                 SaveLocked();
             }
         }
@@ -643,7 +950,6 @@ namespace WaveTools.Depend
             lock (Locker)
             {
                 settingsCache.Remove(key);
-                TryRemoveLocalSettings(key);
                 SaveLocked();
             }
         }
@@ -657,11 +963,12 @@ namespace WaveTools.Depend
                     return;
                 }
 
+                bool settingsFileExists = File.Exists(SettingsFilePath);
+
                 Directory.CreateDirectory(DataRootPath);
                 settingsCache = LoadFromJsonFile();
 
-                bool migrated = MigrateOldApplicationDataLocked();
-                if (migrated)
+                if (!settingsFileExists && MigrateCompletedLegacyApplicationDataLocked())
                 {
                     SaveLocked();
                 }
@@ -689,9 +996,62 @@ namespace WaveTools.Depend
             }
         }
 
-        private static bool MigrateOldApplicationDataLocked()
+        private static bool HasCompletedLegacyApplicationData()
         {
+            if (File.Exists(SettingsFilePath))
+            {
+                return false;
+            }
+
+            return IsLegacyApplicationDataCompleted(LoadLegacyApplicationDataValues());
+        }
+
+        private static bool MigrateCompletedLegacyApplicationDataLocked()
+        {
+            Dictionary<string, object> legacyValues = LoadLegacyApplicationDataValues();
+
+            if (!IsLegacyApplicationDataCompleted(legacyValues))
+            {
+                return false;
+            }
+
             bool changed = false;
+
+            foreach (KeyValuePair<string, object> item in legacyValues)
+            {
+                if (string.IsNullOrWhiteSpace(item.Key) || item.Value == null || LegacyMigrationIgnoredKeys.Contains(item.Key))
+                {
+                    continue;
+                }
+
+                if (!settingsCache.ContainsKey(item.Key))
+                {
+                    settingsCache[item.Key] = JToken.FromObject(item.Value);
+                    changed = true;
+                }
+            }
+
+            return changed;
+        }
+
+        private static bool IsLegacyApplicationDataCompleted(Dictionary<string, object> legacyValues)
+        {
+            if (legacyValues == null || legacyValues.Count == 0)
+            {
+                return false;
+            }
+
+            if (legacyValues.TryGetValue(FirstRun, out object firstRunValue) && TryReadIntFromObject(firstRunValue, out int firstRun) && firstRun == 0)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static Dictionary<string, object> LoadLegacyApplicationDataValues()
+        {
+            Dictionary<string, object> result = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
 
             try
             {
@@ -704,16 +1064,16 @@ namespace WaveTools.Depend
                         continue;
                     }
 
-                    if (!settingsCache.ContainsKey(item.Key))
+                    if (!result.ContainsKey(item.Key))
                     {
-                        settingsCache[item.Key] = JToken.FromObject(item.Value);
-                        changed = true;
+                        result[item.Key] = item.Value;
                     }
                 }
 
                 if (localSettings.Containers.ContainsKey(KeyPath))
                 {
                     ApplicationDataContainer oldContainer = localSettings.Containers[KeyPath];
+
                     foreach (KeyValuePair<string, object> item in oldContainer.Values)
                     {
                         if (string.IsNullOrWhiteSpace(item.Key) || item.Value == null)
@@ -721,20 +1081,55 @@ namespace WaveTools.Depend
                             continue;
                         }
 
-                        if (!settingsCache.ContainsKey(item.Key))
+                        if (!result.ContainsKey(item.Key))
                         {
-                            settingsCache[item.Key] = JToken.FromObject(item.Value);
-                            changed = true;
+                            result[item.Key] = item.Value;
                         }
                     }
                 }
             }
             catch
             {
-                // ignored
             }
 
-            return changed;
+            return result;
+        }
+
+        private static bool TryReadIntFromObject(object value, out int result)
+        {
+            result = 0;
+
+            if (value == null)
+            {
+                return false;
+            }
+
+            try
+            {
+                if (value is int intValue)
+                {
+                    result = intValue;
+                    return true;
+                }
+
+                if (value is long longValue)
+                {
+                    result = Convert.ToInt32(longValue);
+                    return true;
+                }
+
+                if (value is double doubleValue)
+                {
+                    result = Convert.ToInt32(doubleValue);
+                    return true;
+                }
+
+                return int.TryParse(value.ToString(), out result);
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         private static void SaveLocked()
@@ -744,31 +1139,6 @@ namespace WaveTools.Depend
             File.WriteAllText(SettingsFilePath, json, System.Text.Encoding.UTF8);
         }
 
-        private static void MirrorToLocalSettings<T>(string key, T value)
-        {
-            try
-            {
-                ApplicationData.Current.LocalSettings.Values[key] = value;
-            }
-            catch
-            {
-                // ignored
-            }
-        }
-
-        private static void TryRemoveLocalSettings(string key)
-        {
-            try
-            {
-                ApplicationData.Current.LocalSettings.Values.Remove(key);
-            }
-            catch
-            {
-                // ignored
-            }
-        }
-
-        // 通用设置
         public static int GetAutoCheckUpdate() => GetValue("Config_AutoCheckUpdate", -1);
         public static int GetFirstRun() => GetValue("Config_FirstRun", -1);
         public static int GetFirstRunStatus() => GetValue("Config_FirstRunStatus", -1);
@@ -776,13 +1146,45 @@ namespace WaveTools.Depend
         public static string GetGamePathWithoutGameName() => GetGamePath().Replace("Wuthering Waves.exe", "");
         public static string GetGamePathForHelper() => "\"" + GetGamePath() + "\"";
         public static int GetUpdateService() => GetValue("Config_UpdateService", -1);
-        public static int GetDayNight() => GetValue("Config_DayNight", -1);
+        public static int GetDayNight() => GetValue("Config_DayNight", 2);
         public static int GetConsoleMode() => GetValue("Config_ConsoleMode", -1);
         public static int GetTerminalMode() => GetValue("Config_TerminalMode", -1);
         public static int GetAccountChangeMode() => GetValue("Config_AccountChange", -1);
         public static int GetAdminMode() => GetValue("Config_AdminMode", -1);
         public static string GetGameParameter() => GetValue("Config_GameParameter", "");
+        public static string GetGameResourceQuality(string gamePath)
+        {
+            var values = GetValue("Config_GameResourceQualities", new Dictionary<string, string>());
+            var qualities = new Dictionary<string, string>(values, StringComparer.OrdinalIgnoreCase);
+            return qualities.TryGetValue(GameResourceQuality.GetDirectory(gamePath), out string quality) ? quality : null;
+        }
+
+        public static void SetGameResourceQuality(string gamePath, string quality)
+        {
+            lock (Locker)
+            {
+                var values = GetValue("Config_GameResourceQualities", new Dictionary<string, string>());
+                var qualities = new Dictionary<string, string>(values, StringComparer.OrdinalIgnoreCase);
+                qualities[GameResourceQuality.GetDirectory(gamePath)] = quality;
+                SetValue("Config_GameResourceQualities", qualities);
+            }
+        }
         public static int GetDX11Enable() => GetValue("Config_DX11Enable", -1);
+        public static string GetLastRunAppVersion() => GetValue(LastRunAppVersion, "");
+        public static bool HasThemeSetting() => HasSettingValue("Config_DayNight");
+        public static bool HasUpdateServiceSetting() => HasSettingValue("Config_UpdateService");
+
+        public static bool HasWaveToolsHelper()
+        {
+            try
+            {
+                return File.Exists(GetDataPath("Depends", "WaveToolsHelper", "WaveToolsHelper.exe"));
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
         public static void SetAutoCheckUpdate(int autocheckupdate) => SetValue("Config_AutoCheckUpdate", autocheckupdate);
         public static void SetFirstRunStatus(int firstRunStatus) => SetValue("Config_FirstRunStatus", firstRunStatus);
@@ -796,6 +1198,16 @@ namespace WaveTools.Depend
         public static void SetAdminMode(int adminMode) => SetValue("Config_AdminMode", adminMode);
         public static void SetGameParameter(string gamePath) => SetValue("Config_GameParameter", gamePath);
         public static void SetDX11Enable(int dx11Enable) => SetValue("Config_DX11Enable", dx11Enable);
+        public static void SetLastRunAppVersion(string appVersion) => SetValue(LastRunAppVersion, appVersion);
+        public static void SetCurrentAppVersionAsLastRun() => SetLastRunAppVersion(CurrentAppVersion);
+
+        public static void SetCurrentAppVersionAsLastRunIfFirstRunCompleted()
+        {
+            if (GetFirstRun() == 0)
+            {
+                SetCurrentAppVersionAsLastRun();
+            }
+        }
 
         public static void RMAutoCheckUpdate() => RemoveValue("Config_AutoCheckUpdate");
         public static void RMFirstRunStatus() => RemoveValue("Config_FirstRunStatus");
@@ -808,6 +1220,22 @@ namespace WaveTools.Depend
         public static void RMAccountChangeMode() => RemoveValue("Config_AccountChange");
         public static void RMAdminMode() => RemoveValue("Config_AdminMode");
         public static void RMGameParameter() => RemoveValue("Config_GameParameter");
+        public static void RMLastRunAppVersion() => RemoveValue(LastRunAppVersion);
+
+        private static bool HasSettingValue(string key)
+        {
+            EnsureLoaded();
+
+            lock (Locker)
+            {
+                if (!settingsCache.TryGetValue(key, out JToken value) || value == null || value.Type == JTokenType.Null)
+                {
+                    return false;
+                }
+
+                return !string.IsNullOrWhiteSpace(value.ToString());
+            }
+        }
 
         private sealed class BootstrapInfo
         {

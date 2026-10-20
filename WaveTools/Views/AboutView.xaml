@@ -468,17 +468,60 @@
                             <StackPanel x:Name="debug_Mode" Visibility="Collapsed" Spacing="10">
                                 <TextBlock Text="Debug 设置" FontSize="16" FontWeight="Bold"/>
                                 <Border Style="{StaticResource SettingCardBorderStyle}">
-                                    <StackPanel Margin="18" Spacing="10">
-                                        <StackPanel Orientation="Horizontal" Spacing="8">
-                                            <Button x:Name="debug_Panic" Click="Debug_Panic_Click" Content="Debug_崩溃"/>
-                                            <ToggleButton x:Name="debug_DisableNavBtns" Click="Debug_Disable_NavBtns" Content="禁用导航按钮"/>
+                                    <StackPanel Margin="18" Spacing="12">
+                                        <TextBlock x:Name="debug_Message" Text="处于Debug模式，控制台无法关闭" Style="{StaticResource SettingDescriptionStyle}" TextWrapping="Wrap"/>
+
+                                        <StackPanel Spacing="8">
+                                            <TextBlock Text="诊断" FontWeight="SemiBold"/>
+                                            <ItemsControl>
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <ItemsWrapGrid Orientation="Horizontal" MaximumRowsOrColumns="3"/>
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <Button x:Name="debug_CopyDiagnosticInfo" Click="Debug_CopyDiagnosticInfo_Click" Content="复制诊断信息" Margin="0,0,8,8"/>
+                                                <Button x:Name="debug_OpenDataRoot" Click="Debug_OpenDataRoot_Click" Content="打开数据目录" Margin="0,0,8,8"/>
+                                                <Button x:Name="debug_OpenSettingsFile" Click="Debug_OpenSettingsFile_Click" Content="打开设置文件" Margin="0,0,8,8"/>
+                                                <Button x:Name="debug_OpenBootstrapFile" Click="Debug_OpenBootstrapFile_Click" Content="打开引导文件" Margin="0,0,8,8"/>
+                                                <Button x:Name="debug_OpenLogs" Click="Debug_OpenLogs_Click" Content="打开日志目录" Margin="0,0,8,8"/>
+                                                <Button x:Name="debug_OpenPanic" Click="Debug_OpenPanic_Click" Content="打开Panic目录" Margin="0,0,8,8"/>
+                                                <Button x:Name="debug_OpenCache" Click="Debug_OpenCache_Click" Content="打开缓存目录" Margin="0,0,8,8"/>
+                                                <Button x:Name="debug_OpenDepends" Click="Debug_OpenDepends_Click" Content="打开依赖目录" Margin="0,0,8,8"/>
+                                            </ItemsControl>
                                         </StackPanel>
-                                        <StackPanel Orientation="Horizontal" Spacing="8">
-                                            <Button x:Name="debug_NotificationTest" Click="Debug_Notification_Test" Content="全局通知测试"/>
-                                            <Button x:Name="debug_WaitOverlayManager" Click="Debug_WaitOverlayManager_Test" Content="全局等待测试"/>
+
+                                        <StackPanel Spacing="8">
+                                            <TextBlock Text="界面测试" FontWeight="SemiBold"/>
+                                            <ItemsControl>
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <ItemsWrapGrid Orientation="Horizontal" MaximumRowsOrColumns="3"/>
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <Button x:Name="debug_NotificationInfoTest" Click="Debug_Notification_Info_Test" Content="Info通知" Margin="0,0,8,8"/>
+                                                <Button x:Name="debug_NotificationWarningTest" Click="Debug_Notification_Warning_Test" Content="Warning通知" Margin="0,0,8,8"/>
+                                                <Button x:Name="debug_NotificationErrorTest" Click="Debug_Notification_Error_Test" Content="Error通知" Margin="0,0,8,8"/>
+                                                <Button x:Name="debug_NotificationTest" Click="Debug_Notification_Test" Content="Success通知" Margin="0,0,8,8"/>
+                                                <Button x:Name="debug_WaitOverlayManager" Click="Debug_WaitOverlayManager_Test" Content="全局等待测试" Margin="0,0,8,8"/>
+                                                <Button x:Name="debug_ShowDialogTest" Click="Debug_ShowDialog_Test" Content="全局 Dialog 测试" Margin="0,0,8,8"/>
+                                            </ItemsControl>
                                         </StackPanel>
-                                        <Button x:Name="debug_ShowDialogTest" Click="Debug_ShowDialog_Test" Content="全局 Dialog 测试" HorizontalAlignment="Left"/>
-                                        <TextBlock x:Name="debug_Message" Text="处于Debug模式，控制台无法关闭" TextWrapping="Wrap"/>
+
+                                        <StackPanel Spacing="8">
+                                            <TextBlock Text="运行测试" FontWeight="SemiBold"/>
+                                            <ItemsControl>
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <ItemsWrapGrid Orientation="Horizontal" MaximumRowsOrColumns="3"/>
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <Button x:Name="debug_WriteLog" Click="Debug_WriteLog_Click" Content="写入测试日志" Margin="0,0,8,8"/>
+                                                <Button x:Name="debug_ReleaseMemory" Click="Debug_ReleaseMemory_Click" Content="释放内存" Margin="0,0,8,8"/>
+                                                <Button x:Name="debug_ReloadSettings" Click="Debug_ReloadSettings_Click" Content="重新加载设置" Margin="0,0,8,8"/>
+                                                <ToggleButton x:Name="debug_DisableNavBtns" Click="Debug_Disable_NavBtns" Content="禁用导航按钮" Margin="0,0,8,8"/>
+                                                <Button x:Name="debug_Panic" Click="Debug_Panic_Click" Content="Debug_崩溃" Margin="0,0,8,8" Foreground="{ThemeResource AppDangerBrush}"/>
+                                            </ItemsControl>
+                                        </StackPanel>
                                     </StackPanel>
                                 </Border>
                             </StackPanel>
@@ -548,9 +591,9 @@
                     </StackPanel>
 
                     <StackPanel Grid.Row="3" HorizontalAlignment="Right" Margin="0,0,-8,-8">
+                        <TextBlock x:Name="antiCatVersion" Text="" FontSize="12" FontWeight="Bold" Foreground="{ThemeResource AppTextSecondaryBrush}" TextWrapping="WrapWholeWords" HorizontalAlignment="Right" Visibility="Collapsed"/>
+                        <TextBlock x:Name="apiVersion" Text="" FontSize="12" FontWeight="Bold" Foreground="{ThemeResource AppTextSecondaryBrush}" TextWrapping="WrapWholeWords" HorizontalAlignment="Right" Visibility="Collapsed"/>
                         <TextBlock x:Name="appVersion" Text="" FontSize="18" FontWeight="Bold" Margin="0,6,0,0" TextWrapping="WrapWholeWords" HorizontalAlignment="Right"/>
-                        <TextBlock x:Name="apiVersion" Text="ArrowAPI Version" FontSize="12" FontWeight="Bold" Foreground="{ThemeResource AppTextSecondaryBrush}" TextWrapping="WrapWholeWords" HorizontalAlignment="Right"/>
-                        <TextBlock x:Name="antiCatVersion" Text="AntiCat Version" FontSize="12" FontWeight="Bold" Foreground="{ThemeResource AppTextSecondaryBrush}" TextWrapping="WrapWholeWords" HorizontalAlignment="Right"/>
                     </StackPanel>
 
                 </Grid>
@@ -581,9 +624,8 @@
         <TeachingTip x:Name="ThemeTip"
                      Background="{ThemeResource SystemControlAcrylicElementMediumHighBrush}"
                      Target="{x:Bind themeCombo}"
-                     Title="主题切换需要重启 WaveTools"
-                     ActionButtonContent="立即重启"
-                     ActionButtonClick="Restart_App"
+                     Title="主题已切换"
+                     Subtitle="当前窗口已即时应用新主题"
                      CloseButtonContent="关闭">
             <TeachingTip.IconSource>
                 <SymbolIconSource Symbol="Permissions"/>

@@ -21,7 +21,6 @@
 using Microsoft.UI.Xaml.Controls;
 using WaveTools.Depend;
 using System.Threading.Tasks;
-using WaveTools.Depend;
 
 namespace WaveTools.Views.FirstRunViews
 {

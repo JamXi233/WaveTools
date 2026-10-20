@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2021-2024, JamXi JSG-LLC.
+// Copyright (c) 2021-2026, JamXi JSG-LLC.
 // All rights reserved.
 
 // This file is part of WaveTools.
@@ -20,248 +20,355 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
-using Newtonsoft.Json.Linq;
+using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
+using System.Management;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using WaveTools.Depend;
-using WaveTools.Depend;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using WaveTools.Depend;
+using static WaveTools.App;
 
 namespace WaveTools.Views.SGViews
 {
     public sealed partial class GraphicSettingView : Page
     {
+        private static readonly (string Value, string Text)[] SwitchOptions =
+            { ("0", "关闭"), ("1", "开启") };
+        private static readonly (string Value, string Text)[] QualityOptions =
+            { ("0", "低"), ("1", "中"), ("2", "高") };
+        private static readonly (string Value, string Text)[] EffectOptions =
+            { ("0", "关闭"), ("1", "低"), ("2", "中"), ("3", "高") };
+        private static readonly (string Value, string Text)[] SuperResolutionOptions =
+            { ("99", "自动"), ("-2", "超级性能"), ("-1", "性能"), ("0", "平衡"), ("1", "质量"), ("3", "DLAA") };
+        private static readonly (string Value, string Text)[] LegacySuperResolutionOptions =
+            { ("0", "关闭"), ("1", "自动"), ("3", "质量"), ("4", "平衡"), ("5", "性能"), ("6", "超级性能") };
+        private static readonly Lazy<Task<int>> FrameGenerationLimit =
+            new(() => Task.Run(DetectFrameGenerationLimit));
+
+        private sealed class SettingBinding
+        {
+            public string Key;
+            public DropDownButton Button;
+            public (string Value, string Text)[] Options;
+        }
+
+        private sealed class SettingChoice
+        {
+            public SettingBinding Setting;
+            public string Key;
+            public string Value;
+        }
+
+        private readonly List<SettingBinding> settings = new();
+        private readonly string gamePath;
+        private readonly SettingBinding superResolution;
+        private JObject configuration;
+        private bool isActive;
+        private bool isLoading;
+        private bool isSaving;
+        private int maxFrameGeneration;
+
         public GraphicSettingView()
         {
-            this.InitializeComponent();
-            Logging.Write("Switch to GraphicSettingView", 0);
-            LoadData();
+            InitializeComponent();
+            gamePath = AppDataController.GetGamePath();
+            Bind(DDB_FPS, "CustomFrameRate", ("0", "30"), ("1", "45"), ("2", "60"), ("3", "120"));
+            Bind(DDB_EnableVSync, "PcVsync", SwitchOptions);
+            Bind(DDB_EnableAA, "AntiAliasing", SwitchOptions);
+            Bind(DDB_ShadowQuality, "ShadowQuality", ("0", "低"), ("1", "中"), ("2", "高"), ("3", "极高"));
+            Bind(DDB_SFXQuality, "NiagaraQuality", ("0", "低"), ("2", "高"));
+            Bind(DDB_EnvDetailQuality, "ImageDetail", ("0", "低"), ("1", "中"), ("2", "高"), ("3", "极高"));
+            Bind(DDB_AO, "SceneAo", EffectOptions);
+            Bind(DDB_VolumeFog, "VolumeFog", EffectOptions);
+            Bind(DDB_VolumeLight, "VolumeLight", SwitchOptions);
+            Bind(DDB_MotionBlur, "MotionBlur", EffectOptions);
+            Bind(DDB_BloomEnable, "BloomEnable", SwitchOptions);
+            Bind(DDB_NpcDensity, "NpcDensity", QualityOptions);
+            Bind(DDB_EnemyHitDisplayMode, "EnemyHitDisplayMode", SwitchOptions);
+            Bind(DDB_AutoAdjust, "AutoAdjustImageQuality", SwitchOptions);
+            Bind(DDB_DLSS, "NvidiaSuperSamplingEnable", SwitchOptions);
+            Bind(DDB_FrameGeneration, "NvidiaSuperSamplingFrameGenerate",
+                ("0", "关闭"), ("1", "2x"), ("2", "3x"), ("3", "4x"), ("4", "5x"), ("5", "6x"));
+            superResolution = Bind(DDB_SuperResolution, "NvidiaSuperSamplingQuality", SuperResolutionOptions);
+            Bind(DDB_NvidiaReflex, "NvidiaReflex", ("0", "关闭"), ("1", "开启"), ("3", "开启并加速"));
+            Bind(DDB_XessEnable, "XessEnable", SwitchOptions);
+            Bind(DDB_XessQuality, "XessQuality",
+                ("0", "超级性能"), ("1", "性能"), ("2", "平衡"), ("3", "质量"), ("4", "超级质量"));
+            Bind(DDB_RayTracing, "RayTracing", EffectOptions);
+            Loaded += OnLoaded;
+            Unloaded += (_, _) => isActive = false;
         }
 
-        private async void LoadData()
+        private SettingBinding Bind(DropDownButton button, string key,
+            params (string Value, string Text)[] options)
         {
-            await LoadGraphicsData(false);
-            DDB_Main.Visibility = Visibility.Visible;
-            DDB_Load.Visibility = Visibility.Collapsed;
+            var setting = new SettingBinding { Button = button, Key = key, Options = options };
+            settings.Add(setting);
+            return setting;
         }
 
-        private async Task LoadGraphicsData(bool isForce)
+        private async void OnLoaded(object sender, RoutedEventArgs e)
         {
-            string output;
-            string returnValue;
+            isActive = true;
+            if (configuration == null) await LoadDataAsync();
+        }
 
-            if (isForce)
+        private async void Retry_Click(object sender, RoutedEventArgs e) => await LoadDataAsync(true);
+
+        private async Task LoadDataAsync(bool force = false)
+        {
+            if (isLoading) return;
+            isLoading = true;
+            LoadError.Visibility = Visibility.Collapsed;
+            DDB_Load.Visibility = Visibility.Visible;
+            DDB_Load.IsActive = true;
+            try
             {
-                output = await ProcessRun.WaveToolsHelperAsync($"/GetGS {AppDataController.GetGamePathForHelper()}");
-                returnValue = output.Trim();
+                await LoadGraphicsDataAsync(force);
+                if (isActive) DDB_Main.Visibility = Visibility.Visible;
             }
-            else
+            catch (Exception ex)
             {
-                if (StartGameView.GS is not null)
+                Logging.Write($"读取画质设置失败: {ex}", 3, "GraphicSettingView");
+                if (isActive)
                 {
-                    returnValue = StartGameView.GS;
-                }
-                else
-                {
-                    output = await ProcessRun.WaveToolsHelperAsync($"/GetGS {AppDataController.GetGamePathForHelper()}");
-                    returnValue = output.Trim();
+                    DDB_Main.Visibility = Visibility.Collapsed;
+                    LoadError.Visibility = Visibility.Visible;
                 }
             }
-
-            // 使用 returnValue 变量进行后续处理
-            JObject config = JObject.Parse(returnValue);
-
-            // 设置UI控件的值
-            SetUIValue(config, "CustomFrameRate", DDB_FPS, new Dictionary<string, string> { { "0", "30" }, { "1", "45" }, { "2", "60" }, { "3", "120" } });
-            SetUIValue(config, "PcVsync", DDB_EnableVSync, new Dictionary<string, string> { { "0", "关闭" }, { "1", "开启" } });
-            SetUIValue(config, "AntiAliasing", DDB_EnableAA, new Dictionary<string, string> { { "0", "关闭" }, { "1", "开启" } });
-            SetUIValue(config, "ShadowQuality", DDB_ShadowQuality, new Dictionary<string, string> { { "0", "低" }, { "1", "中" }, { "2", "高" }, { "3", "极高" } });
-            SetUIValue(config, "NiagaraQuality", DDB_SFXQuality, new Dictionary<string, string> { { "0", "低" }, { "1", "中" }, { "2", "高" } });
-            SetUIValue(config, "ImageDetail", DDB_EnvDetailQuality, new Dictionary<string, string> { { "0", "低" }, { "1", "中" }, { "2", "高" } });
-            SetUIValue(config, "SceneAo", DDB_AO, new Dictionary<string, string> { { "0", "关闭" }, { "1", "开启" } });
-            SetUIValue(config, "VolumeFog", DDB_VolumeFog, new Dictionary<string, string> { { "0", "关闭" }, { "1", "开启" } });
-            SetUIValue(config, "VolumeLight", DDB_VolumeLight, new Dictionary<string, string> { { "0", "关闭" }, { "1", "开启" } });
-            SetUIValue(config, "MotionBlur", DDB_MotionBlur, new Dictionary<string, string> { { "0", "关闭" }, { "1", "低" }, { "2", "中" }, { "3", "高" } });
-            SetUIValue(config, "NvidiaSuperSamplingEnable", DDB_DLSS, new Dictionary<string, string> { { "0", "关闭" }, { "1", "开启" } });
-            SetUIValue(config, "NvidiaSuperSamplingMode", DDB_SuperResolution, new Dictionary<string, string>
-    {
-        { "0", "关闭" }, { "1", "自动" }, { "3", "质量" }, { "4", "平衡" },
-        { "5", "性能" }, { "6", "超级性能" }
-    });
-            SetUIValue(config, "NvidiaSuperSamplingSharpness", DDB_Sharpness);
-            SetUIValue(config, "BloomEnable", DDB_BloomEnable, new Dictionary<string, string> { { "0", "关闭" }, { "1", "开启" } });
-            SetUIValue(config, "NvidiaReflex", DDB_NvidiaReflex, new Dictionary<string, string> { { "0", "关闭" }, { "1", "开启" }, { "3", "开启并加速" } });
-            SetUIValue(config, "NpcDensity", DDB_NpcDensity, new Dictionary<string, string> { { "0", "低" }, { "1", "中" }, { "2", "高" } });
-            SetUIValue(config, "EnemyHitDisplayMode", DDB_EnemyHitDisplayMode, new Dictionary<string, string> { { "0", "关闭" }, { "1", "开启" } });
-
-            // For Intel
-            SetUIValue(config, "XessEnable", DDB_XessEnable, new Dictionary<string, string> { { "0", "关闭" }, { "1", "开启" } });
-            SetUIValue(config, "XessQuality", DDB_XessQuality, new Dictionary<string, string>
-    {
-        { "0", "超级性能" }, { "1", "性能" }, { "2", "平衡" }, { "3", "质量" },
-        { "4", "超级质量" }
-    });
-            
-        }
-
-        private void SharpnessSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
-        {
-            // 更新文本显示
-            SharpnessValueText.Text = e.NewValue.ToString("0.0");
-
-            // 模拟触发Click事件，调用原先的ChangeGraphic方法
-            ChangeGraphic(new MenuFlyoutItem { Tag = "NvidiaSuperSamplingSharpness", Text = e.NewValue.ToString("0.0") }, null);
-        }
-
-
-
-        private void SetUIValue(JObject config, string key, DropDownButton button, Dictionary<string, string> map = null)
-        {
-            if (config.TryGetValue(key, out JToken value))
+            finally
             {
-                string valueStr = value.Type == JTokenType.Integer ? value.ToObject<int>().ToString() : value.ToString();
-                if (map != null)
+                isLoading = false;
+                DDB_Load.IsActive = false;
+                DDB_Load.Visibility = Visibility.Collapsed;
+            }
+        }
+
+        private async Task<JObject> ReadConfigurationAsync()
+        {
+            string output = await ProcessRun.WaveToolsHelperAsync($"/GetGS \"{gamePath}\"", true);
+            return ParseConfiguration(output);
+        }
+
+        private static JObject ParseConfiguration(string output)
+        {
+            var data = JObject.Parse(output);
+            if (data["ImageQuality"] == null)
+                throw new InvalidOperationException("未找到画质设置，请先在游戏内保存设置。");
+            return data;
+        }
+
+        private async Task LoadGraphicsDataAsync(bool force)
+        {
+            JObject data = !force && !string.IsNullOrWhiteSpace(StartGameView.GS)
+                ? ParseConfiguration(StartGameView.GS) : await ReadConfigurationAsync();
+            int limit = data["NvidiaSuperSamplingFrameGenerate"] != null
+                ? await FrameGenerationLimit.Value : 0;
+            if (!isActive || !IsCurrentGamePath()) return;
+            configuration = data;
+            maxFrameGeneration = limit;
+            StartGameView.GS = data.ToString(Formatting.None);
+            RenderSettings();
+        }
+
+        private string Value(string key)
+        {
+            JToken token = configuration?[key];
+            return token == null || token.Type == JTokenType.Null ? null : token.ToString();
+        }
+
+        private bool Has(string key) => !string.IsNullOrWhiteSpace(Value(key));
+        private bool IsCurrentGamePath() =>
+            string.Equals(gamePath, AppDataController.GetGamePath(), StringComparison.OrdinalIgnoreCase);
+
+        private void SetRowVisible(DropDownButton button, bool visible)
+        {
+            if (FindName(button.Name + "_Row") is FrameworkElement row)
+                row.Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        private void RenderSettings()
+        {
+            if (configuration == null || !isActive) return;
+            bool modernDlss = Has("NvidiaSuperSamplingQuality");
+            superResolution.Key = modernDlss ? "NvidiaSuperSamplingQuality" : "NvidiaSuperSamplingMode";
+            superResolution.Options = modernDlss ? SuperResolutionOptions : LegacySuperResolutionOptions;
+
+            foreach (var setting in settings)
+            {
+                string value = Value(setting.Key);
+                bool present = !string.IsNullOrWhiteSpace(value);
+                SetRowVisible(setting.Button, present);
+                setting.Button.IsEnabled = present;
+                setting.Button.Content = setting.Options.FirstOrDefault(option => option.Value == value).Text ?? value ?? "";
+                var flyout = new MenuFlyout();
+                foreach (var option in setting.Options)
                 {
-                    if (map.TryGetValue(valueStr, out string text))
+                    if (setting.Key == "NvidiaSuperSamplingFrameGenerate" &&
+                        int.Parse(option.Value, CultureInfo.InvariantCulture) > maxFrameGeneration)
+                        continue;
+                    var item = new MenuFlyoutItem
                     {
-                        button.Content = text;
-                    }
-                    else
-                    {
-                        button.Content = valueStr;
-                    }
+                        Text = option.Text,
+                        Tag = new SettingChoice { Setting = setting, Key = setting.Key, Value = option.Value }
+                    };
+                    item.Click += ChangeGraphic;
+                    flyout.Items.Add(item);
                 }
-                else
-                {
-                    button.Content = valueStr;
-                }
+                setting.Button.Flyout = flyout;
             }
+
+            bool dlssEnabled = Value("NvidiaSuperSamplingEnable") == "1";
+            DDB_FrameGeneration.IsEnabled = Has("NvidiaSuperSamplingFrameGenerate") && dlssEnabled &&
+                (maxFrameGeneration > 0 || Value("NvidiaSuperSamplingFrameGenerate") != "0");
+            ToolTipService.SetToolTip(DDB_FrameGeneration, maxFrameGeneration > 0
+                ? "可用倍率取决于显卡和驱动" : "无法确认插帧支持情况，可关闭已有插帧");
+            DDB_SuperResolution.IsEnabled = Has(superResolution.Key) && dlssEnabled;
+            DDB_XessQuality.IsEnabled = Has("XessQuality") && Value("XessEnable") == "1";
+
+            bool frameGenerationEnabled = dlssEnabled &&
+                int.TryParse(Value("NvidiaSuperSamplingFrameGenerate"), out int frames) && frames > 0;
+            if (frameGenerationEnabled)
+            {
+                DDB_FPS.Content = "无上限（插帧）";
+                DDB_FPS.IsEnabled = false;
+            }
+
+            SetRowVisible(DDB_Sharpness, Has("NvidiaSuperSamplingSharpness"));
+            bool sharpnessValid = double.TryParse(Value("NvidiaSuperSamplingSharpness"),
+                NumberStyles.Float, CultureInfo.InvariantCulture, out double sharpness);
+            DDB_Sharpness.Content = sharpnessValid ? FormatNumber(sharpness) : Value("NvidiaSuperSamplingSharpness") ?? "";
+            DDB_Sharpness.IsEnabled = dlssEnabled && sharpnessValid && sharpness >= -1 && sharpness <= 1;
+            if (sharpnessValid && sharpness >= -1 && sharpness <= 1) SharpnessSlider.Value = sharpness;
+            SharpnessValueText.Text = DDB_Sharpness.Content.ToString();
+
+            NvidiaSettings.Visibility = settings.Any(setting =>
+                Has(setting.Key) && setting.Key.StartsWith("Nvidia", StringComparison.Ordinal))
+                || Has("NvidiaSuperSamplingSharpness") ? Visibility.Visible : Visibility.Collapsed;
+            XessSettings.Visibility = Has("XessEnable") || Has("XessQuality")
+                ? Visibility.Visible : Visibility.Collapsed;
+            DDB_Main.IsEnabled = !isSaving;
         }
 
         private async void ChangeGraphic(object sender, RoutedEventArgs e)
         {
-            MenuFlyoutItem item = sender as MenuFlyoutItem;
-            string text = item.Text;
-            string tag = item.Tag.ToString();
-            
+            if (sender is MenuFlyoutItem { Tag: SettingChoice choice } && choice.Setting.Button.IsEnabled &&
+                choice.Key == choice.Setting.Key)
+                await SaveSettingAsync(choice.Key, choice.Value);
+        }
+
+        private void SharpnessSlider_ValueChanged(object sender, RangeBaseValueChangedEventArgs e)
+        {
+            if (SharpnessValueText != null) SharpnessValueText.Text = FormatNumber(e.NewValue);
+        }
+
+        private async void SharpnessApply_Click(object sender, RoutedEventArgs e)
+        {
+            if (!DDB_Sharpness.IsEnabled) return;
+            string value = FormatNumber(SharpnessSlider.Value);
+            DDB_Sharpness.Flyout.Hide();
+            await SaveSettingAsync("NvidiaSuperSamplingSharpness", value);
+        }
+
+        private static string FormatNumber(double value) => (value == 0 ? 0 : value).ToString("0.##", CultureInfo.InvariantCulture);
+
+        private async Task SaveSettingAsync(string key, string value)
+        {
+            if (isSaving || !isActive || !Has(key)) return;
+            isSaving = true;
+            DDB_Main.IsEnabled = false;
             try
             {
-                // 先应用用户选择
-                ApplyUserChoice(text, tag);
-
-                // 异步更新画质设置
-                var settingsMap = new Dictionary<string, Dictionary<string, string>>
-        {
-            { "CustomFrameRate", new Dictionary<string, string> { { "30FPS", "0" }, { "45FPS", "1" }, { "60FPS", "2" }, { "120FPS", "3" } } },
-            { "ShadowQuality", new Dictionary<string, string> { { "低", "0" }, { "中", "1" }, { "高", "2" }, { "极高", "3" } } },
-            { "NiagaraQuality", new Dictionary<string, string> { { "低", "0" }, { "中", "1" }, { "高", "2" } } },
-            { "ImageDetail", new Dictionary<string, string> { { "低", "0" }, { "中", "1" }, { "高", "2" } } },
-            { "SceneAo", new Dictionary<string, string> { { "关闭", "0" }, { "开启", "1" } } },
-            { "VolumeFog", new Dictionary<string, string> { { "关闭", "0" }, { "开启", "1" } } },
-            { "VolumeLight", new Dictionary<string, string> { { "关闭", "0" }, { "开启", "1" } } },
-            { "MotionBlur", new Dictionary<string, string> { { "关闭", "0" }, { "低", "1" }, { "中", "2" }, { "高", "3" } } },
-            { "NvidiaSuperSamplingEnable", new Dictionary<string, string> { { "关闭", "0" }, { "开启", "1" } } },
-            { "NvidiaSuperSamplingMode", new Dictionary<string, string> { { "关闭", "0" }, { "自动", "1" }, { "质量", "3" }, { "平衡", "4" }, { "性能", "5" }, { "超级性能", "6" } } },
-            { "PcVsync", new Dictionary<string, string> { { "关闭", "0" }, { "开启", "1" } } },
-            { "AntiAliasing", new Dictionary<string, string> { { "关闭", "0" }, { "开启", "1" } } },
-            { "BloomEnable", new Dictionary<string, string> { { "关闭", "0" }, { "开启", "1" } } },
-            { "NvidiaReflex", new Dictionary<string, string> { { "关闭", "0" }, { "开启", "1" }, { "开启并加速", "3" } } },
-            { "NpcDensity", new Dictionary<string, string> { { "低", "0" }, { "中", "1" }, { "高", "2" } } },
-            { "EnemyHitDisplayMode", new Dictionary<string, string> { { "关闭", "0" }, { "开启", "1" } } },
-
-            // For Intel
-            { "XessEnable", new Dictionary<string, string> { { "关闭", "0" }, { "开启", "1" } } },
-            { "XessQuality", new Dictionary<string, string> { { "超级性能", "0" }, { "性能", "1" }, { "平衡", "2" }, { "质量", "3" }, { "超级质量", "4" } } },
-        };
-
-                if (settingsMap.ContainsKey(tag) && settingsMap[tag].ContainsKey(text))
+                if (!IsCurrentGamePath()) throw new InvalidOperationException("游戏路径已改变，请刷新画质设置。");
+                if (IsGameRunning()) throw new InvalidOperationException("请先退出游戏再修改画质。");
+                bool rayChildrenMatch = key != "RayTracing" ||
+                    new[] { "RayTracedGI", "RayTracedReflection", "RayTracedShadow" }
+                        .All(child => Value(child) == (value == "0" ? "0" : "1"));
+                if (SameValue(Value(key), value) && rayChildrenMatch) return;
+                string command = key == "RayTracing"
+                    ? $"/SetRayTracing \"{gamePath}\" {value}"
+                    : $"/SetGS \"{gamePath}\" {key} {value}";
+                await ProcessRun.WaveToolsHelperAsync(command, true);
+                JObject saved = await ReadConfigurationAsync();
+                if (!SameValue(saved[key]?.ToString(), value))
+                    throw new InvalidOperationException("画质参数未保存，请更新 WaveToolsHelper 后重试。");
+                if (key == "RayTracing")
                 {
-                    string value = settingsMap[tag][text];
-                    await ProcessRun.WaveToolsHelperAsync($"/SetGS {AppDataController.GetGamePathForHelper()} {tag} {value}");
+                    string enabled = value == "0" ? "0" : "1";
+                    foreach (string child in new[] { "RayTracedGI", "RayTracedReflection", "RayTracedShadow" })
+                        if (saved[child]?.ToString() != enabled)
+                            throw new InvalidOperationException("光追子项未同步，请更新 WaveToolsHelper 后重试。");
                 }
-                else if (double.TryParse(text, out double sharpnessValue) && tag == "KeyNvidiaSuperSamplingSharpness")
+                if (IsCurrentGamePath())
                 {
-                    await ProcessRun.WaveToolsHelperAsync($"/SetGS {AppDataController.GetGamePathForHelper()} {tag} {sharpnessValue}");
+                    StartGameView.GS = saved.ToString(Formatting.None);
+                    configuration = saved;
                 }
-                else if (text.Contains("30") || text.Contains("45") || text.Contains("60") || text.Contains("120"))
-                {
-                    await ProcessRun.WaveToolsHelperAsync($"/SetGS {AppDataController.GetGamePathForHelper()} {tag} {text}");
-                }
-
-                // 确保设置完成后重新加载数据
-                await LoadGraphicsData(true);
             }
             catch (Exception ex)
             {
-                Logging.Write($"Error in ChangeGraphic: {ex.Message}", 2);
+                Logging.Write($"保存画质设置失败: {ex}", 3, "GraphicSettingView");
+                if (isActive)
+                    NotificationManager.RaiseNotification("画质设置保存失败", ex.Message, InfoBarSeverity.Warning, false, 5);
+                if (isActive && IsCurrentGamePath())
+                {
+                    try { await LoadGraphicsDataAsync(true); }
+                    catch (Exception readError) { Logging.Write($"重新读取画质失败: {readError.Message}", 3, "GraphicSettingView"); }
+                }
+            }
+            finally
+            {
+                isSaving = false;
+                if (isActive) RenderSettings();
             }
         }
 
-        private void ApplyUserChoice(string text, string tag)
+        private static bool SameValue(string left, string right) =>
+            string.Equals(left, right, StringComparison.Ordinal) ||
+            double.TryParse(left, NumberStyles.Float, CultureInfo.InvariantCulture, out double a) &&
+            double.TryParse(right, NumberStyles.Float, CultureInfo.InvariantCulture, out double b) && a == b;
+
+        private static bool IsGameRunning()
         {
-            // 根据选择直接更新UI
-            switch (tag)
+            Process[] processes = Process.GetProcessesByName("Client-Win64-Shipping");
+            bool running = processes.Length > 0;
+            foreach (var process in processes) process.Dispose();
+            return running;
+        }
+
+        private static int DetectFrameGenerationLimit()
+        {
+            int limit = 0;
+            try
             {
-                case "CustomFrameRate":
-                    DDB_FPS.Content = text;
-                    break;
-                case "PcVsync":
-                    DDB_EnableVSync.Content = text;
-                    break;
-                case "AntiAliasing":
-                    DDB_EnableAA.Content = text;
-                    break;
-                case "ShadowQuality":
-                    DDB_ShadowQuality.Content = text;
-                    break;
-                case "NiagaraQuality":
-                    DDB_SFXQuality.Content = text;
-                    break;
-                case "ImageDetail":
-                    DDB_EnvDetailQuality.Content = text;
-                    break;
-                case "SceneAo":
-                    DDB_AO.Content = text;
-                    break;
-                case "VolumeFog":
-                    DDB_VolumeFog.Content = text;
-                    break;
-                case "VolumeLight":
-                    DDB_VolumeLight.Content = text;
-                    break;
-                case "MotionBlur":
-                    DDB_MotionBlur.Content = text;
-                    break;
-                case "NvidiaSuperSamplingEnable":
-                    DDB_DLSS.Content = text;
-                    break;
-                case "NvidiaSuperSamplingMode":
-                    DDB_SuperResolution.Content = text;
-                    break;
-                case "NvidiaSuperSamplingSharpness":
-                    DDB_Sharpness.Content = text;
-                    break;
-                case "BloomEnable":
-                    DDB_BloomEnable.Content = text;
-                    break;
-                case "NvidiaReflex":
-                    DDB_NvidiaReflex.Content = text;
-                    break;
-                case "NpcDensity":
-                    DDB_NpcDensity.Content = text;
-                    break;
-                case "EnemyHitDisplayMode":
-                    DDB_EnemyHitDisplayMode.Content = text;
-                    break;
-                case "XessEnable":
-                    DDB_XessEnable.Content = text;
-                    break;
-                case "XessQuality":
-                    DDB_XessQuality.Content = text;
-                    break;
+                using var searcher = new ManagementObjectSearcher("SELECT Name FROM Win32_VideoController");
+                using var adapters = searcher.Get();
+                foreach (ManagementObject adapter in adapters)
+                {
+                    using (adapter)
+                    {
+                        string name = adapter["Name"]?.ToString() ?? "";
+                        if (!name.Contains("NVIDIA", StringComparison.OrdinalIgnoreCase)) continue;
+                        if (Regex.IsMatch(name, @"\bRTX\s*50\d{2}\b", RegexOptions.IgnoreCase) ||
+                            Regex.IsMatch(name, @"\bRTX\s+PRO\b.*\bBlackwell\b", RegexOptions.IgnoreCase))
+                            limit = Math.Max(limit, 5);
+                        else if (Regex.IsMatch(name, @"\bRTX\s*40\d{2}\b", RegexOptions.IgnoreCase) ||
+                                 Regex.IsMatch(name, @"\bRTX\b.*\bAda\s+Generation\b", RegexOptions.IgnoreCase))
+                            limit = Math.Max(limit, 1);
+                    }
+                }
             }
+            catch (Exception ex)
+            {
+                Logging.Write($"读取插帧显卡支持情况失败: {ex.Message}", 2, "GraphicSettingView");
+            }
+            return limit;
         }
     }
 }

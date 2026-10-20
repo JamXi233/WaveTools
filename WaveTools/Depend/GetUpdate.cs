@@ -46,11 +46,16 @@ namespace WaveTools.Depend
 
         private static async Task<UpdateResult> OnGetUpdateLatestReleaseInfo(string PkgName, string Mode = null)
         {
-            PackageVersion packageVersion = Package.Current.Id.Version;
-            string currentVersion = $"{packageVersion.Major}.{packageVersion.Minor}.{packageVersion.Build}.{packageVersion.Revision}";
-            Version currentVersionParsed = new Version(currentVersion);
             try
             {
+                string currentVersion = CommonHelpers.AppVersionHelper.GetAppVersion();
+
+                if (!Version.TryParse(currentVersion, out Version currentVersionParsed))
+                {
+                    currentVersion = "0.0.0.0";
+                    currentVersionParsed = new Version(0, 0, 0, 0);
+                }
+
                 var latestReleaseInfo = await _getJSGLatest.GetLatestReleaseInfoAsync("cn.jamsg.WaveTools");
                 Logging.Write("Getting Update Info...", 0);
 
@@ -87,38 +92,57 @@ namespace WaveTools.Depend
                     if (File.Exists(exePath))
                     {
                         FileVersionInfo fileInfo = FileVersionInfo.GetVersionInfo(exePath);
-                        installedVersionParsed = new Version(fileInfo.FileVersion);
+
+                        if (!Version.TryParse(fileInfo.FileVersion, out installedVersionParsed))
+                        {
+                            installedVersionParsed = new Version(0, 0, 0, 0);
+                        }
                     }
                     else
                     {
-                        installedVersionParsed = new Version("0.0.0.0");
+                        installedVersionParsed = new Version(0, 0, 0, 0);
                     }
 
-                    Version latestVersionParsed = new Version(latestReleaseInfo.Version);
+                    if (!Version.TryParse(latestReleaseInfo.Version, out Version latestVersionParsed))
+                    {
+                        latestVersionParsed = new Version(0, 0, 0, 0);
+                    }
+
                     if (latestVersionParsed > installedVersionParsed)
                     {
                         App.IsWaveToolsHelperRequireUpdate = true;
                         return new UpdateResult(1, latestReleaseInfo.Version, latestReleaseInfo.Changelog);
                     }
+
                     App.IsWaveToolsHelperRequireUpdate = false;
                     return new UpdateResult(0, installedVersionParsed.ToString(), string.Empty);
                 }
-
                 else
                 {
-                    Version latestVersionParsed = new Version(latestReleaseInfo.Version);
+                    if (!Version.TryParse(latestReleaseInfo.Version, out Version latestVersionParsed))
+                    {
+                        latestVersionParsed = new Version(0, 0, 0, 0);
+                    }
 
                     if (latestVersionParsed > currentVersionParsed)
                     {
                         App.IsWaveToolsRequireUpdate = true;
                         return new UpdateResult(1, latestReleaseInfo.Version, latestReleaseInfo.Changelog);
                     }
+
+                    App.IsWaveToolsRequireUpdate = false;
                     return new UpdateResult(0, currentVersion, string.Empty);
                 }
             }
             catch (Exception)
             {
                 App.IsWaveToolsRequireUpdate = false;
+
+                if (Mode == "Depend")
+                {
+                    App.IsWaveToolsHelperRequireUpdate = false;
+                }
+
                 return new UpdateResult(2, string.Empty, string.Empty);
             }
         }

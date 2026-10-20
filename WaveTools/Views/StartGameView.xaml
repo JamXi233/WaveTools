@@ -80,7 +80,7 @@
                     </Grid.RowDefinitions>
 
                     <Grid Grid.Row="0"
-                          Padding="16,14,16,8">
+                          Padding="8,8,16,8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
@@ -208,7 +208,7 @@
                     </Grid.RowDefinitions>
 
                     <Grid Grid.Row="0"
-                          Padding="16,14,16,8">
+                          Padding="8,8,16,8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
@@ -392,6 +392,7 @@
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="24"/>
                         <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
@@ -471,10 +472,11 @@
                             </StackPanel>
                         </Button>
                     </Grid>
-                    <Grid Grid.Row="1">
+                    <SGViews:GameResourceQualitySelector x:Name="resourceQualitySelector" Grid.Row="1" Margin="0,12,0,0"/>
+                    <Grid Grid.Row="2">
                         <Grid Background="{ThemeResource AppSeparatorBrush}" Height="0.5" Width="84"/>
                     </Grid>
-                    <Grid Grid.Row="2"
+                    <Grid Grid.Row="3"
                           ColumnSpacing="10"
                           VerticalAlignment="Bottom">
                         <Grid.ColumnDefinitions>

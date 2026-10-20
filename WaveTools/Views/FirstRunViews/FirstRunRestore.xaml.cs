@@ -24,7 +24,7 @@ namespace WaveTools.Views.FirstRunViews
 
         private void NextPage(object sender, RoutedEventArgs e)
         {
-            GoToThemePage();
+            GoToNextRequiredPage();
         }
 
         private async void Restore_Data(object sender, RoutedEventArgs e)
@@ -46,7 +46,7 @@ namespace WaveTools.Views.FirstRunViews
                 AppDataController.ResetCache();
                 AppDataController.EnsureDataRootReady();
 
-                GoToThemePage();
+                GoToNextRequiredPage();
             }
             catch (Exception ex)
             {
@@ -55,15 +55,10 @@ namespace WaveTools.Views.FirstRunViews
             }
         }
 
-        private void GoToThemePage()
+        private void GoToNextRequiredPage()
         {
-            AppDataController.SetFirstRunStatus(3);
-
             Frame parentFrame = GetParentFrame(this);
-            if (parentFrame != null)
-            {
-                parentFrame.Navigate(typeof(FirstRunTheme));
-            }
+            FirstRunNavigation.NavigateToNextRequiredPage(parentFrame);
         }
 
         private void DeleteFolder(string folderPath)

@@ -1,0 +1,15 @@
+<UserControl
+    x:Class="WaveTools.Views.SGViews.GameResourceQualitySelector"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid ColumnSpacing="12">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock Text="资源画质" VerticalAlignment="Center" FontSize="13"/>
+        <ComboBox x:Name="QualityBox" Grid.Column="1" MinWidth="0" HorizontalAlignment="Stretch"
+                  DisplayMemberPath="DisplayName" PlaceholderText="未识别" IsEnabled="False"
+                  SelectionChanged="QualityBox_SelectionChanged" DropDownOpened="QualityBox_DropDownOpened"/>
+    </Grid>
+</UserControl>

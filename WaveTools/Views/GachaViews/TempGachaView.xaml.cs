@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2021-2024, JamXi JSG-LLC.
+// Copyright (c) 2021-2024, JamXi JSG-LLC.
 // All rights reserved.
 
 // This file is part of WaveTools.
@@ -32,6 +32,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
+using Microsoft.UI.Xaml.Markup;
 using Newtonsoft.Json;
 using WaveTools.Depend;
 using WaveTools.Views.ToolViews;
@@ -42,6 +43,8 @@ namespace WaveTools.Views.GachaViews
 {
     public sealed partial class TempGachaView : Page
     {
+        private const double DetailsPanelWidth = 237;
+        private const double StatCardSpacing = 8;
         private const string WuwaAssetsApiUrl = "https://cdn.jamsg.cn/?get=wuwa-assets";
         private static readonly HttpClient _httpClient = new HttpClient();
         private static WuwaAssetsCacheModel _wuwaAssetsCache;
@@ -326,7 +329,7 @@ namespace WaveTools.Views.GachaViews
         private void DisplayGachaInfo(List<GachaModel.GachaRecord> records, int selectedCardPoolId)
         {
             Logging.Write("Displaying gacha info", 0);
-            var selectedCardPool = GachaView.cardPoolInfo.CardPools.FirstOrDefault(cp => cp.CardPoolId == selectedCardPoolId);
+            var selectedCardPool = GachaView.cardPoolInfo?.CardPools?.FirstOrDefault(cp => cp.CardPoolId == selectedCardPoolId);
 
             var rank5SourceRecords = records.Where(r => r.QualityLevel == 5).ToList();
 
@@ -346,9 +349,9 @@ namespace WaveTools.Views.GachaViews
                     ResourceType = record.ResourceType,
                     Name = record.Name,
                     Count = CalculateCount(records, record.Id, 5),
-                    Pity = CalculatePity(records, record.Name, 5, selectedCardPoolId, GachaView.cardPoolInfo),
-                    PityVisibility = selectedCardPool != null && selectedCardPool.isPityEnable == true
-                        ? Visibility.Collapsed
+                    Pity = selectedCardPool?.GetFiveStarUpLabel(record) ?? string.Empty,
+                    PityVisibility = selectedCardPool?.IsFiveStarLost(record) == true
+                        ? Visibility.Visible
                         : Visibility.Collapsed
                 })
                 .ToList();
@@ -374,6 +377,23 @@ namespace WaveTools.Views.GachaViews
                 if (loadToken != _loadDataToken)
                 {
                     return;
+                }
+
+                bool hasMissingIcons = items.Any(item =>
+                {
+                    var assetItem = FindWuwaAssetItem(item.ResourceId, item.ResourceType);
+                    return assetItem == null || string.IsNullOrWhiteSpace(assetItem.icon);
+                });
+
+                if (hasMissingIcons)
+                {
+                    Logging.Write("Gacha icons missing from cached index, refreshing wuwa assets index", 0);
+                    await EnsureWuwaAssetsCacheAsync(true);
+
+                    if (loadToken != _loadDataToken)
+                    {
+                        return;
+                    }
                 }
 
                 foreach (var item in items)
@@ -446,25 +466,7 @@ namespace WaveTools.Views.GachaViews
         }
 
 
-        private string CalculatePity(List<GachaModel.GachaRecord> records, string name, int qualityLevel, int selectedCardPoolId, GachaModel.CardPoolInfo cardPoolInfo)
-        {
-            var selectedCardPool = cardPoolInfo.CardPools.FirstOrDefault(cp => cp.CardPoolId == selectedCardPoolId);
-            var specialNames = new List<string> { "维里奈", "安可", "卡卡罗", "凌阳", "鉴心" };
-
-            if (specialNames.Contains(name))
-            {
-                if ((bool)!selectedCardPool.isPityEnable) return "";
-                // Logging.Write("Pity result: 歪了", 0);
-                return "歪了";
-            }
-            else
-            {
-                // Logging.Write("Pity result: 没歪", 0);
-                return "";
-            }
-        }
-
-        private List<int> CalculateIntervals(List<GachaModel.GachaRecord> records, int qualityLevel)
+        private List<int> CalculateIntervals(List<GachaModel.GachaRecord> records, int qualityLevel, Func<GachaModel.GachaRecord, bool> predicate = null)
         {
             var intervals = new List<int>();
             int countSinceLastStar = 0;
@@ -474,7 +476,7 @@ namespace WaveTools.Views.GachaViews
             {
                 countSinceLastStar++; // 每次迭代都递增计数器
 
-                if (record.QualityLevel == qualityLevel)
+                if (record.QualityLevel == qualityLevel && (predicate == null || predicate(record)))
                 {
                     intervals.Add(countSinceLastStar); // 将计数器的值添加到间隔列表中
                     countSinceLastStar = 0; // 重置计数器
@@ -488,21 +490,21 @@ namespace WaveTools.Views.GachaViews
         {
             Logging.Write("Displaying gacha details", 0);
             Gacha_Panel.Children.Clear();
-            var scrollView = new ScrollViewer
+            var contentPanel = new StackPanel
             {
-                HorizontalScrollBarVisibility = ScrollBarVisibility.Hidden,
-                VerticalScrollBarVisibility = ScrollBarVisibility.Hidden,
+                Width = DetailsPanelWidth,
+                HorizontalAlignment = HorizontalAlignment.Left
             };
-
-            var contentPanel = new StackPanel();
 
             var selectedRecords = gachaData.List
                 .Where(pool => pool.CardPoolId == selectedCardPoolId)
                 .SelectMany(pool => pool.Records)
-                .OrderByDescending(r => r.Time)
+                .OrderByDescending(r => GetRecordDate(r))
+                .ThenByDescending(r => r.Id, StringComparer.Ordinal)
                 .ToList();
 
             Logging.Write($"Total selected records: {selectedRecords.Count}", 0);
+            var selectedCardPool = cardPoolInfo?.CardPools?.FirstOrDefault(cp => cp.CardPoolId == selectedCardPoolId);
 
             int countSinceLast5Star = 0;
             int countSinceLast4Star = 0;
@@ -540,27 +542,32 @@ namespace WaveTools.Views.GachaViews
             // 计算四星和五星的间隔
             var fourStarIntervals = CalculateIntervals(selectedRecords, 4);
             var fiveStarIntervals = CalculateIntervals(selectedRecords, 5);
+            // 歪出的五星不重置计数，累计到下一个UP；未完成的垫抽不计入平均。
+            var fiveStarUpIntervals = CalculateIntervals(selectedRecords, 5, record => selectedCardPool?.IsFiveStarUp(record) == true);
+            bool supportsFiveStarUp = selectedCardPool?.HasFiveStarUp == true;
 
             // 计算平均值
-            string averageDraws4Star = fourStarIntervals.Count > 0 ? (fourStarIntervals.Average()).ToString("F2") : "∞";
-            string averageDraws5Star = fiveStarIntervals.Count > 0 ? (fiveStarIntervals.Average()).ToString("F2") : "∞";
+            string averageDraws4Star = fourStarIntervals.Count > 0 ? (fourStarIntervals.Average()).ToString("F2") : "—";
+            string averageDraws5Star = fiveStarIntervals.Count > 0 ? (fiveStarIntervals.Average()).ToString("F2") : "—";
+            string fiveStarUpCount = supportsFiveStarUp ? fiveStarUpIntervals.Count.ToString() : "不适用";
+            string averageDraws5StarUp = supportsFiveStarUp
+                ? (fiveStarUpIntervals.Count > 0 ? fiveStarUpIntervals.Average().ToString("F2") + " 抽" : "—")
+                : "不适用";
 
             Gacha_UID.Text = gachaData.Info.Uid;
             GachaRecords_Count.Text = "共" + selectedRecords.Count() + "抽";
             GachaInfo_SinceLast5Star.Text = $"垫了{countSinceLast5Star}发";
 
-            var selectedCardPool = cardPoolInfo.CardPools.FirstOrDefault(cp => cp.CardPoolId == selectedCardPoolId);
-
             string rate4Star = rank4Records.Count > 0
                 ? (rank4Records.Count / (double)selectedRecords.Count * 100).ToString("F2") + "%"
-                : "∞";
+                : "0.00%";
 
             string rate5Star = rank5Records.Count > 0
                 ? (rank5Records.Count / (double)selectedRecords.Count * 100).ToString("F2") + "%"
-                : "∞";
+                : "0.00%";
 
-            string latest5StarTime = rank5Records.Any() ? rank5Records.First().Time : "∞";
-            string latest4StarTime = rank4Records.Any() ? rank4Records.First().Time : "∞";
+            string latest5StarTime = selectedRecords.FirstOrDefault(record => record.QualityLevel == 5)?.Time ?? "暂无记录";
+            string latest4StarTime = selectedRecords.FirstOrDefault(record => record.QualityLevel == 4)?.Time ?? "暂无记录";
 
             string poolName = selectedCardPool?.CardPoolType ?? $"卡池 {selectedCardPoolId}";
 
@@ -571,25 +578,24 @@ namespace WaveTools.Views.GachaViews
                 latest5StarTime,
                 latest4StarTime
             ));
+            contentPanel.Children.Add(CreateRarityCompositionCard(selectedRecords));
 
-            if (selectedCardPool != null && selectedCardPool.FiveStarPity.HasValue)
+            if (selectedCardPool?.HasFiveStarPity == true)
             {
                 contentPanel.Children.Add(CreatePityCard(
                     "五星保底进度",
                     countSinceLast5Star,
                     selectedCardPool.FiveStarPity.Value,
-                    $"距离上一个五星已经垫了 {countSinceLast5Star} 发",
                     ColorHelper.FromArgb(255, 204, 156, 92)
                 ));
             }
 
-            if (selectedCardPool != null && selectedCardPool.FourStarPity.HasValue)
+            if (selectedCardPool?.HasFourStarPity == true)
             {
                 contentPanel.Children.Add(CreatePityCard(
                     "四星保底进度",
                     countSinceLast4Star,
                     selectedCardPool.FourStarPity.Value,
-                    $"距离上一个四星已经抽了 {countSinceLast4Star} 发",
                     ColorHelper.FromArgb(255, 152, 120, 196)
                 ));
             }
@@ -600,19 +606,29 @@ namespace WaveTools.Views.GachaViews
                 CreateStatCard("五星获取率", rate5Star),
                 CreateStatCard("四星获取率", rate4Star),
                 CreateStatCard("五星平均", $"{averageDraws5Star} 抽"),
-                CreateStatCard("四星平均", $"{averageDraws4Star} 抽")
+                CreateStatCard("四星平均", $"{averageDraws4Star} 抽"),
+                CreateStatCard("五星UP数量", fiveStarUpCount),
+                CreateStatCard("五星UP平均抽数", averageDraws5StarUp)
             );
 
             contentPanel.Children.Add(statGrid);
 
-            scrollView.Content = contentPanel;
-            Gacha_Panel.Children.Add(scrollView);
+            var fiveStarDraws = GetFiveStarDraws(selectedRecords);
+            if (supportsFiveStarUp)
+            {
+                contentPanel.Children.Add(CreateUpPerformanceCard(fiveStarDraws, selectedCardPool));
+            }
+            contentPanel.Children.Add(CreateFiveStarTrendCard(fiveStarDraws, selectedCardPool));
+            contentPanel.Children.Add(CreateDrawDistributionCard(fiveStarIntervals));
+            contentPanel.Children.Add(CreateMonthlyActivityCard(selectedRecords));
+
+            Gacha_Panel.Children.Add(contentPanel);
             Logging.Write("Finished displaying gacha details", 0);
         }
 
-        private Border CreatePityCard(string title, int current, int maximum, string subtitle, Color accentColor)
+        private Border CreatePityCard(string title, int current, int maximum, Color accentColor)
         {
-            var border = CreateDetailBorder(237);
+            var border = CreateDetailBorder();
 
             var root = new StackPanel
             {
@@ -650,21 +666,13 @@ namespace WaveTools.Views.GachaViews
                 Minimum = 0,
                 Maximum = maximum,
                 Value = Math.Min(current, maximum),
+                Foreground = new SolidColorBrush(accentColor),
                 Height = 8,
                 CornerRadius = new CornerRadius(4)
             };
 
-            var subtitleText = new TextBlock
-            {
-                Text = subtitle,
-                FontSize = 12,
-                Opacity = 0.65,
-                TextWrapping = TextWrapping.WrapWholeWords
-            };
-
             root.Children.Add(titleRow);
             root.Children.Add(progressBar);
-            root.Children.Add(subtitleText);
 
             border.Child = root;
             return border;
@@ -677,7 +685,7 @@ namespace WaveTools.Views.GachaViews
             string latest5StarTime,
             string latest4StarTime)
         {
-            var border = CreateDetailBorder(237);
+            var border = CreateDetailBorder();
 
             var root = new Grid
             {
@@ -708,7 +716,7 @@ namespace WaveTools.Views.GachaViews
 
             main.Children.Add(new TextBlock
             {
-                Text = $"预计消耗 {astriteCount} 星声",
+                Text = $"唤取价值 {astriteCount:N0} 星声",
                 FontSize = 12,
                 Opacity = 0.7
             });
@@ -731,6 +739,7 @@ namespace WaveTools.Views.GachaViews
 
             Grid.SetColumn(main, 0);
             root.Children.Add(main);
+            ToolTipService.SetToolTip(root, "160 星声/抽，非实际支出");
 
             border.Child = root;
             return border;
@@ -738,41 +747,40 @@ namespace WaveTools.Views.GachaViews
 
         private Border CreateStatCard(string title, string value)
         {
-            return new Border
+            var border = CreateDetailBorder((DetailsPanelWidth - StatCardSpacing) / 2);
+            border.Padding = new Thickness(12, 10, 12, 10);
+            border.Margin = new Thickness(0);
+            border.CornerRadius = new CornerRadius(10);
+            border.Child = new StackPanel
             {
-                Padding = new Thickness(12, 10, 12, 10),
-                Background = (Brush)Application.Current.Resources["CardBackgroundFillColorDefaultBrush"],
-                BorderBrush = (Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"],
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(10),
-                Child = new StackPanel
+                Spacing = 4,
+                Children =
                 {
-                    Spacing = 4,
-                    Children =
-            {
-                new TextBlock
-                {
-                    Text = title,
-                    FontSize = 11,
-                    Opacity = 0.65
-                },
-                new TextBlock
-                {
-                    Text = value,
-                    FontSize = 17,
-                    FontWeight = FontWeights.Bold,
-                    TextWrapping = TextWrapping.WrapWholeWords
-                }
-            }
+                    new TextBlock
+                    {
+                        Text = title,
+                        FontSize = 11,
+                        Opacity = 0.65
+                    },
+                    new TextBlock
+                    {
+                        Text = value,
+                        FontSize = 17,
+                        FontWeight = FontWeights.Bold,
+                        TextWrapping = TextWrapping.WrapWholeWords
+                    }
                 }
             };
+            return border;
         }
 
         private Grid CreateStatGrid(params Border[] cards)
         {
             var grid = new Grid
             {
-                ColumnSpacing = 8,
+                Width = DetailsPanelWidth,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                ColumnSpacing = StatCardSpacing,
                 RowSpacing = 8,
                 Margin = new Thickness(0, 0, 0, 10)
             };
@@ -780,11 +788,12 @@ namespace WaveTools.Views.GachaViews
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
-            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            for (int row = 0; row < (cards.Length + 1) / 2; row++)
+            {
+                grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            }
 
-            for (int i = 0; i < cards.Length && i < 6; i++)
+            for (int i = 0; i < cards.Length; i++)
             {
                 Grid.SetColumn(cards[i], i % 2);
                 Grid.SetRow(cards[i], i / 2);
@@ -794,9 +803,342 @@ namespace WaveTools.Views.GachaViews
             return grid;
         }
 
-        private async Task EnsureWuwaAssetsCacheAsync()
+        private static readonly Color AnalyticsGold = GachaRarityColors.FiveStar;
+        private static readonly Color AnalyticsPurple = GachaRarityColors.FourStar;
+        private static readonly Color AnalyticsMint = ColorHelper.FromArgb(255, 65, 173, 147);
+        private static readonly Color AnalyticsRose = ColorHelper.FromArgb(255, 214, 120, 139);
+        private static readonly Color AnalyticsMutedPurple = ColorHelper.FromArgb(255, 146, 137, 163);
+        private static readonly Color AnalyticsBlue = GachaRarityColors.ThreeStar;
+
+        private sealed class FiveStarDraw
         {
-            if (_wuwaAssetsCache != null && DateTime.Now - _wuwaAssetsCacheLoadedAt < TimeSpan.FromHours(12))
+            public GachaModel.GachaRecord Record { get; set; }
+            public int Draws { get; set; }
+        }
+
+        private static DateTime? GetRecordDate(GachaModel.GachaRecord record)
+        {
+            return DateTime.TryParse(record.Time, out DateTime date) ? date : (DateTime?)null;
+        }
+
+        private static List<FiveStarDraw> GetFiveStarDraws(List<GachaModel.GachaRecord> records)
+        {
+            var result = new List<FiveStarDraw>();
+            int draws = 0;
+            foreach (var record in records.AsEnumerable().Reverse())
+            {
+                draws++;
+                if (record.QualityLevel == 5)
+                {
+                    result.Add(new FiveStarDraw { Record = record, Draws = draws });
+                    draws = 0;
+                }
+            }
+            return result;
+        }
+
+        private static TextBlock CreateAnalyticsText(string text, double size = 12, double opacity = 1)
+        {
+            return new TextBlock
+            {
+                Text = text,
+                FontSize = size,
+                Opacity = opacity,
+                TextWrapping = TextWrapping.WrapWholeWords
+            };
+        }
+
+        private Border CreateAnalyticsCard(string title, out StackPanel content)
+        {
+            var border = CreateDetailBorder();
+            content = new StackPanel { Spacing = 10 };
+            var titleText = CreateAnalyticsText(title, 14);
+            titleText.FontWeight = FontWeights.SemiBold;
+            content.Children.Add(titleText);
+            border.Child = content;
+            return border;
+        }
+
+        private static Border CreateAnalyticsTrack(double height = 7)
+        {
+            var track = (Border)XamlReader.Load(
+                "<Border xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" " +
+                "Background=\"{ThemeResource CardBackgroundFillColorSecondaryBrush}\" CornerRadius=\"4\"/>"
+            );
+            track.Height = height;
+            return track;
+        }
+
+        private static Border CreateShareBar(params (int Count, Color Tint, string Hint)[] segments)
+        {
+            var track = CreateAnalyticsTrack(9);
+            var grid = new Grid { ColumnSpacing = 2 };
+            foreach (var segment in segments.Where(segment => segment.Count > 0))
+            {
+                int column = grid.ColumnDefinitions.Count;
+                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(segment.Count, GridUnitType.Star) });
+                var bar = new Border { Background = new SolidColorBrush(segment.Tint), CornerRadius = new CornerRadius(3) };
+                ToolTipService.SetToolTip(bar, segment.Hint);
+                Grid.SetColumn(bar, column);
+                grid.Children.Add(bar);
+            }
+            track.Child = grid;
+            return track;
+        }
+
+        private static Grid CreateAnalyticsLabelRow(string label, string value)
+        {
+            var row = new Grid { ColumnSpacing = 8 };
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            row.Children.Add(CreateAnalyticsText(label, 11, 0.75));
+            var valueText = CreateAnalyticsText(value, 11);
+            valueText.FontWeight = FontWeights.SemiBold;
+            Grid.SetColumn(valueText, 1);
+            row.Children.Add(valueText);
+            return row;
+        }
+
+        private Border CreateRarityCompositionCard(List<GachaModel.GachaRecord> records)
+        {
+            var card = CreateAnalyticsCard("星级构成", out var content);
+            var groups = new[]
+            {
+                (Rank: 5, Label: "五星", Tint: AnalyticsGold),
+                (Rank: 4, Label: "四星", Tint: AnalyticsPurple),
+                (Rank: 3, Label: "三星及其他", Tint: AnalyticsBlue)
+            };
+            var counts = groups.Select(group => group.Rank == 3
+                ? records.Count(record => record.QualityLevel != 5 && record.QualityLevel != 4)
+                : records.Count(record => record.QualityLevel == group.Rank)).ToArray();
+            content.Children.Add(CreateShareBar(groups.Select((group, index) =>
+                (counts[index], group.Tint, $"{group.Label}：{counts[index]} 抽")).ToArray()));
+            for (int i = 0; i < groups.Length; i++)
+            {
+                double percentage = records.Count > 0 ? counts[i] * 100.0 / records.Count : 0;
+                var row = CreateAnalyticsLabelRow(groups[i].Label, $"{counts[i]} · {percentage:F1}%");
+                row.Children.Insert(0, new Border
+                {
+                    Width = 3,
+                    Background = new SolidColorBrush(groups[i].Tint),
+                    HorizontalAlignment = HorizontalAlignment.Left,
+                    CornerRadius = new CornerRadius(2)
+                });
+                ((TextBlock)row.Children[1]).Margin = new Thickness(9, 0, 0, 0);
+                content.Children.Add(row);
+            }
+            return card;
+        }
+
+        private Border CreateUpPerformanceCard(List<FiveStarDraw> fiveStars, GachaModel.CardPool pool)
+        {
+            int upCount = fiveStars.Count(draw => pool.IsFiveStarUp(draw.Record));
+            int offCount = fiveStars.Count - upCount;
+            var card = CreateAnalyticsCard("五星 UP 占比", out var content);
+            var percentage = CreateAnalyticsText(fiveStars.Count > 0 ? $"{upCount * 100.0 / fiveStars.Count:F1}%" : "暂无五星", 28);
+            percentage.FontWeight = FontWeights.Bold;
+            content.Children.Add(percentage);
+            content.Children.Add(CreateShareBar(
+                (upCount, AnalyticsGold, $"UP 五星：{upCount} 个"),
+                (offCount, AnalyticsMutedPurple, $"歪了：{offCount} 个")));
+            content.Children.Add(CreateAnalyticsLabelRow("UP / 歪了", $"{upCount} / {offCount}"));
+            int completedDraws = 0;
+            int drawsSinceUp = 0;
+            foreach (var draw in fiveStars)
+            {
+                drawsSinceUp += draw.Draws;
+                if (pool.IsFiveStarUp(draw.Record))
+                {
+                    completedDraws += drawsSinceUp;
+                    drawsSinceUp = 0;
+                }
+            }
+            content.Children.Add(CreateAnalyticsLabelRow("UP 用抽", $"{completedDraws} 抽"));
+            return card;
+        }
+
+
+
+        private Border CreateFiveStarTrendCard(List<FiveStarDraw> fiveStars, GachaModel.CardPool pool)
+        {
+            var card = CreateAnalyticsCard("最近 8 次出金", out var content);
+            var recent = fiveStars.TakeLast(8).Reverse().ToList();
+            if (recent.Count == 0)
+            {
+                content.Children.Add(CreateAnalyticsText("暂无记录", 12, 0.65));
+                return card;
+            }
+
+            int scale = Math.Max(1, Math.Max(pool?.HasFiveStarPity == true ? pool.FiveStarPity.Value : 0, recent.Max(draw => draw.Draws)));
+            var chart = new Grid { ColumnSpacing = 5 };
+            bool supportsUp = pool?.HasFiveStarUp == true;
+            const double plotHeight = 76;
+            const double markerSpace = 12;
+            for (int i = 0; i < recent.Count; i++)
+            {
+                var draw = recent[i];
+                chart.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                var column = new StackPanel { Spacing = 5, MaxWidth = 28, HorizontalAlignment = HorizontalAlignment.Center };
+                var count = CreateAnalyticsText(draw.Draws.ToString(), 10);
+                count.HorizontalAlignment = HorizontalAlignment.Center;
+                column.Children.Add(count);
+                double barHeight = Math.Max(3, draw.Draws * plotHeight / scale);
+                var plot = new Grid { Width = 10, Height = plotHeight + markerSpace, HorizontalAlignment = HorizontalAlignment.Center };
+                var background = CreateAnalyticsTrack(plotHeight);
+                background.VerticalAlignment = VerticalAlignment.Bottom;
+                background.Opacity = 0.7;
+                plot.Children.Add(background);
+                bool isLost = supportsUp && pool.IsFiveStarLost(draw.Record);
+                Color tint = isLost ? AnalyticsMutedPurple : AnalyticsGold;
+                plot.Children.Add(new Border
+                {
+                    Height = barHeight,
+                    Background = new LinearGradientBrush
+                    {
+                        StartPoint = new Windows.Foundation.Point(0, 1),
+                        EndPoint = new Windows.Foundation.Point(0, 0),
+                        GradientStops =
+                        {
+                            new GradientStop { Color = ColorHelper.FromArgb(140, tint.R, tint.G, tint.B), Offset = 0 },
+                            new GradientStop { Color = tint, Offset = 1 }
+                        }
+                    },
+                    VerticalAlignment = VerticalAlignment.Bottom,
+                    CornerRadius = new CornerRadius(4)
+                });
+                if (isLost)
+                {
+                    var lostMark = new Grid
+                    {
+                        Width = 8,
+                        Height = 8,
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        VerticalAlignment = VerticalAlignment.Top,
+                        Margin = new Thickness(0, plotHeight - barHeight, 0, 0),
+                        IsHitTestVisible = false
+                    };
+                    var stroke = new SolidColorBrush(AnalyticsMutedPurple);
+                    lostMark.Children.Add(new Microsoft.UI.Xaml.Shapes.Line
+                    {
+                        X1 = 1, Y1 = 1, X2 = 7, Y2 = 7,
+                        Stroke = stroke, StrokeThickness = 1.5
+                    });
+                    lostMark.Children.Add(new Microsoft.UI.Xaml.Shapes.Line
+                    {
+                        X1 = 7, Y1 = 1, X2 = 1, Y2 = 7,
+                        Stroke = stroke, StrokeThickness = 1.5
+                    });
+                    plot.Children.Add(lostMark);
+                }
+                column.Children.Add(plot);
+                if (i == 0)
+                {
+                    var latestLabel = CreateAnalyticsText("最新", 10, 0.65);
+                    latestLabel.HorizontalAlignment = HorizontalAlignment.Center;
+                    column.Children.Add(latestLabel);
+                }
+                ToolTipService.SetToolTip(column, $"{draw.Record.Name} · {draw.Draws} 抽\n{draw.Record.Time}");
+                Grid.SetColumn(column, i);
+                chart.Children.Add(column);
+            }
+            content.Children.Add(chart);
+            if (supportsUp)
+            {
+                var legend = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 12 };
+                foreach (var item in new[] { (Label: "UP", Tint: AnalyticsGold), (Label: "歪了", Tint: AnalyticsMutedPurple) })
+                {
+                    var entry = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 5 };
+                    entry.Children.Add(new Border
+                    {
+                        Width = 6,
+                        Height = 6,
+                        CornerRadius = new CornerRadius(3),
+                        Background = new SolidColorBrush(item.Tint),
+                        VerticalAlignment = VerticalAlignment.Center
+                    });
+                    entry.Children.Add(CreateAnalyticsText(item.Label, 11, 0.65));
+                    legend.Children.Add(entry);
+                }
+                content.Children.Add(legend);
+            }
+            content.Children.Add(CreateAnalyticsLabelRow("平均", $"{recent.Average(draw => draw.Draws):F2} 抽"));
+            return card;
+        }
+
+        private Border CreateDrawDistributionCard(List<int> intervals)
+        {
+            var card = CreateAnalyticsCard("出金抽数分布", out var content);
+            if (intervals.Count == 0)
+            {
+                content.Children.Add(CreateAnalyticsText("暂无记录", 12, 0.65));
+                return card;
+            }
+
+            var sorted = intervals.OrderBy(value => value).ToList();
+            double median = (sorted[(sorted.Count - 1) / 2] + (double)sorted[sorted.Count / 2]) / 2;
+            content.Children.Add(CreateAnalyticsLabelRow("最快 / 最慢", $"{sorted.First()} / {sorted.Last()} 抽"));
+            content.Children.Add(CreateAnalyticsLabelRow("中位抽数", $"{median:F1} 抽"));
+            var ranges = new[]
+            {
+                (Min: 1, Max: 20, Label: "1–20 抽", Tint: AnalyticsMint),
+                (Min: 21, Max: 40, Label: "21–40 抽", Tint: AnalyticsBlue),
+                (Min: 41, Max: 60, Label: "41–60 抽", Tint: AnalyticsPurple),
+                (Min: 61, Max: 80, Label: "61–80 抽", Tint: AnalyticsGold),
+                (Min: 81, Max: int.MaxValue, Label: "80 抽以上", Tint: AnalyticsRose)
+            };
+            foreach (var range in ranges)
+            {
+                int count = intervals.Count(value => value >= range.Min && value <= range.Max);
+                if (range.Min == 81 && count == 0)
+                {
+                    continue;
+                }
+                var row = new StackPanel { Spacing = 5 };
+                row.Children.Add(CreateAnalyticsLabelRow(range.Label, $"{count} 次 · {count * 100.0 / intervals.Count:F0}%"));
+                row.Children.Add(CreateShareBar((count, range.Tint, $"{count} 次"),
+                    (intervals.Count - count, Colors.Transparent, "其他区间")));
+                content.Children.Add(row);
+            }
+            return card;
+        }
+
+        private Border CreateMonthlyActivityCard(List<GachaModel.GachaRecord> records)
+        {
+            var dates = records.Select(GetRecordDate).Where(date => date.HasValue).Select(date => date.Value).ToList();
+            var card = CreateAnalyticsCard("近 6 个月抽卡量", out var content);
+            if (dates.Count == 0)
+            {
+                content.Children.Add(CreateAnalyticsText("暂无日期", 12, 0.65));
+                return card;
+            }
+
+            DateTime latest = dates.Max();
+            DateTime latestMonth = new DateTime(latest.Year, latest.Month, 1);
+            var months = Enumerable.Range(0, 6).Select(index => latestMonth.AddMonths(-index)).ToList();
+            var counts = months.Select(month => dates.Count(date => date.Year == month.Year && date.Month == month.Month)).ToList();
+            int maximum = Math.Max(1, counts.Max());
+            for (int i = 0; i < months.Count; i++)
+            {
+                var row = new StackPanel { Spacing = 5 };
+                row.Children.Add(CreateAnalyticsLabelRow(months[i].ToString("yyyy.MM"), $"{counts[i]} 抽"));
+                row.Children.Add(CreateShareBar((counts[i], AnalyticsBlue, $"{months[i]:yyyy.MM}：{counts[i]} 抽"),
+                    (maximum - counts[i], Colors.Transparent, "")));
+                content.Children.Add(row);
+            }
+            content.Children.Add(CreateAnalyticsLabelRow("六个月累计", $"{counts.Sum():N0} 抽"));
+            content.Children.Add(CreateAnalyticsText($"记录范围 {dates.Min():yyyy.MM.dd} — {latest:yyyy.MM.dd}", 11, 0.6));
+            if (dates.Count != records.Count)
+            {
+                content.Children.Add(CreateAnalyticsLabelRow("无效日期", $"{records.Count - dates.Count} 条"));
+            }
+            return card;
+        }
+
+
+
+        private async Task EnsureWuwaAssetsCacheAsync(bool forceRefresh = false)
+        {
+            if (!forceRefresh && _wuwaAssetsCache != null && DateTime.Now - _wuwaAssetsCacheLoadedAt < TimeSpan.FromHours(12))
             {
                 return;
             }
@@ -807,13 +1149,23 @@ namespace WaveTools.Views.GachaViews
                 Directory.CreateDirectory(cacheRoot);
                 string cacheFilePath = Path.Combine(cacheRoot, "wuwa-assets.json");
 
-                bool shouldRequestRemote = !File.Exists(cacheFilePath) || DateTime.Now - File.GetLastWriteTime(cacheFilePath) > TimeSpan.FromHours(12);
+                bool shouldRequestRemote = forceRefresh || !File.Exists(cacheFilePath) || DateTime.Now - File.GetLastWriteTime(cacheFilePath) > TimeSpan.FromHours(12);
 
                 if (shouldRequestRemote)
                 {
                     Logging.Write("Downloading wuwa assets index", 0);
                     string remoteJson = await _httpClient.GetStringAsync(WuwaAssetsApiUrl);
+                    var remoteCache = JsonConvert.DeserializeObject<WuwaAssetsCacheModel>(remoteJson);
+                    if (remoteCache == null ||
+                        ((remoteCache.role?.Count ?? 0) == 0 && (remoteCache.weapon?.Count ?? 0) == 0))
+                    {
+                        throw new InvalidDataException("资源索引中没有角色或武器数据。");
+                    }
+
                     await File.WriteAllTextAsync(cacheFilePath, remoteJson);
+                    _wuwaAssetsCache = remoteCache;
+                    _wuwaAssetsCacheLoadedAt = DateTime.Now;
+                    return;
                 }
 
                 string json = await File.ReadAllTextAsync(cacheFilePath);
@@ -917,17 +1269,15 @@ namespace WaveTools.Views.GachaViews
 
         private Border CreateDetailBorder(double? width = null)
         {
-            return new Border
-            {
-                Width = width ?? double.NaN,
-                Padding = new Thickness(14),
-                Margin = new Thickness(0, 0, 0, 10),
-                Background = (Brush)Application.Current.Resources["CardBackgroundFillColorDefaultBrush"],
-                BorderBrush = (Brush)Application.Current.Resources["CardStrokeColorDefaultBrush"],
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(10),
-                HorizontalAlignment = width.HasValue ? HorizontalAlignment.Left : HorizontalAlignment.Stretch
-            };
+            var border = (Border)XamlReader.Load(
+                "<Border xmlns=\"http://schemas.microsoft.com/winfx/2006/xaml/presentation\" " +
+                "Background=\"{ThemeResource CardBackgroundFillColorDefaultBrush}\" " +
+                "BorderBrush=\"{ThemeResource CardStrokeColorDefaultBrush}\" " +
+                "BorderThickness=\"1\" CornerRadius=\"12\" Padding=\"14\" Margin=\"0,0,0,10\"/>"
+            );
+            border.Width = width ?? DetailsPanelWidth;
+            border.HorizontalAlignment = HorizontalAlignment.Left;
+            return border;
         }
     }
 
@@ -990,32 +1340,28 @@ namespace WaveTools.Views.GachaViews
         public int priority { get; set; }
     }
 
+    internal static class GachaRarityColors
+    {
+        public static readonly Color FiveStar = ColorHelper.FromArgb(255, 211, 161, 75);
+        public static readonly Color FourStar = ColorHelper.FromArgb(255, 160, 132, 217);
+        public static readonly Color ThreeStar = ColorHelper.FromArgb(255, 103, 159, 213);
+
+        public static Color GetRecordBackground(int qualityLevel) => qualityLevel switch
+        {
+            5 => ColorHelper.FromArgb(255, 166, 125, 58),
+            4 => ColorHelper.FromArgb(255, 120, 98, 163),
+            3 => ColorHelper.FromArgb(255, 74, 113, 155),
+            _ => Colors.Transparent
+        };
+    }
+
     public class RankTypeToBackgroundColorConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {
-            var qualityLevel = value as int?;
-            SolidColorBrush brush;
-
-            switch (qualityLevel)
-            {
-                case 5:
-                    // Gold color: #FFE2AC58
-                    brush = new SolidColorBrush(ColorHelper.FromArgb(0xFF, 0xE2, 0xAC, 0x58));
-                    break;
-                case 4:
-                    // Purple color: #FF7242B3
-                    brush = new SolidColorBrush(ColorHelper.FromArgb(0xFF, 0x72, 0x42, 0xB3));
-                    break;
-                case 3:
-                    // Dark Blue color: #FF3F5992
-                    brush = new SolidColorBrush(ColorHelper.FromArgb(0xFF, 0x3F, 0x59, 0x92));
-                    break;
-                default:
-                    brush = new SolidColorBrush(Colors.Transparent);
-                    break;
-            }
-            return brush;
+            return new SolidColorBrush(value is int qualityLevel
+                ? GachaRarityColors.GetRecordBackground(qualityLevel)
+                : Colors.Transparent);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)

@@ -23,6 +23,7 @@ using Microsoft.UI.Xaml.Controls;
 using WaveTools.Views.ToolViews;
 using WaveTools.Views;
 using System;
+using WaveTools;
 
 namespace WaveTools.Depend
 {
@@ -37,6 +38,11 @@ namespace WaveTools.Depend
 
         public void Navigate(string tag)
         {
+            if (tag != "home")
+            {
+                App.MainWindow?.SetHomeBackgroundVideoMode(false);
+            }
+
             switch (tag)
             {
                 case "home":

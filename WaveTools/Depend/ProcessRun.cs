@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2021-2024, JamXi JSG-LLC.
+﻿// Copyright (c) 2021-2026, JamXi JSG-LLC.
 // All rights reserved.
 
 // This file is part of WaveTools.
@@ -21,7 +21,9 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Security.Principal;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.UI.Xaml.Controls;
 using WaveTools.Depend;
@@ -31,33 +33,76 @@ namespace WaveTools.Depend
 {
     class ProcessRun
     {
-        public static async Task<string> WaveToolsHelperAsync(string args)
+        [DllImport("kernel32.dll")]
+        private static extern uint GetOEMCP();
+
+        private static readonly UTF8Encoding StrictUtf8 = new UTF8Encoding(false, true);
+
+        private static async Task<string> ReadHelperOutputAsync(Stream stream)
         {
-            return await Task.Run(() =>
+            using (var buffer = new MemoryStream())
+            {
+                await stream.CopyToAsync(buffer);
+                byte[] bytes = buffer.ToArray();
+
+                try
+                {
+                    return StrictUtf8.GetString(bytes).TrimStart('\uFEFF');
+                }
+                catch (DecoderFallbackException)
+                {
+                    // Older .NET Framework helpers use the Windows OEM code page.
+                    Encoding encoding = CodePagesEncodingProvider.Instance.GetEncoding((int)GetOEMCP());
+                    if (encoding == null)
+                    {
+                        throw new InvalidOperationException("无法识别 WaveToolsHelper 的输出编码。");
+                    }
+                    return encoding.GetString(bytes);
+                }
+            }
+        }
+
+        public static async Task<string> WaveToolsHelperAsync(string args, bool throwOnFailure = false)
+        {
+            return await Task.Run(async () =>
             {
                 try
                 {
                     using (Process process = new Process())
                     {
                         process.StartInfo.UseShellExecute = false;
+                        process.StartInfo.CreateNoWindow = true;
+                        process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
                         process.StartInfo.RedirectStandardOutput = true;
-                        process.StartInfo.RedirectStandardError = true; // 捕获标准错误输出
+                        process.StartInfo.RedirectStandardError = true;
                         process.StartInfo.FileName = AppDataController.GetDataPath("Depends", "WaveToolsHelper", "WaveToolsHelper.exe");
                         process.StartInfo.Arguments = args;
+
+                        if (!string.IsNullOrWhiteSpace(AppDataController.DataRootPath))
+                        {
+                            process.StartInfo.EnvironmentVariables["WAVETOOLS_DATA_ROOT"] = AppDataController.DataRootPath;
+                        }
 
                         Logging.Write($"Starting process: {process.StartInfo.FileName} with arguments: {args}", 0, "WaveToolsHelper");
 
                         process.Start();
 
-                        // 同时读取标准输出和标准错误
-                        string output = process.StandardOutput.ReadToEnd();
-                        string error = process.StandardError.ReadToEnd();
-
-                        process.WaitForExit();
+                        Task<string> outputTask = ReadHelperOutputAsync(process.StandardOutput.BaseStream);
+                        Task<string> errorTask = ReadHelperOutputAsync(process.StandardError.BaseStream);
+                        await Task.WhenAll(outputTask, errorTask, process.WaitForExitAsync());
+                        string output = await outputTask;
+                        string error = await errorTask;
 
                         if (!string.IsNullOrEmpty(error))
                         {
                             Logging.Write($"Error: {error}", 3, "WaveToolsHelper");
+                        }
+
+                        if (throwOnFailure && process.ExitCode != 0)
+                        {
+                            throw new InvalidOperationException(string.IsNullOrWhiteSpace(error)
+                                ? $"WaveToolsHelper 执行失败（{process.ExitCode}）。"
+                                : error.Trim());
                         }
 
                         Logging.Write(output.Trim(), 3, "WaveToolsHelper");
@@ -118,7 +163,7 @@ namespace WaveTools.Depend
             Process.GetProcessById(processId).Kill();
         }
 
-        public async static Task RequestAdminAndRestart()
+        public static void RequestAdminAndRestart()
         {
             Logging.Write("Restart WaveTools Requested", 2);
             var processId = Process.GetCurrentProcess().Id;

@@ -1,12 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net7.0-windows10.0.22621.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <RootNamespace>WaveTools</RootNamespace>
     <Platforms>x64</Platforms>
-    <RuntimeIdentifiers>win10-x86;win10-x64;win10-arm64</RuntimeIdentifiers>
-    <PublishProfile>win10-$(Platform).pubxml</PublishProfile>
+	<RuntimeIdentifiers>win10-x86;win10-x64;win10-arm64</RuntimeIdentifiers>
+	<PublishProfile>win10-$(Platform).pubxml</PublishProfile>
     <UseWinUI>true</UseWinUI>
     <EnableMsixTooling>true</EnableMsixTooling>
 	<EnablePreviewMsixTooling>true</EnablePreviewMsixTooling>
@@ -18,7 +18,6 @@
 	<TieredPGO>true</TieredPGO>
 	<DebugType>portable</DebugType>
 	<WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
-	<PackageCertificateThumbprint>ABEBFF252D7B192BBC02067B3D690A4FB7B693A7</PackageCertificateThumbprint>
 	<AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
 	<GenerateAppInstallerFile>False</GenerateAppInstallerFile>
 	<AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
@@ -37,6 +36,7 @@
 	<IsPublishable>True</IsPublishable>
 	<StartupObject>WaveTools.Program</StartupObject>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	<PackageCertificateThumbprint>4E575601D787F196C121B6349017E5CB5925C69A</PackageCertificateThumbprint>
   </PropertyGroup>
   <ItemGroup>
     <Content Remove="Assets\BadgeLogo.scale-100.png" />
@@ -64,6 +64,7 @@
 	<PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
 	<PackageReference Include="Microsoft.WindowsAppSDK" Version="1.5.240428000" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.Drawing.Common" Version="7.0.0" />
 	<PackageReference Include="Spectre.Console" Version="0.47.0" />
 	<PackageReference Include="System.Management" Version="8.0.0" />
 	<PackageReference Include="Vanara.PInvoke.User32" Version="3.4.17" />
@@ -137,9 +138,6 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Imgs\Logo_Github.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Imgs\Logo_JSG-R.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <Page Update="Views\GachaViews\ScreenShotGacha.xaml">

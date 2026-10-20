@@ -23,7 +23,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System.Diagnostics;
-using Microsoft.UI.Xaml.Media.Animation;
 using WaveTools.Depend;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -36,8 +35,8 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using Microsoft.UI.Dispatching;
 using Windows.Foundation;
-using Windows.Media.Core;
 using System.Net;
+using Microsoft.UI.Xaml.Media.Animation;
 
 namespace WaveTools.Views
 {
@@ -117,11 +116,6 @@ namespace WaveTools.Views
 
             Logging.Write("MainView loaded", 0);
 
-            if (BackgroundMediaPlayer.MediaPlayer != null)
-            {
-                BackgroundMediaPlayer.MediaPlayer.MediaOpened += MediaPlayer_MediaOpened;
-            }
-
             if (isPreparingDataRootMove)
             {
                 await WaitForCachePreparationAsync();
@@ -136,6 +130,7 @@ namespace WaveTools.Views
             if (TryApplyHomeCache())
             {
                 Logging.Write("MainView home cache applied, skip network loading", 0);
+                App.MainWindow?.SetHomeBackgroundVideoMode(true);
                 return;
             }
 
@@ -170,6 +165,7 @@ namespace WaveTools.Views
 
                 loadRing.Visibility = Visibility.Collapsed;
                 loadErr.Visibility = Visibility.Collapsed;
+                App.MainWindow?.SetHomeBackgroundVideoMode(true);
 
                 Logging.Write("MainView home loaded and cached for current process", 0);
             }
@@ -238,18 +234,18 @@ namespace WaveTools.Views
 
             try
             {
-                BackgroundMediaPlayer.Source = MediaSource.CreateFromUri(new Uri(backgroundVideoPath));
-                BackgroundMediaPlayer.MediaPlayer.IsLoopingEnabled = true;
-                Logging.Write($"Background video source set from cache: {backgroundVideoPath}", 0);
+                App.MainWindow?.ShowHomeBackgroundVideo(backgroundVideoPath);
+                Logging.Write($"Home background video requested from cache: {backgroundVideoPath}", 0);
             }
             catch (Exception ex)
             {
-                Logging.Write("Error setting cached background video: " + ex.Message, 2);
+                Logging.Write("Error showing cached background video: " + ex.Message, 2);
             }
 
             try
             {
                 IconImageBrush.ImageSource = new BitmapImage(new Uri(sloganImagePath));
+                OpenUrlButton.Opacity = 1;
                 Logging.Write($"Slogan image source set from cache: {sloganImagePath}", 0);
             }
             catch (Exception ex)
@@ -458,8 +454,23 @@ namespace WaveTools.Views
 
             if (informationData?.guidance != null)
             {
+                await RefreshNotificationFilesAsync();
                 PopulateNotifications(informationData.guidance);
                 Logging.Write("Notifications populated and cached successfully.", 0);
+            }
+        }
+
+        private static async Task RefreshNotificationFilesAsync()
+        {
+            try
+            {
+                GetNotify getNotify = new GetNotify();
+                await getNotify.Get();
+                Logging.Write("Notification files refreshed successfully.", 0);
+            }
+            catch (Exception ex)
+            {
+                Logging.Write("Failed to refresh notification files: " + ex.Message, 2);
             }
         }
 
@@ -598,49 +609,6 @@ namespace WaveTools.Views
                 Logging.Write($"Failed to download file: {ex.Message}", 2);
                 throw;
             }
-        }
-
-        private void MediaPlayer_MediaOpened(Windows.Media.Playback.MediaPlayer sender, object args)
-        {
-            if (!CanTouchUi())
-            {
-                return;
-            }
-
-            dispatcherQueue.TryEnqueue(() =>
-            {
-                if (!CanTouchUi())
-                {
-                    return;
-                }
-
-                Logging.Write("Background media opened, starting fade animation.", 0);
-                StartFadeAnimation(BackgroundMediaPlayer, 0, 1, TimeSpan.FromSeconds(0.5));
-                StartFadeAnimation(OpenUrlButton, 0, 1, TimeSpan.FromSeconds(0.5));
-            });
-        }
-
-        private void StartFadeAnimation(FrameworkElement target, double from, double to, TimeSpan duration)
-        {
-            if (!CanTouchUi())
-            {
-                return;
-            }
-
-            DoubleAnimation opacityAnimation = new DoubleAnimation
-            {
-                From = from,
-                To = to,
-                Duration = duration,
-                EnableDependentAnimation = true
-            };
-
-            Storyboard.SetTarget(opacityAnimation, target);
-            Storyboard.SetTargetProperty(opacityAnimation, "Opacity");
-
-            Storyboard storyboard = new Storyboard();
-            storyboard.Children.Add(opacityAnimation);
-            storyboard.Begin();
         }
 
         private void Notify_NavView_SelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args)
@@ -782,18 +750,11 @@ namespace WaveTools.Views
 
                 try
                 {
-                    if (BackgroundMediaPlayer.MediaPlayer != null)
-                    {
-                        BackgroundMediaPlayer.MediaPlayer.MediaOpened -= MediaPlayer_MediaOpened;
-                        BackgroundMediaPlayer.MediaPlayer.Pause();
-                    }
-
-                    BackgroundMediaPlayer.AutoPlay = false;
-                    BackgroundMediaPlayer.Source = null;
+                    App.MainWindow?.ReleaseHomeBackgroundVideo();
                 }
                 catch (Exception ex)
                 {
-                    Logging.Write($"Release background media failed: {ex.Message}", 1);
+                    Logging.Write($"Release home background video failed: {ex.Message}", 1);
                 }
 
                 try
@@ -834,6 +795,14 @@ namespace WaveTools.Views
         {
             isPageUnloaded = true;
 
+            try
+            {
+                App.MainWindow?.SetHomeBackgroundVideoMode(false);
+            }
+            catch (Exception ex)
+            {
+                Logging.Write($"Hide home background video failed: {ex.Message}", 1);
+            }
 
             if (dispatcherTimer_Game != null)
             {
@@ -847,11 +816,6 @@ namespace WaveTools.Views
                 dispatcherTimer_Launcher.Stop();
                 dispatcherTimer_Launcher.Tick -= CheckProcess_Launcher;
                 dispatcherTimer_Launcher = null;
-            }
-
-            if (BackgroundMediaPlayer.MediaPlayer != null)
-            {
-                BackgroundMediaPlayer.MediaPlayer.MediaOpened -= MediaPlayer_MediaOpened;
             }
         }
     }

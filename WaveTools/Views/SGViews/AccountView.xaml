@@ -7,7 +7,7 @@
     mc:Ignorable="d">
 
     <Grid>
-        <Grid Margin="2">
+        <Grid Margin="0">
             <StackPanel Orientation="Vertical">
                 <StackPanel Orientation="Horizontal">
                     <Button x:Name="saveAccount" Content="覆盖保存账号" Click="SaveAccount_Override" IsEnabled="False"/>
@@ -18,8 +18,8 @@
                     <Button x:Name="renameAccount" Content="重命名账号" Margin="8 0 0 0" Click="RenameAccount" IsEnabled="False"/>
 
                 </StackPanel>
-                <TextBlock Text="账号列表" Margin="0 8 0 8"/>
-                <ListView x:Name="AccountListView" SelectionChanged="AccountListView_SelectionChanged" Height="240">
+                <TextBlock Text="账号列表" Margin="0 12 0 4"/>
+                <ListView x:Name="AccountListView" SelectionChanged="AccountListView_SelectionChanged" Height="280" Margin="-12,0,0,0">
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal">

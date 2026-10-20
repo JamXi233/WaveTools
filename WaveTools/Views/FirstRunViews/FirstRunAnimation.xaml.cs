@@ -22,7 +22,6 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media;
 using WaveTools.Depend;
-using WaveTools.Depend;
 
 namespace WaveTools.Views.FirstRunViews
 {
@@ -33,21 +32,7 @@ namespace WaveTools.Views.FirstRunViews
         {
             this.InitializeComponent();
             Logging.Write("Switch to FirstRunAnimation", 0);
-            StartMergeData();
         }
-
-        private void StartMergeData()
-        {
-            Frame parentFrame = GetParentFrame(this);
-            AppDataController appDataController = new AppDataController();
-            if (appDataController.CheckOldData() == 1)
-            {
-                FirstRunAnimation_Status.Text = "正在合并旧版本配置文件...";
-                AppDataController.SetFirstRun(0);
-                FirstRunAnimation_Status.Text = "合并完成";
-            }
-        }
-
 
         private Frame GetParentFrame(FrameworkElement child)
         {

@@ -20,6 +20,7 @@
 
 using Spectre.Console;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
@@ -33,21 +34,100 @@ namespace WaveTools.Depend
         private static string LogFolderPath => AppDataController.GetDataPath("Logs");
         private static readonly string LogFileName = $"WaveTools_Log_{DateTime.Now:yyyyMMdd_HHmmss}.log";
         private static string LogFilePath => Path.Combine(LogFolderPath, LogFileName);
+        private static bool isLogInitialized;
+        private static readonly object ConsoleBacklogLock = new object();
+        private static readonly Queue<(string MarkupText, string Info)> ConsoleBacklog = new Queue<(string, string)>();
+        private const int MaxConsoleBacklog = 1000;
 
-        static Logging()
+        private static bool EnsureLogReady()
         {
+            if (isLogInitialized)
+            {
+                return true;
+            }
+
+            if (!AppDataController.IsDataRootReadyForLogging())
+            {
+                return false;
+            }
+
             try
             {
                 Directory.CreateDirectory(LogFolderPath);
                 File.Create(LogFilePath).Close();
-                string computerInfo = GetComputerInfo();
+                isLogInitialized = true;
                 Write("Start Logging...");
-                Write(computerInfo);
-                Console.Clear();
+                Write(GetComputerInfo());
+                return true;
             }
             catch (Exception ex)
             {
-                AnsiConsole.Write(new Markup("[bold Red][[ERROR]][/] 初始化日志失败: " + ex.Message));
+                WriteConsoleError("初始化日志失败: " + ex.Message);
+                return false;
+            }
+        }
+
+        private static void WriteToConsoleOrBacklog(string markupText, string info)
+        {
+            if (TerminalMode.ConsoleStatus())
+            {
+                WriteConsoleItem(markupText, info);
+                return;
+            }
+
+            lock (ConsoleBacklogLock)
+            {
+                ConsoleBacklog.Enqueue((markupText, info));
+
+                while (ConsoleBacklog.Count > MaxConsoleBacklog)
+                {
+                    ConsoleBacklog.Dequeue();
+                }
+            }
+        }
+
+        private static void WriteConsoleItem(string markupText, string info)
+        {
+            try
+            {
+                AnsiConsole.Write(new Markup(markupText));
+                Console.WriteLine(info);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("写入控制台失败: " + ex.Message);
+            }
+        }
+
+        private static void WriteConsoleError(string info)
+        {
+            if (TerminalMode.ConsoleStatus())
+            {
+                WriteConsoleItem("[bold Red][[ERROR]][/]", info);
+                return;
+            }
+
+            Debug.WriteLine(info);
+        }
+
+        public static void FlushConsoleBacklog()
+        {
+            if (!TerminalMode.ConsoleStatus())
+            {
+                return;
+            }
+
+            List<(string MarkupText, string Info)> items;
+
+            lock (ConsoleBacklogLock)
+            {
+                items = new List<(string MarkupText, string Info)>(ConsoleBacklog);
+                ConsoleBacklog.Clear();
+            }
+
+            foreach (var item in items)
+            {
+                WriteConsoleItem(item.MarkupText, item.Info);
             }
         }
 
@@ -142,10 +222,10 @@ namespace WaveTools.Depend
             {
                 var threadId = Thread.CurrentThread.ManagedThreadId;
                 var stackTrace = new StackTrace();
-                var stackFrame = stackTrace.GetFrame(1); // 获取当前调用的堆栈帧
+                var stackFrame = stackTrace.GetFrame(1);
                 var methodBase = stackFrame.GetMethod();
                 var methodName = methodBase.Name;
-                var className = methodBase.DeclaringType?.FullName; // 获取类名
+                var className = methodBase.DeclaringType?.FullName;
                 var memoryAddress = stackFrame.GetNativeOffset();
 
                 string logMessage = $"[{DateTime.Now:F}][{threadId}][{className}.{methodName}][{memoryAddress}]: {info}";
@@ -170,13 +250,15 @@ namespace WaveTools.Depend
                         break;
                 }
 
-                AnsiConsole.Write(new Markup(markupText));
-                Console.WriteLine(info); // 输出完整的日志消息
-                File.AppendAllText(LogFilePath, logMessage + Environment.NewLine);
+                WriteToConsoleOrBacklog(markupText, info);
+                if (EnsureLogReady())
+                {
+                    File.AppendAllText(LogFilePath, logMessage + Environment.NewLine);
+                }
             }
             catch (Exception ex)
             {
-                AnsiConsole.Write(new Markup("[bold Red][[ERROR]][/] 写入日志失败: " + ex.Message));
+                WriteConsoleError("写入日志失败: " + ex.Message);
             }
         }
 
@@ -204,7 +286,6 @@ namespace WaveTools.Depend
                         markupText = $"[bold White][[Notification]][/][[{title}]]";
                         break;
                 }
-                AnsiConsole.Write(new Markup(markupText));
                 if (info != null)
                 {
                     if (info.Contains("\n"))
@@ -213,14 +294,17 @@ namespace WaveTools.Depend
                     }
                 }
 
-                Console.WriteLine(info);
+                WriteToConsoleOrBacklog(markupText, info);
                 logMessage += info;
 
-                File.AppendAllText(LogFilePath, logMessage + Environment.NewLine);
+                if (EnsureLogReady())
+                {
+                    File.AppendAllText(LogFilePath, logMessage + Environment.NewLine);
+                }
             }
             catch (Exception ex)
             {
-                AnsiConsole.Write(new Markup("[bold Red][[ERROR]][/] 写入日志失败: " + ex.Message));
+                WriteConsoleError("写入日志失败: " + ex.Message);
             }
         }
 
@@ -236,15 +320,17 @@ namespace WaveTools.Depend
                 var memoryAddress = stackFrame.GetNativeOffset();
                 string logMessage = $"[{DateTime.Now:F}][{threadId}][{methodBase}][{methodName}][{memoryAddress}]:";
 
-                AnsiConsole.Write(new Markup($"[bold White][[INFO]][/][bold Yellow][[{run}]][/]"));
-                Console.WriteLine(info);
+                WriteToConsoleOrBacklog($"[bold White][[INFO]][/][bold Yellow][[{run}]][/]", info);
                 logMessage += info;
 
-                File.AppendAllText(LogFilePath, logMessage + Environment.NewLine);
+                if (EnsureLogReady())
+                {
+                    File.AppendAllText(LogFilePath, logMessage + Environment.NewLine);
+                }
             }
             catch (Exception ex)
             {
-                AnsiConsole.Write(new Markup("[bold Red][[ERROR]][/] 写入日志失败: " + ex.Message));
+                WriteConsoleError("写入日志失败: " + ex.Message);
             }
         }
     }

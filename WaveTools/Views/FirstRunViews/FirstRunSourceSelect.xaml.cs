@@ -32,17 +32,22 @@ namespace WaveTools.Views.FirstRunViews
             this.InitializeComponent();
             Logging.Write("Switch to FirstRunSourceSelect", 0);
             AppDataController.SetFirstRunStatus(4);
+            Loaded += FirstRunSourceSelect_Loaded;
         }
 
-        //选择下载渠道开始
-        private void DSerivceChooseFinish()
-        {;
-            Frame parentFrame = GetParentFrame(this);
-            if (parentFrame != null)
+        private void FirstRunSourceSelect_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (AppDataController.HasUpdateServiceSetting())
             {
-                // 前往下载依赖页面
-                parentFrame.Navigate(typeof(FirstRunGetDepend));
+                Frame parentFrame = GetParentFrame(this);
+                FirstRunNavigation.NavigateToNextRequiredPage(parentFrame);
             }
+        }
+
+        private void DSerivceChooseFinish()
+        {
+            Frame parentFrame = GetParentFrame(this);
+            FirstRunNavigation.NavigateToNextRequiredPage(parentFrame);
         }
 
         private void DService_Github_Choose(object sender, RoutedEventArgs e)

@@ -25,7 +25,6 @@ using Windows.Storage;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using WaveTools.Depend;
 using System.IO;
 
 namespace WaveTools.Views.NotifyViews

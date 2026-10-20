@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2021-2024, JamXi JSG-LLC.
+// Copyright (c) 2021-2024, JamXi JSG-LLC.
 // All rights reserved.
 
 // This file is part of WaveTools.
@@ -46,7 +46,6 @@ namespace WaveTools
         [DllImport("User32.dll")]
         public static extern short GetAsyncKeyState(int vKey);
 
-        private readonly GetNotify getNotify = new GetNotify();
         private Window m_window;
 
         public static bool IsRequireReboot { get; set; } = false;
@@ -57,6 +56,7 @@ namespace WaveTools
         {
             InitializeComponent();
             InitAppData();
+            AppDataController.SetCurrentAppVersionAsLastRunIfFirstRunCompleted();
             Init();
             SetupTheme();
             InitAdminMode();
@@ -77,11 +77,6 @@ namespace WaveTools
 
         private void InitAppData()
         {
-            if (AppDataController.GetFirstRun() == -1)
-            {
-                AppDataController appDataController = new AppDataController();
-                appDataController.FirstRunInit();
-            }
         }
 
         private void InitAdminMode()
@@ -119,6 +114,11 @@ namespace WaveTools
             }
         }
 
+        public static void SetCurrentTheme(ApplicationTheme theme)
+        {
+            CurrentTheme = theme;
+        }
+
         public async Task InitTerminalModeAsync(int mode)
         {
             TerminalMode.ShowConsole();
@@ -138,8 +138,6 @@ namespace WaveTools
 
             Console.OutputEncoding = Encoding.UTF8;
             Console.InputEncoding = Encoding.UTF8;
-            Console.SetWindowSize(60, 25);
-            Console.SetBufferSize(60, 25);
 
             TerminalMode.HideConsole();
 

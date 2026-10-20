@@ -21,18 +21,21 @@
 using Microsoft.UI.Xaml;
 using Spectre.Console;
 using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading.Tasks;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using System.IO;
-using WaveTools.Depend;
 
 namespace WaveTools.Depend
 {
     internal class TerminalMode
     {
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool AllocConsole();
 
         [DllImport("kernel32.dll")]
         private static extern IntPtr GetConsoleWindow();
@@ -54,9 +57,18 @@ namespace WaveTools.Depend
         public static void ShowConsole()
         {
             IntPtr handle = GetConsoleWindow();
+            if (handle == IntPtr.Zero)
+            {
+                AllocConsole();
+                Console.OutputEncoding = Encoding.UTF8;
+                Console.InputEncoding = Encoding.UTF8;
+                handle = GetConsoleWindow();
+            }
+
             if (handle != IntPtr.Zero)
             {
                 ShowWindow(handle, SW_SHOW);
+                Logging.FlushConsoleBacklog();
             }
         }
 
@@ -83,10 +95,8 @@ namespace WaveTools.Depend
 
         public async Task<bool> Init(int Mode = 0, int SafeMode = 0, String PanicMessage = "Null", String OtherMessage = null)
         {
-            var currentProcess = Process.GetCurrentProcess();
-            var hWnd = currentProcess.MainWindowHandle;
+            ShowConsole();
             Console.Title = "WaveTools 𝑻𝒆𝒓𝒎𝒊𝒏𝒂𝒍";
-            Console.Clear();
             if (SafeMode == 0)
             {
                 if (Mode == 1)
@@ -149,7 +159,6 @@ namespace WaveTools.Depend
             else
             {
                 Console.Title = "WaveTools SafeMode";
-                Console.Clear();
                 Logging.Write("[red]错误问题：[/]" + PanicMessage, 2);
                 Logging.Write("其他信息：" + OtherMessage, 2);
                 var list = new[] { "[red]清空所有配置文件[/]", "[bold red]退出WaveTools[/]" };
@@ -228,41 +237,37 @@ namespace WaveTools.Depend
 
         public async Task ClearLocalDataAsync(String Close)
         {
-            // 获取 LocalData 文件夹的引用
-            var localFolder = ApplicationData.Current.LocalFolder;
+            if (CommonHelpers.AppVersionHelper.IsPackaged())
+            {
+                var applicationData = ApplicationData.Current;
+                await DeleteFilesAndSubfoldersAsync(applicationData.LocalFolder);
+                await applicationData.ClearAsync(ApplicationDataLocality.Local);
+            }
 
-            // 删除 LocalData 文件夹中的所有子文件夹和文件
-            await DeleteFilesAndSubfoldersAsync(localFolder, Close);
+            AppDataController.ResetCache();
 
-            // 需要重新创建删除的 LocalData 文件夹
-            await ApplicationData.Current.ClearAsync(ApplicationDataLocality.Local);
+            if (Close == "1")
+            {
+                Application.Current.Exit();
+            }
         }
 
-        private async Task DeleteFilesAndSubfoldersAsync(StorageFolder folder, String Close)
+        private async Task DeleteFilesAndSubfoldersAsync(StorageFolder folder)
         {
-            // 获取文件夹中的所有文件和子文件夹
             var items = await folder.GetItemsAsync();
 
-            // 遍历所有项目
             foreach (var item in items)
             {
-                // 如果项目是文件，则删除它
                 if (item is StorageFile file)
                 {
                     await file.DeleteAsync();
                 }
-                // 如果项目是文件夹，则递归删除其中所有文件和子文件夹
                 else if (item is StorageFolder subfolder)
                 {
-                    await DeleteFilesAndSubfoldersAsync(subfolder, Close);
+                    await DeleteFilesAndSubfoldersAsync(subfolder);
 
-                    // 删除子文件夹本身
                     await subfolder.DeleteAsync();
                 }
-            }
-            if (Close == "1")
-            {
-                Application.Current.Exit();
             }
         }
     }

@@ -18,19 +18,23 @@ namespace WaveTools.Views.FirstRunViews
         {
             InitializeComponent();
             Logging.Write("Switch to FirstRunInit", 0);
-            AppDataController.SetFirstRunStatus(1);
             CustomPathText.Text = "未选择目录";
         }
 
         private void UseDefaultLocation_Click(object sender, RoutedEventArgs e)
         {
-            if (!AppDataController.UseDefaultDataRoot(true, out string errorMessage))
+            bool hasExistingWaveToolsData = AppDataController.HasExistingWaveToolsData(AppDataController.DefaultDataRootPath, false);
+
+            if (!AppDataController.UseDefaultDataRoot(!hasExistingWaveToolsData, out string errorMessage))
             {
                 ShowError(errorMessage);
                 return;
             }
 
-            GoToRestorePage();
+            bool hasReusableFirstRunData = HasReusableFirstRunData(hasExistingWaveToolsData);
+
+            PrepareSelectedDataRoot();
+            GoToNextPage(hasReusableFirstRunData);
         }
 
         private async void UseCustomLocation_Click(object sender, RoutedEventArgs e)
@@ -41,14 +45,20 @@ namespace WaveTools.Views.FirstRunViews
                 return;
             }
 
-            if (!AppDataController.UseCustomDataRoot(folderPath, true, out string errorMessage))
+            bool acceptAnySettingsFile = !AppDataController.IsCurrentDataRoot(folderPath);
+            bool hasExistingWaveToolsData = AppDataController.HasExistingWaveToolsData(folderPath, acceptAnySettingsFile);
+
+            if (!AppDataController.UseCustomDataRoot(folderPath, !hasExistingWaveToolsData, out string errorMessage))
             {
                 ShowError(errorMessage);
                 return;
             }
 
             CustomPathText.Text = folderPath;
-            GoToRestorePage();
+            bool hasReusableFirstRunData = HasReusableFirstRunData(hasExistingWaveToolsData);
+
+            PrepareSelectedDataRoot();
+            GoToNextPage(hasReusableFirstRunData);
         }
 
         private async Task<string> PickFolderAsync()
@@ -77,6 +87,31 @@ namespace WaveTools.Views.FirstRunViews
             return folder?.Path;
         }
 
+        private void PrepareSelectedDataRoot()
+        {
+            AppDataController appDataController = new AppDataController();
+            appDataController.FirstRunInit();
+        }
+
+        private bool HasReusableFirstRunData(bool hasExistingWaveToolsData)
+        {
+            return hasExistingWaveToolsData ||
+                   AppDataController.HasThemeSetting() ||
+                   AppDataController.HasUpdateServiceSetting() ||
+                   AppDataController.HasWaveToolsHelper();
+        }
+
+        private void GoToNextPage(bool hasExistingWaveToolsData)
+        {
+            if (hasExistingWaveToolsData)
+            {
+                GoToNextRequiredPage();
+                return;
+            }
+
+            GoToRestorePage();
+        }
+
         private void GoToRestorePage()
         {
             AppDataController.SetFirstRunStatus(2);
@@ -86,6 +121,14 @@ namespace WaveTools.Views.FirstRunViews
             {
                 parentFrame.Navigate(typeof(FirstRunRestore));
             }
+        }
+
+        private void GoToNextRequiredPage()
+        {
+            AppDataController.SetFirstRun(1);
+
+            Frame parentFrame = GetParentFrame(this);
+            FirstRunNavigation.NavigateToNextRequiredPage(parentFrame);
         }
 
         private void ShowError(string message)

@@ -1,445 +1,226 @@
-﻿<Page
+<Page
     x:Class="WaveTools.Views.SGViews.GraphicSettingView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
-
+    <Page.Resources>
+        <Style x:Key="SettingLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="15"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,8,8,4"/>
+        </Style>
+        <Style x:Key="SettingButtonStyle" TargetType="DropDownButton">
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,8,8,4"/>
+        </Style>
+    </Page.Resources>
     <Grid>
-        <ScrollViewer x:Name="DDB_Main" Visibility="Collapsed">
-            <StackPanel Orientation="Vertical">
-
-                <!-- FPS Setting -->
-                <Grid VerticalAlignment="Center">
+        <ScrollViewer x:Name="DDB_Main" Visibility="Collapsed" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel>
+                <Grid x:Name="DDB_FPS_Row">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Text="帧率(可能不起作用)" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_FPS" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
-                        <DropDownButton.Flyout>
-                            <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="CustomFrameRate" Text="30" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="CustomFrameRate" Text="45" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="CustomFrameRate" Text="60" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="CustomFrameRate" Text="120" Click="ChangeGraphic"/>
-                            </MenuFlyout>
-                        </DropDownButton.Flyout>
-                    </DropDownButton>
+                    <TextBlock Text="最高帧率" Style="{StaticResource SettingLabelStyle}"/>
+                    <DropDownButton x:Name="DDB_FPS" Grid.Column="1" Style="{StaticResource SettingButtonStyle}"/>
                 </Grid>
-
-                <!-- VSync Setting -->
-                <Grid>
+                <Grid x:Name="DDB_EnableVSync_Row">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Text="垂直同步" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_EnableVSync" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
-                        <DropDownButton.Flyout>
-                            <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="PcVsync" Text="开启" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="PcVsync" Text="关闭" Click="ChangeGraphic"/>
-                            </MenuFlyout>
-                        </DropDownButton.Flyout>
-                    </DropDownButton>
+                    <TextBlock Text="垂直同步" Style="{StaticResource SettingLabelStyle}"/>
+                    <DropDownButton x:Name="DDB_EnableVSync" Grid.Column="1" Style="{StaticResource SettingButtonStyle}"/>
                 </Grid>
-
-                <!-- VSync Setting -->
-                <Grid>
+                <Grid x:Name="DDB_EnableAA_Row">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Text="抗锯齿" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_EnableAA" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
-                        <DropDownButton.Flyout>
-                            <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="AntiAliasing" Text="开启" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="AntiAliasing" Text="关闭" Click="ChangeGraphic"/>
-                            </MenuFlyout>
-                        </DropDownButton.Flyout>
-                    </DropDownButton>
+                    <TextBlock Text="抗锯齿" Style="{StaticResource SettingLabelStyle}"/>
+                    <DropDownButton x:Name="DDB_EnableAA" Grid.Column="1" Style="{StaticResource SettingButtonStyle}"/>
                 </Grid>
-
-                <!-- Shadow Quality Setting -->
-                <Grid>
+                <Grid x:Name="DDB_ShadowQuality_Row">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Text="阴影质量" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_ShadowQuality" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
-                        <DropDownButton.Flyout>
-                            <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="ShadowQuality" Text="低" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="ShadowQuality" Text="中" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="ShadowQuality" Text="高" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="ShadowQuality" Text="极高" Click="ChangeGraphic"/>
-                            </MenuFlyout>
-                        </DropDownButton.Flyout>
-                    </DropDownButton>
+                    <TextBlock Text="阴影质量" Style="{StaticResource SettingLabelStyle}"/>
+                    <DropDownButton x:Name="DDB_ShadowQuality" Grid.Column="1" Style="{StaticResource SettingButtonStyle}"/>
                 </Grid>
-
-                <!-- SFX Quality Setting -->
-                <Grid>
+                <Grid x:Name="DDB_SFXQuality_Row">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Text="特效质量" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_SFXQuality" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
-                        <DropDownButton.Flyout>
-                            <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="NiagaraQuality" Text="低" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NiagaraQuality" Text="高" Click="ChangeGraphic"/>
-                            </MenuFlyout>
-                        </DropDownButton.Flyout>
-                    </DropDownButton>
+                    <TextBlock Text="特效质量" Style="{StaticResource SettingLabelStyle}"/>
+                    <DropDownButton x:Name="DDB_SFXQuality" Grid.Column="1" Style="{StaticResource SettingButtonStyle}"/>
                 </Grid>
-
-                <!-- Env Detail Quality Setting -->
-                <Grid>
+                <Grid x:Name="DDB_EnvDetailQuality_Row">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Text="场景细节" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_EnvDetailQuality" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
-                        <DropDownButton.Flyout>
-                            <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="ImageDetail" Text="低" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="ImageDetail" Text="中" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="ImageDetail" Text="高" Click="ChangeGraphic"/>
-                            </MenuFlyout>
-                        </DropDownButton.Flyout>
-                    </DropDownButton>
+                    <TextBlock Text="画面细节" Style="{StaticResource SettingLabelStyle}"/>
+                    <DropDownButton x:Name="DDB_EnvDetailQuality" Grid.Column="1" Style="{StaticResource SettingButtonStyle}"/>
                 </Grid>
-
-                <!-- AO Setting -->
-                <Grid>
+                <Grid x:Name="DDB_AO_Row">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Text="AO" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_AO" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
-                        <DropDownButton.Flyout>
-                            <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="SceneAo" Text="关闭" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="SceneAo" Text="开启" Click="ChangeGraphic"/>
-                            </MenuFlyout>
-                        </DropDownButton.Flyout>
-                    </DropDownButton>
+                    <TextBlock Text="AO" Style="{StaticResource SettingLabelStyle}"/>
+                    <DropDownButton x:Name="DDB_AO" Grid.Column="1" Style="{StaticResource SettingButtonStyle}"/>
                 </Grid>
-
-                <!-- Volume Fog Setting -->
-                <Grid>
+                <Grid x:Name="DDB_VolumeFog_Row">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Text="体积雾" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_VolumeFog" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
-                        <DropDownButton.Flyout>
-                            <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="VolumeFog" Text="关闭" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="VolumeFog" Text="开启" Click="ChangeGraphic"/>
-                            </MenuFlyout>
-                        </DropDownButton.Flyout>
-                    </DropDownButton>
+                    <TextBlock Text="体积雾" Style="{StaticResource SettingLabelStyle}"/>
+                    <DropDownButton x:Name="DDB_VolumeFog" Grid.Column="1" Style="{StaticResource SettingButtonStyle}"/>
                 </Grid>
-
-                <!-- Volume Light Setting -->
-                <Grid>
+                <Grid x:Name="DDB_VolumeLight_Row">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Text="体积光" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_VolumeLight" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
-                        <DropDownButton.Flyout>
-                            <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="VolumeLight" Text="关闭" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="VolumeLight" Text="开启" Click="ChangeGraphic"/>
-                            </MenuFlyout>
-                        </DropDownButton.Flyout>
-                    </DropDownButton>
+                    <TextBlock Text="体积光" Style="{StaticResource SettingLabelStyle}"/>
+                    <DropDownButton x:Name="DDB_VolumeLight" Grid.Column="1" Style="{StaticResource SettingButtonStyle}"/>
                 </Grid>
-
-                <!-- Motion Blur Setting -->
-                <Grid>
+                <Grid x:Name="DDB_MotionBlur_Row">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Text="运动模糊" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_MotionBlur" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
-                        <DropDownButton.Flyout>
-                            <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="MotionBlur" Text="关闭" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="MotionBlur" Text="低" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="MotionBlur" Text="中" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="MotionBlur" Text="高" Click="ChangeGraphic"/>
-                            </MenuFlyout>
-                        </DropDownButton.Flyout>
-                    </DropDownButton>
+                    <TextBlock Text="运动模糊" Style="{StaticResource SettingLabelStyle}"/>
+                    <DropDownButton x:Name="DDB_MotionBlur" Grid.Column="1" Style="{StaticResource SettingButtonStyle}"/>
                 </Grid>
-
-                <!-- Bloom Setting -->
-                <Grid>
+                <Grid x:Name="DDB_BloomEnable_Row">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Text="Bloom" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_BloomEnable" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
-                        <DropDownButton.Flyout>
-                            <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="BloomEnable" Text="关闭" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="BloomEnable" Text="开启" Click="ChangeGraphic"/>
-                            </MenuFlyout>
-                        </DropDownButton.Flyout>
-                    </DropDownButton>
+                    <TextBlock Text="Bloom" Style="{StaticResource SettingLabelStyle}"/>
+                    <DropDownButton x:Name="DDB_BloomEnable" Grid.Column="1" Style="{StaticResource SettingButtonStyle}"/>
                 </Grid>
-
-                <!-- Npc Density Setting -->
-                <Grid>
+                <Grid x:Name="DDB_NpcDensity_Row">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Text="人群密度" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_NpcDensity" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
-                        <DropDownButton.Flyout>
-                            <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="NpcDensity" Text="低" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NpcDensity" Text="中" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NpcDensity" Text="高" Click="ChangeGraphic"/>
-                            </MenuFlyout>
-                        </DropDownButton.Flyout>
-                    </DropDownButton>
+                    <TextBlock Text="人群密度" Style="{StaticResource SettingLabelStyle}"/>
+                    <DropDownButton x:Name="DDB_NpcDensity" Grid.Column="1" Style="{StaticResource SettingButtonStyle}"/>
                 </Grid>
-
-                <!-- Enemy Hit Setting -->
-                <Grid>
+                <Grid x:Name="DDB_EnemyHitDisplayMode_Row">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Text="怪物受击材质效果" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_EnemyHitDisplayMode" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
-                        <DropDownButton.Flyout>
-                            <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="EnemyHitDisplayMode" Text="关闭" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="EnemyHitDisplayMode" Text="开启" Click="ChangeGraphic"/>
-                            </MenuFlyout>
-                        </DropDownButton.Flyout>
-                    </DropDownButton>
+                    <TextBlock Text="怪物受击材质效果" Style="{StaticResource SettingLabelStyle}"/>
+                    <DropDownButton x:Name="DDB_EnemyHitDisplayMode" Grid.Column="1" Style="{StaticResource SettingButtonStyle}"/>
                 </Grid>
-
-                <StackPanel Height="1" Background="{ThemeResource AppSeparatorBrush}" Width="128" HorizontalAlignment="Left" Margin="0 7 0 0"/>
-                
-                <!-- NVIDIA DLSS Setting -->
-                <Grid>
+                <Grid x:Name="DDB_AutoAdjust_Row">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Text="(DLSS)" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_DLSS" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
-                        <DropDownButton.Flyout>
-                            <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingEnable" Text="关闭" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingEnable" Text="开启" Click="ChangeGraphic"/>
-                            </MenuFlyout>
-                        </DropDownButton.Flyout>
-                    </DropDownButton>
+                    <TextBlock Text="自动调节" Style="{StaticResource SettingLabelStyle}"/>
+                    <DropDownButton x:Name="DDB_AutoAdjust" Grid.Column="1" Style="{StaticResource SettingButtonStyle}"/>
                 </Grid>
-
-                <!-- NVIDIA Super Resolution Setting -->
-                <Grid>
+                <StackPanel x:Name="NvidiaSettings">
+                    <Border Height="1" Background="{ThemeResource AppSeparatorBrush}" Width="128" HorizontalAlignment="Left" Margin="0,12,0,4"/>
+                    <Grid x:Name="DDB_DLSS_Row">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="NVIDIA DLSS" Style="{StaticResource SettingLabelStyle}"/>
+                        <DropDownButton x:Name="DDB_DLSS" Grid.Column="1" Style="{StaticResource SettingButtonStyle}"/>
+                    </Grid>
+                    <Grid x:Name="DDB_FrameGeneration_Row">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="插帧" Style="{StaticResource SettingLabelStyle}"/>
+                        <DropDownButton x:Name="DDB_FrameGeneration" Grid.Column="1" Style="{StaticResource SettingButtonStyle}"/>
+                    </Grid>
+                    <Grid x:Name="DDB_SuperResolution_Row">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="超级分辨率" Style="{StaticResource SettingLabelStyle}"/>
+                        <DropDownButton x:Name="DDB_SuperResolution" Grid.Column="1" Style="{StaticResource SettingButtonStyle}"/>
+                    </Grid>
+                    <Grid x:Name="DDB_Sharpness_Row">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="锐化" Style="{StaticResource SettingLabelStyle}"/>
+                        <DropDownButton x:Name="DDB_Sharpness" Grid.Column="1" Style="{StaticResource SettingButtonStyle}">
+                            <DropDownButton.Flyout>
+                                <Flyout Placement="Bottom">
+                                    <StackPanel Width="200" Spacing="8">
+                                        <Slider x:Name="SharpnessSlider" Minimum="-1" Maximum="1" StepFrequency="0.01"
+                                                ValueChanged="SharpnessSlider_ValueChanged"/>
+                                        <TextBlock x:Name="SharpnessValueText" Text="0" HorizontalAlignment="Center"/>
+                                        <Button Content="应用" Click="SharpnessApply_Click" HorizontalAlignment="Stretch"/>
+                                    </StackPanel>
+                                </Flyout>
+                            </DropDownButton.Flyout>
+                        </DropDownButton>
+                    </Grid>
+                    <Grid x:Name="DDB_NvidiaReflex_Row">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="NVIDIA Reflex" Style="{StaticResource SettingLabelStyle}"/>
+                        <DropDownButton x:Name="DDB_NvidiaReflex" Grid.Column="1" Style="{StaticResource SettingButtonStyle}"/>
+                    </Grid>
+                </StackPanel>
+                <StackPanel x:Name="XessSettings">
+                    <Border Height="1" Background="{ThemeResource AppSeparatorBrush}" Width="128" HorizontalAlignment="Left" Margin="0,12,0,4"/>
+                    <Grid x:Name="DDB_XessEnable_Row">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="Intel XeSS" Style="{StaticResource SettingLabelStyle}"/>
+                        <DropDownButton x:Name="DDB_XessEnable" Grid.Column="1" Style="{StaticResource SettingButtonStyle}"/>
+                    </Grid>
+                    <Grid x:Name="DDB_XessQuality_Row">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="XeSS 画面质量" Style="{StaticResource SettingLabelStyle}"/>
+                        <DropDownButton x:Name="DDB_XessQuality" Grid.Column="1" Style="{StaticResource SettingButtonStyle}"/>
+                    </Grid>
+                </StackPanel>
+                <Grid x:Name="DDB_RayTracing_Row" ToolTipService.ToolTip="下次启动游戏后生效">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Text="(DLSS)超级分辨率" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_SuperResolution" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
-                        <DropDownButton.Flyout>
-                            <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingMode" Text="关闭" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingMode" Text="自动" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingMode" Text="质量" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingMode" Text="平衡" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingMode" Text="性能" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaSuperSamplingMode" Text="超级性能" Click="ChangeGraphic"/>
-                            </MenuFlyout>
-                        </DropDownButton.Flyout>
-                    </DropDownButton>
+                    <TextBlock Text="光线追踪" Style="{StaticResource SettingLabelStyle}"/>
+                    <DropDownButton x:Name="DDB_RayTracing" Grid.Column="1" Style="{StaticResource SettingButtonStyle}"/>
                 </Grid>
-
-                <!-- NVIDIA Sharpness Setting -->
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Text="(DLSS)锐化" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_Sharpness" Content="Sharpness" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
-                        <DropDownButton.Flyout>
-                            <Flyout Placement="Bottom">
-                                <StackPanel Orientation="Vertical" Padding="10">
-                                    <TextBlock Text="Sharpness" Margin="0 0 0 10"/>
-                                    <Slider x:Name="SharpnessSlider" Minimum="-1.0" Maximum="1.0" StepFrequency="0.1" ValueChanged="SharpnessSlider_ValueChanged"/>
-                                    <TextBlock x:Name="SharpnessValueText" Text="0.0" Margin="0 10 0 0" HorizontalAlignment="Center"/>
-                                </StackPanel>
-                            </Flyout>
-                        </DropDownButton.Flyout>
-                    </DropDownButton>
-
-                </Grid>
-
-                <!-- NVIDIA Reflex Setting -->
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Text="(DLSS)Reflex" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_NvidiaReflex" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
-                        <DropDownButton.Flyout>
-                            <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="NvidiaReflex" Text="关闭" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaReflex" Text="开启" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="NvidiaReflex" Text="开启并加速" Click="ChangeGraphic"/>
-                            </MenuFlyout>
-                        </DropDownButton.Flyout>
-                    </DropDownButton>
-                </Grid>
-
-                <StackPanel Height="1" Background="{ThemeResource AppSeparatorBrush}" Width="128" HorizontalAlignment="Left" Margin="0 7 0 0"/>
-
-                <!-- Intel XeSS Setting -->
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Text="(XeSS)" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_XessEnable" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
-                        <DropDownButton.Flyout>
-                            <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="XessEnable" Text="关闭" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="XessEnable" Text="开启" Click="ChangeGraphic"/>
-                            </MenuFlyout>
-                        </DropDownButton.Flyout>
-                    </DropDownButton>
-                </Grid>
-
-                <!-- Intel Super Resolution Setting -->
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="Auto"/>
-                    </Grid.ColumnDefinitions>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Text="(XeSS)画面质量" FontSize="15" FontWeight="Bold" Margin="0 14 0 0"/>
-                    <DropDownButton x:Name="DDB_XessQuality" Content="" Grid.Column="1" HorizontalAlignment="Right" Margin="0 8 8 4">
-                        <DropDownButton.Flyout>
-                            <MenuFlyout Placement="Bottom">
-                                <MenuFlyoutItem Tag="XessQuality" Text="超级质量" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="XessQuality" Text="质量" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="XessQuality" Text="平衡" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="XessQuality" Text="性能" Click="ChangeGraphic"/>
-                                <MenuFlyoutItem Tag="XessQuality" Text="超级性能" Click="ChangeGraphic"/>
-                            </MenuFlyout>
-                        </DropDownButton.Flyout>
-                    </DropDownButton>
-                </Grid>
-
-
             </StackPanel>
         </ScrollViewer>
-
-        <Grid x:Name="DDB_Load" Background="Transparent" CornerRadius="8">
-            <ProgressRing/>
-        </Grid>
-
+        <ProgressRing x:Name="DDB_Load" Width="36" Height="36" IsActive="True"/>
+        <StackPanel x:Name="LoadError" Visibility="Collapsed" VerticalAlignment="Center" Spacing="12" Margin="8">
+            <TextBlock Text="读取画质设置失败" HorizontalAlignment="Center"/>
+            <Button Content="重试" Click="Retry_Click" HorizontalAlignment="Center"/>
+        </StackPanel>
     </Grid>
 </Page>

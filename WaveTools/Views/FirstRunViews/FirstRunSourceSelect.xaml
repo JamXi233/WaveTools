@@ -38,7 +38,7 @@
                     <StackPanel HorizontalAlignment="Center" Width="220">
                         <Button HorizontalAlignment="Left" Width="150" Click="DService_JSG_Choose">
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <Image Source="ms-appx:///Imgs/Logo_JSG-R.png" Width="32" Height="32"/>
+                                <Image Source="ms-appx:///Imgs/JSG_Logo.png" Width="32" Height="32"/>
                                 <StackPanel Orientation="Vertical" HorizontalAlignment="Left">
                                     <TextBlock Text="JSG-DS" FontWeight="SemiBold"/>
                                     <TextBlock Text="国内较快" Opacity="0.6"/>

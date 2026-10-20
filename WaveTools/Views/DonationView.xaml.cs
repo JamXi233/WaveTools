@@ -20,7 +20,6 @@
 
 using Microsoft.UI.Xaml.Controls;
 using WaveTools.Depend;
-using WaveTools.Depend;
 
 namespace WaveTools.Views
 {

@@ -1,4 +1,4 @@
-﻿// Copyright (c) 2021-2024, JamXi JSG-LLC.
+// Copyright (c) 2021-2024, JamXi JSG-LLC.
 // All rights reserved.
 
 // This file is part of WaveTools.
@@ -31,12 +31,13 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WaveTools.Depend;
-using WaveTools.Depend;
 using Windows.Foundation;
 using Windows.ApplicationModel;
+using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using WinRT.Interop;
@@ -74,7 +75,7 @@ namespace WaveTools.Views
             bool isDebug = Debugger.IsAttached || App.SDebugMode;
             debug_Mode.Visibility = isDebug ? Visibility.Visible : Visibility.Collapsed;
             debug_Message.Text = App.SDebugMode ? "您现在处于手动Debug模式" : "";
-            appVersion.Text = $"WaveTools {Package.Current.Id.Version.Major}.{Package.Current.Id.Version.Minor}.{Package.Current.Id.Version.Build}.{Package.Current.Id.Version.Revision}";
+            appVersion.Text = $"WaveTools {CommonHelpers.AppVersionHelper.GetAppVersion()}";
             Logging.Write($"App version: {appVersion.Text}", 0);
             GetVersionButton();
             CheckFont();
@@ -138,17 +139,26 @@ namespace WaveTools.Views
         private async void GetVersionButton()
         {
             Logging.Write("Getting version information", 0);
-            var response = await new HttpClient().GetAsync("https://api.jamsg.cn/version");
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var data = JsonConvert.DeserializeObject<dynamic>(await response.Content.ReadAsStringAsync());
-                apiVersion.Text = "ArrowAPI " + data.arrow_ver;
-                antiCatVersion.Text = "AntiCat " + data.anticat_ver;
-                Logging.Write($"API Version: {apiVersion.Text}, AntiCat Version: {antiCatVersion.Text}", 0);
+                var response = await new HttpClient().GetAsync("https://api.jamsg.cn/version");
+                if (response.IsSuccessStatusCode)
+                {
+                    var data = JsonConvert.DeserializeObject<dynamic>(await response.Content.ReadAsStringAsync());
+                    apiVersion.Text = "ArrowAPI " + data.arrow_ver;
+                    antiCatVersion.Text = "AntiCat " + data.anticat_ver;
+                    apiVersion.Visibility = Visibility.Visible;
+                    antiCatVersion.Visibility = Visibility.Visible;
+                    Logging.Write($"API Version: {apiVersion.Text}, AntiCat Version: {antiCatVersion.Text}", 0);
+                }
+                else
+                {
+                    Logging.Write("Failed to get version information", 1);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Logging.Write("Failed to get version information", 1);
+                Logging.Write("Failed to get version information: " + ex.Message, 1);
             }
         }
 
@@ -243,11 +253,16 @@ namespace WaveTools.Views
         public async Task ClearLocalDataAsync(bool close)
         {
             Logging.Write("Clearing local data", 0);
-            var localFolder = ApplicationData.Current.LocalFolder;
-            await DeleteFilesAndSubfoldersAsync(localFolder);
+            if (AppVersionHelper.IsPackaged())
+            {
+                var applicationData = ApplicationData.Current;
+                await DeleteFilesAndSubfoldersAsync(applicationData.LocalFolder);
 
-            // 清除应用的本地数据
-            await ApplicationData.Current.ClearAsync(ApplicationDataLocality.Local);
+                // 仅具有包身份的进程支持访问应用包的本地数据。
+                await applicationData.ClearAsync(ApplicationDataLocality.Local);
+            }
+
+            AppDataController.ResetCache();
 
             // 如果需要，退出应用程序
             if (close)
@@ -281,13 +296,37 @@ namespace WaveTools.Views
         {
             Logging.Write("Checking for updates", 0);
             UpdateTip.IsOpen = false;
-            var result = await GetUpdate.GetWaveToolsUpdate();
-            var status = result.Status;
             UpdateTip.Target = checkUpdate;
             UpdateTip.ActionButtonClick -= StartDependForceUpdate;
             UpdateTip.ActionButtonClick -= StartForceUpdate;
             UpdateTip.ActionButtonClick -= DisplayUpdateInfo;
             bool isShiftPressed = (GetAsyncKeyState(0x10) & 0x8000) != 0;
+
+            if (CommonHelpers.AppVersionHelper.IsPortable())
+            {
+                CommonHelpers.PortableUpdateInfo portableResult = await CommonHelpers.PortableUpdateHelper.GetPortableUpdateAsync(isShiftPressed);
+                int portableStatus = portableResult.Status;
+                UpdateTip.Title = isShiftPressed ? "遇到麻烦了吗" : portableStatus == 0 ? "无可用更新" : portableStatus == 1 ? "有可用更新" : "网络连接失败，可能是请求次数过多";
+                UpdateTip.Subtitle = isShiftPressed ? "尝试重装WaveTools" : portableStatus == 1 ? "新版本:" + portableResult.Version : null;
+                UpdateTip.ActionButtonContent = isShiftPressed ? "强制重装" : portableStatus == 1 ? "查看详情" : null;
+                UpdateTip.CloseButtonContent = "关闭";
+
+                if (isShiftPressed)
+                {
+                    UpdateTip.ActionButtonClick += StartForceUpdate;
+                }
+
+                if (portableStatus == 1)
+                {
+                    UpdateTip.ActionButtonClick += DisplayUpdateInfo;
+                }
+
+                UpdateTip.IsOpen = true;
+                return;
+            }
+
+            var result = await GetUpdate.GetWaveToolsUpdate();
+            var status = result.Status;
 
             UpdateTip.Title = isShiftPressed ? "遇到麻烦了吗" : status == 0 ? "无可用更新" : status == 1 ? "有可用更新" : "网络连接失败，可能是请求次数过多";
             UpdateTip.Subtitle = isShiftPressed ? "尝试重装WaveTools" : status == 1 ? "新版本:" + result.Version : null;
@@ -303,7 +342,7 @@ namespace WaveTools.Views
         {
             Logging.Write("Checking for dependency updates", 0);
             UpdateTip.IsOpen = false;
-            var result = await GetUpdate.GetDependUpdate();
+            UpdateResult result = await GetDependUpdateForCurrentMode();
             var status = result.Status;
             UpdateTip.Target = checkDependUpdate;
             UpdateTip.ActionButtonClick -= StartDependForceUpdate;
@@ -322,26 +361,105 @@ namespace WaveTools.Views
             UpdateTip.IsOpen = true;
         }
 
+        private async Task<UpdateResult> GetDependUpdateForCurrentMode()
+        {
+            if (!CommonHelpers.AppVersionHelper.IsPortable())
+            {
+                return await GetUpdate.GetDependUpdate();
+            }
+
+            try
+            {
+                (string Name, string Version, string DownloadUrl, string Changelog) latestReleaseInfo;
+
+                if (AppDataController.GetUpdateService() == 0)
+                {
+                    latestReleaseInfo = await _getGithubLatest.GetLatestDependReleaseInfoAsync("JamXi233", "Releases", "WaveToolsHelper");
+                }
+                else
+                {
+                    try
+                    {
+                        latestReleaseInfo = await _getJSGLatest.GetLatestReleaseInfoAsync("cn.jamsg.WaveToolshelper");
+                    }
+                    catch
+                    {
+                        latestReleaseInfo = await _getJSGLatest.GetLatestReleaseInfoAsync("cn.jamsg.WaveToolsHelper");
+                    }
+                }
+
+                string exePath = AppDataController.GetDataPath("Depends", "WaveToolsHelper", "WaveToolsHelper.exe");
+                Version installedVersion = new Version("0.0.0.0");
+
+                if (File.Exists(exePath))
+                {
+                    FileVersionInfo fileInfo = FileVersionInfo.GetVersionInfo(exePath);
+
+                    if (!string.IsNullOrWhiteSpace(fileInfo.FileVersion) && Version.TryParse(fileInfo.FileVersion, out Version parsedVersion))
+                    {
+                        installedVersion = parsedVersion;
+                    }
+                }
+
+                if (!Version.TryParse(latestReleaseInfo.Version, out Version latestVersion))
+                {
+                    return new UpdateResult(2, string.Empty, string.Empty);
+                }
+
+                if (latestVersion > installedVersion)
+                {
+                    App.IsWaveToolsHelperRequireUpdate = true;
+                    return new UpdateResult(1, latestReleaseInfo.Version, latestReleaseInfo.Changelog);
+                }
+
+                App.IsWaveToolsHelperRequireUpdate = false;
+                return new UpdateResult(0, installedVersion.ToString(), string.Empty);
+            }
+            catch
+            {
+                App.IsWaveToolsHelperRequireUpdate = false;
+                return new UpdateResult(2, string.Empty, string.Empty);
+            }
+        }
+
         public async void DisplayUpdateInfo(TeachingTip sender, object args)
         {
             Logging.Write("Displaying update information", 0);
             bool isWaveTools = UpdateTip.Target != checkDependUpdate;
-            UpdateResult updateinfo = isWaveTools ? await GetUpdate.GetWaveToolsUpdate() : await GetUpdate.GetDependUpdate();
-            UpdateTip.IsOpen = false;
-            var Title = (isWaveTools ? "WaveTools" : "Helper") + ":" + updateinfo.Version + "版本可用";
-            var Content = "更新日志:\n" + updateinfo.Changelog;
-            var CloseButtonText = "关闭";
-            var PrimaryButtonText = "立即更新";
-            var DefaultButton = ContentDialogButton.Primary;
-            var XamlRoot = sender.XamlRoot;
+            string title;
+            string content;
             Action action;
-            if (isWaveTools) action = StartUpdate; else action = StartDependUpdate;
 
-            DialogManager.RaiseDialog(XamlRoot, Title, Content, true, PrimaryButtonText, action);
+            if (isWaveTools && CommonHelpers.AppVersionHelper.IsPortable())
+            {
+                CommonHelpers.PortableUpdateInfo updateInfo = await CommonHelpers.PortableUpdateHelper.GetPortableUpdateAsync();
+                title = "WaveTools:" + updateInfo.Version + "版本可用";
+                content = "更新日志:\n" + updateInfo.Changelog;
+                action = StartUpdate;
+            }
+            else
+            {
+                UpdateResult updateInfo = isWaveTools ? await GetUpdate.GetWaveToolsUpdate() : await GetDependUpdateForCurrentMode();
+                title = (isWaveTools ? "WaveTools" : "Helper") + ":" + updateInfo.Version + "版本可用";
+                content = "更新日志:\n" + updateInfo.Changelog;
+                action = isWaveTools ? StartUpdate : StartDependUpdate;
+            }
+
+            UpdateTip.IsOpen = false;
+            string primaryButtonText = "立即更新";
+            XamlRoot xamlRoot = sender.XamlRoot;
+
+            DialogManager.RaiseDialog(xamlRoot, title, content, true, primaryButtonText, action);
         }
 
         public async void StartUpdate()
         {
+            if (CommonHelpers.AppVersionHelper.IsPortable())
+            {
+                await StartPortableUpdateAsync(false);
+                return;
+            }
+
             UpdateTip.IsOpen = false;
             WaitOverlayManager.RaiseWaitOverlay(true, "正在更新", "请稍等片刻", true, 0);
             await InstallerHelper.GetInstaller();
@@ -355,6 +473,12 @@ namespace WaveTools.Views
 
         public async void StartForceUpdate(TeachingTip sender, object args)
         {
+            if (CommonHelpers.AppVersionHelper.IsPortable())
+            {
+                await StartPortableUpdateAsync(true);
+                return;
+            }
+
             UpdateTip.IsOpen = false;
             WaitOverlayManager.RaiseWaitOverlay(true, "正在强制重装WaveTools", "请稍等片刻", true, 0);
             await InstallerHelper.GetInstaller();
@@ -364,6 +488,46 @@ namespace WaveTools.Views
                 NotificationManager.RaiseNotification("更新失败", "", InfoBarSeverity.Error, true, 3);
             }
             WaitOverlayManager.RaiseWaitOverlay(false);
+        }
+
+        private async Task StartPortableUpdateAsync(bool force)
+        {
+            UpdateTip.IsOpen = false;
+            WaitOverlayManager.RaiseWaitOverlay(true, force ? "正在强制重装便携版" : "正在更新便携版", "正在下载便携版更新器", true, 0);
+
+            try
+            {
+                string updaterPath = await CommonHelpers.PortableUpdateHelper.GetPortableUpdaterAsync(true);
+
+                if (string.IsNullOrWhiteSpace(updaterPath) || !File.Exists(updaterPath))
+                {
+                    NotificationManager.RaiseNotification("启动便携版更新失败", "未找到WaveTools.Updater.exe", InfoBarSeverity.Error, true, 5);
+                    return;
+                }
+
+                WaitOverlayManager.RaiseWaitOverlay(true, force ? "正在强制重装便携版" : "正在更新便携版", "正在启动便携版更新器", true, 0);
+
+                CommonHelpers.PortableUpdateInfo updateInfo = await CommonHelpers.PortableUpdateHelper.GetLatestPortableReleaseInfoAsync();
+                string arguments = CommonHelpers.PortableUpdateHelper.BuildUpdaterArguments(updateInfo, AppDataController.DataRootPath, force);
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = updaterPath,
+                    Arguments = arguments,
+                    WorkingDirectory = Path.GetDirectoryName(updaterPath),
+                    UseShellExecute = true
+                };
+
+                Process.Start(startInfo);
+                Application.Current.Exit();
+            }
+            catch (Exception ex)
+            {
+                NotificationManager.RaiseNotification("启动便携版更新失败", ex.Message, InfoBarSeverity.Error, true, 5);
+            }
+            finally
+            {
+                WaitOverlayManager.RaiseWaitOverlay(false);
+            }
         }
 
         public async void StartDependUpdate()
@@ -415,8 +579,8 @@ namespace WaveTools.Views
             }
 
             Logging.Write("Selected theme index: " + selectedIndex, 0);
-            ThemeTip.IsOpen = true;
             AppDataController.SetDayNight(selectedIndex);
+            App.MainWindow?.ApplyThemeNow(selectedIndex);
         }
 
         // 选择下载渠道开始
@@ -452,6 +616,11 @@ namespace WaveTools.Views
             if (AppDataController.IsCurrentDataRoot(folderPath))
             {
                 NotificationManager.RaiseNotification("数据目录未改变", "选择的目录与当前数据目录相同", InfoBarSeverity.Warning, true, 2);
+                return;
+            }
+
+            if (!EnsureTargetDataRootEmpty(folderPath))
+            {
                 return;
             }
 
@@ -494,7 +663,7 @@ namespace WaveTools.Views
 
         private void Reset_DataRoot_Click(object sender, RoutedEventArgs e)
         {
-            if (AppDataController.IsCurrentDataRoot(AppDataController.DefaultDataRootPath))
+            if (AppDataController.IsCurrentDataRoot(AppDataController.DefaultDataRootPath) && !AppDataController.IsUsingCustomDataRoot())
             {
                 NotificationManager.RaiseNotification("当前已在使用默认数据目录", "", InfoBarSeverity.Warning, true, 2);
                 return;
@@ -502,6 +671,11 @@ namespace WaveTools.Views
 
             string currentPath = AppDataController.DataRootPath;
             string defaultPath = AppDataController.DefaultDataRootPath;
+
+            if (!AppDataController.IsCurrentDataRoot(defaultPath) && !EnsureTargetDataRootEmpty(defaultPath))
+            {
+                return;
+            }
 
             StackPanel content = new StackPanel
             {
@@ -549,6 +723,35 @@ namespace WaveTools.Views
             catch (Exception ex)
             {
                 NotificationManager.RaiseNotification("打开数据目录失败", ex.Message, InfoBarSeverity.Error);
+            }
+        }
+
+        private bool EnsureTargetDataRootEmpty(string folderPath)
+        {
+            if (string.IsNullOrWhiteSpace(folderPath))
+            {
+                return false;
+            }
+
+            try
+            {
+                if (!Directory.Exists(folderPath))
+                {
+                    return true;
+                }
+
+                if (!Directory.EnumerateFileSystemEntries(folderPath).Any())
+                {
+                    return true;
+                }
+
+                NotificationManager.RaiseNotification("目录不为空", folderPath + "目录不为空\n请选择一个空的目录来迁移数据", InfoBarSeverity.Warning, true, 5);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                NotificationManager.RaiseNotification("检查目录失败", ex.Message, InfoBarSeverity.Error, true, 5);
+                return false;
             }
         }
 
@@ -856,6 +1059,11 @@ namespace WaveTools.Views
 
         private async Task ApplyDataRootMoveAsync(string folderPath)
         {
+            if (!EnsureTargetDataRootEmpty(folderPath))
+            {
+                return;
+            }
+
             await MainView.PrepareCacheForDataRootMoveAsync();
             string currentPath = AppDataController.DataRootPath;
 
@@ -892,14 +1100,23 @@ namespace WaveTools.Views
 
         private async Task ApplyDefaultDataRootMoveAsync()
         {
-            await MainView.PrepareCacheForDataRootMoveAsync();
-            string currentPath = AppDataController.DataRootPath;
             string defaultPath = AppDataController.DefaultDataRootPath;
 
-            bool canMove = await CheckDataRootLockedBeforeMoveAsync(currentPath, defaultPath);
-            if (!canMove)
+            if (!AppDataController.IsCurrentDataRoot(defaultPath) && !EnsureTargetDataRootEmpty(defaultPath))
             {
                 return;
+            }
+
+            await MainView.PrepareCacheForDataRootMoveAsync();
+            string currentPath = AppDataController.DataRootPath;
+
+            if (!AppDataController.IsCurrentDataRoot(defaultPath))
+            {
+                bool canMove = await CheckDataRootLockedBeforeMoveAsync(currentPath, defaultPath);
+                if (!canMove)
+                {
+                    return;
+                }
             }
 
             WaitOverlayManager.RaiseWaitOverlay(true, "正在恢复默认数据目录", "正在复制并校验数据\n请不要关闭 WaveTools", true, 0);
@@ -1665,9 +1882,189 @@ namespace WaveTools.Views
 
         private void Debug_GeneralTest(object sender, RoutedEventArgs e)
         {
-            WebViewHelper.RaiseWebViewWindow("https://sdk.mihoyo.com/nap/announcement/index.html?auth_appid=announcement&authkey_ver=1&bundle_id=nap_cn&channel_id=1&game=nap&game_biz=nap_cn&lang=zh-cn&level=60&platform=pc&region=prod_gf_cn&sdk_presentation_style=fullscreen&sdk_screen_transparent=true&sign_type=2&uid=100000000&", "绝区零游戏内公告", false, 1141, 647, Script);
+            WebViewHelper.RaiseWebViewWindow("https://sdk.mihoyo.com/nap/announcement/index.html?auth_appid=announcement&authkey_ver=1&bundle_id=nap_cn&game=nap&game_biz=nap_cn&lang=zh-cn&level=60&platform=pc&region=prod_gf_cn&sdk_presentation_style=fullscreen&sdk_screen_transparent=true&sign_type=2&uid=100000000&", "绝区零游戏内公告", false, 1141, 647, Script);
         }
         private string Script = "window.onload = function() { console.log('ZenlessTools_Cathced!'); setInterval(() => { if (window.closed) { window.chrome.webview.postMessage('window_closed'); } }, 100); (function() { const originalFunction = window.linkClicked; window.linkClicked = function(...args) { window.chrome.webview.postMessage('announcements_link_clicked'); return originalFunction.apply(this, args); }; })(); const root = document.getElementById('root'); root.style.backgroundRepeat = 'no-repeat'; root.style.backgroundPosition = 'left bottom'; root.style.backgroundSize = 'cover'; const bodyHome = document.getElementsByClassName('home__body--pc'); if (bodyHome.length > 0) { bodyHome[0].style.transform = 'scale(1.27, 1.32)'; } const home = document.getElementsByClassName('home'); if (home.length > 0) { home[0].style.background = 'transparent'; } const closeBtn = document.getElementsByClassName('home__close'); if (closeBtn.length > 0) { closeBtn[0].onclick = function() { window.close(); }; } document.addEventListener('click', function(event) { let target = event.target; while (target && target.tagName !== 'A') { target = target.parentNode; } if (target && target.tagName === 'A') { const href = target.getAttribute('href'); const jsRegex = /javascript:miHoYoGameJSSDK\\.openInBrowser\\('([^']+)'\\)/; const jsMatch = href.match(jsRegex); if (jsMatch && jsMatch[1]) { event.preventDefault(); linkClicked(); return; } const uniwebviewPrefix = 'uniwebview://open_url?url='; if (href.startsWith(uniwebviewPrefix)) { event.preventDefault(); const newUrl = decodeURIComponent(href.replace(uniwebviewPrefix, '')); linkClicked(); return; } } }); };";
+
+        private void Debug_CopyDiagnosticInfo_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                StringBuilder builder = new StringBuilder();
+                using Process currentProcess = Process.GetCurrentProcess();
+                builder.AppendLine("WaveTools Debug Diagnostic");
+                builder.AppendLine("Time: " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+                builder.AppendLine("Version: " + CommonHelpers.AppVersionHelper.GetAppVersion());
+                builder.AppendLine("ProcessId: " + currentProcess.Id);
+                builder.AppendLine("Is64BitProcess: " + Environment.Is64BitProcess);
+                builder.AppendLine("OSVersion: " + Environment.OSVersion);
+                builder.AppendLine("DebuggerAttached: " + Debugger.IsAttached);
+                builder.AppendLine("SModeDebug: " + App.SDebugMode);
+                builder.AppendLine("GlobalDebug: " + App.GDebugMode);
+                builder.AppendLine("DataRootPath: " + AppDataController.DataRootPath);
+                builder.AppendLine("DefaultDataRootPath: " + AppDataController.DefaultDataRootPath);
+                builder.AppendLine("UseCustomDataRoot: " + AppDataController.IsUsingCustomDataRoot());
+                builder.AppendLine("SettingsFilePath: " + AppDataController.SettingsFilePath);
+                builder.AppendLine("BootstrapFilePath: " + AppDataController.BootstrapFilePath);
+                builder.AppendLine("GamePath: " + AppDataController.GetGamePath());
+                builder.AppendLine("UpdateService: " + AppDataController.GetUpdateService());
+                builder.AppendLine("DayNight: " + AppDataController.GetDayNight());
+                builder.AppendLine("ConsoleMode: " + AppDataController.GetConsoleMode());
+                builder.AppendLine("TerminalMode: " + AppDataController.GetTerminalMode());
+                builder.AppendLine("AdminMode: " + AppDataController.GetAdminMode());
+                builder.AppendLine("AutoCheckUpdate: " + AppDataController.GetAutoCheckUpdate());
+                DataPackage package = new DataPackage();
+                package.SetText(builder.ToString());
+                Clipboard.SetContent(package);
+                NotificationManager.RaiseNotification("诊断信息已复制", "可直接粘贴给开发者排查问题", InfoBarSeverity.Success, true, 2);
+            }
+            catch (Exception ex)
+            {
+                NotificationManager.RaiseNotification("复制诊断信息失败", ex.Message, InfoBarSeverity.Error, true, 5);
+            }
+        }
+
+        private void Debug_OpenDataRoot_Click(object sender, RoutedEventArgs e)
+        {
+            Debug_OpenDirectory(AppDataController.DataRootPath, true);
+        }
+
+        private void Debug_OpenSettingsFile_Click(object sender, RoutedEventArgs e)
+        {
+            Debug_OpenFileOrDirectory(AppDataController.SettingsFilePath);
+        }
+
+        private void Debug_OpenBootstrapFile_Click(object sender, RoutedEventArgs e)
+        {
+            Debug_OpenFileOrDirectory(AppDataController.BootstrapFilePath);
+        }
+
+        private void Debug_OpenLogs_Click(object sender, RoutedEventArgs e)
+        {
+            Debug_OpenDirectory(AppDataController.GetDataPath("Logs"), true);
+        }
+
+        private void Debug_OpenPanic_Click(object sender, RoutedEventArgs e)
+        {
+            Debug_OpenDirectory(AppDataController.GetDataPath("Panic"), true);
+        }
+
+        private void Debug_OpenCache_Click(object sender, RoutedEventArgs e)
+        {
+            Debug_OpenDirectory(AppDataController.GetDataPath("Cache"), true);
+        }
+
+        private void Debug_OpenDepends_Click(object sender, RoutedEventArgs e)
+        {
+            Debug_OpenDirectory(AppDataController.GetDataPath("Depends"), true);
+        }
+
+        private void Debug_WriteLog_Click(object sender, RoutedEventArgs e)
+        {
+            Logging.Write("Debug log write test", 0);
+            NotificationManager.RaiseNotification("测试日志已写入", "请到日志目录查看", InfoBarSeverity.Success, true, 2);
+        }
+
+        private void Debug_ReleaseMemory_Click(object sender, RoutedEventArgs e)
+        {
+            MemHelper.Release();
+            NotificationManager.RaiseNotification("内存释放已执行", "已调用 MemHelper.Release", InfoBarSeverity.Success, true, 2);
+        }
+
+        private void Debug_ReloadSettings_Click(object sender, RoutedEventArgs e)
+        {
+            LoadSettings();
+            NotificationManager.RaiseNotification("设置已重新加载", "AboutView 已重新读取 settings.json", InfoBarSeverity.Success, true, 2);
+        }
+
+        private void Debug_Notification_Info_Test(object sender, RoutedEventArgs e)
+        {
+            Notification_Test_Count++;
+            NotificationManager.RaiseNotification("Info 通知测试", "这是一条Info测试通知" + Notification_Test_Count, InfoBarSeverity.Informational, false, 2);
+        }
+
+        private void Debug_Notification_Warning_Test(object sender, RoutedEventArgs e)
+        {
+            Notification_Test_Count++;
+            NotificationManager.RaiseNotification("Warning 通知测试", "这是一条Warning测试通知" + Notification_Test_Count, InfoBarSeverity.Warning, false, 2);
+        }
+
+        private void Debug_Notification_Error_Test(object sender, RoutedEventArgs e)
+        {
+            Notification_Test_Count++;
+            NotificationManager.RaiseNotification("Error 通知测试", "这是一条Error测试通知" + Notification_Test_Count, InfoBarSeverity.Error, false, 2);
+        }
+
+        private void Debug_OpenFileOrDirectory(string path)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(path))
+                {
+                    NotificationManager.RaiseNotification("路径为空", "无法打开空路径", InfoBarSeverity.Warning, true, 3);
+                    return;
+                }
+
+                if (File.Exists(path))
+                {
+                    Process.Start(new ProcessStartInfo
+                    {
+                        FileName = "explorer.exe",
+                        Arguments = "/select,\"" + path + "\"",
+                        UseShellExecute = true
+                    });
+                    return;
+                }
+
+                string directoryPath = Directory.Exists(path) ? path : Path.GetDirectoryName(path);
+                if (!string.IsNullOrWhiteSpace(directoryPath))
+                {
+                    Debug_OpenDirectory(directoryPath, false);
+                    return;
+                }
+
+                NotificationManager.RaiseNotification("路径不存在", path, InfoBarSeverity.Warning, true, 3);
+            }
+            catch (Exception ex)
+            {
+                NotificationManager.RaiseNotification("打开路径失败", ex.Message, InfoBarSeverity.Error, true, 5);
+            }
+        }
+
+        private void Debug_OpenDirectory(string path, bool createIfMissing)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(path))
+                {
+                    NotificationManager.RaiseNotification("路径为空", "无法打开空路径", InfoBarSeverity.Warning, true, 3);
+                    return;
+                }
+
+                if (!Directory.Exists(path))
+                {
+                    if (createIfMissing)
+                    {
+                        Directory.CreateDirectory(path);
+                    }
+                    else
+                    {
+                        NotificationManager.RaiseNotification("目录不存在", path, InfoBarSeverity.Warning, true, 3);
+                        return;
+                    }
+                }
+
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = path,
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                NotificationManager.RaiseNotification("打开目录失败", ex.Message, InfoBarSeverity.Error, true, 5);
+            }
+        }
 
         private void Debug_Panic_Click(object sender, RoutedEventArgs e)
         {

@@ -26,13 +26,11 @@ using System;
 using System.IO;
 using System.IO.Compression;
 using Microsoft.UI.Xaml.Media;
-using WaveTools.Depend;
 
 namespace WaveTools.Views.FirstRunViews
 {
     public sealed partial class FirstRunGetDepend : Page
     {
-        private MainWindow mainWindow;
         string fileUrl;
         private GetNetData _getNetData;
         private readonly GetGithubLatest _getGithubLatest = new GetGithubLatest();
@@ -43,10 +41,21 @@ namespace WaveTools.Views.FirstRunViews
             this.InitializeComponent();
             Logging.Write("Switch to FirstRunGetDepend", 0);
             AppDataController.SetFirstRunStatus(5);
-            OnGetDependLatestReleaseInfo();
+            Loaded += FirstRunGetDepend_Loaded;
+            if (!AppDataController.HasWaveToolsHelper())
+            {
+                OnGetDependLatestReleaseInfo();
+            }
         }
 
-        //依赖下载开始
+        private void FirstRunGetDepend_Loaded(object sender, RoutedEventArgs e)
+        {
+            if (AppDataController.HasWaveToolsHelper())
+            {
+                Frame parentFrame = GetParentFrame(this);
+                FirstRunNavigation.NavigateToNextRequiredPage(parentFrame);
+            }
+        }
 
         private const string ZipFileName = "WaveToolsHelper.zip";
         private const string ExtractedFolder = "WaveToolsHelper";
@@ -78,12 +87,9 @@ namespace WaveTools.Views.FirstRunViews
                 string extractionPath = Path.Combine(dependsFolderPath, ExtractedFolder);
                 if (File.Exists(extractionPath + "\\WaveToolsHelper.exe"))
                 {
-                    mainWindow?.KillFirstUI();
+                    App.MainWindow?.KillFirstUI();
                     Frame parentFrame = GetParentFrame(this);
-                    if (parentFrame != null)
-                    {
-                        parentFrame.Navigate(typeof(FirstRunExtra));
-                    }
+                    FirstRunNavigation.NavigateToNextRequiredPage(parentFrame);
                 }
                 else 
                 {
@@ -91,10 +97,7 @@ namespace WaveTools.Views.FirstRunViews
                     Trace.WriteLine(extractionPath);
                     ZipFile.ExtractToDirectory(localFilePath, extractionPath);
                     Frame parentFrame = GetParentFrame(this);
-                    if (parentFrame != null)
-                    {
-                        parentFrame.Navigate(typeof(FirstRunExtra));
-                    }
+                    FirstRunNavigation.NavigateToNextRequiredPage(parentFrame);
                 }
             }
             else

@@ -27,7 +27,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using static WaveTools.App;
 using System.Diagnostics;
-using WaveTools.Depend;
 
 namespace WaveTools.Views.SGViews
 {

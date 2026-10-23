@@ -24,4 +24,4 @@
 本工具箱仅适用于PC版鸣潮。
 
 # Star
-[![Star History Chart](https://api.star-history.com/svg?repos=JamXi233/WaveTools&type=Date)](https://star-history.com/#JamXi233/WaveTools&Date)
+[![Star History Chart](https://star-history.dera.page/svg?repos=JamXi233/WaveTools&type=Date)](https://star-history.dera.page/#JamXi233/WaveTools&Date)
